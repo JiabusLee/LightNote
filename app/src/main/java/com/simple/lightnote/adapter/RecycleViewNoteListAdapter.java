@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
 import com.simple.lightnote.model.Note;
@@ -26,10 +27,10 @@ import java.util.ArrayList;
  * 列表ListView的Adapter
  *
  */
-public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnClickListener{
 	private Cursor cursor;
 	Context mContext;
-	private ArrayList<Note> list;
+	private static ArrayList<Note> list;
 	public RecycleViewNoteListAdapter(ArrayList<Note> note) {
 		this.list=note;
 	}
@@ -64,6 +65,18 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 		}
 		return 0;
 	}
+
+	@Override
+	public long getItemId(int position) {
+		return super.getItemId(position);
+	}
+
+	@Override
+	public int getItemViewType(int position) {
+		return super.getItemViewType(position);
+	}
+
+
 	public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener{
 		RecyclerView.Adapter<ViewHolder> mAdapter;
 		Context mContext;
@@ -83,11 +96,11 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 			ll_action=(LinearLayout) view.findViewById(R.id.ll_action);
 			
 
-			action1.setOnClickListener(this);
-			action2.setOnClickListener(this);
-			action3.setOnClickListener(this);
+			action1.setOnClickListener(RecyclerViewHolder.this);
+			action2.setOnClickListener(RecyclerViewHolder.this);
+			action3.setOnClickListener(RecyclerViewHolder.this);
 
-			ll_container.setOnClickListener(this);
+			ll_container.setOnClickListener(RecyclerViewHolder.this);
 			
 		}
 		@Override
@@ -104,15 +117,24 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 				ToastUtils.showToast(mContext, "onClick3");
 				break;
 			case R.id.ll_container:
+				int adapterPosition = getAdapterPosition();
+				Note note = list.get(adapterPosition);
+				String s = JSON.toJSONString(note);
 				Intent intent=new Intent(mContext,SimpleNoteEditActivity.class);
+				intent.putExtra("clickItem",s);
 				mContext.startActivity(intent);
 				break;
 			default:
 				break;
 			}
-					
-		}		
+
+		}
+
 		
-		
+	}
+
+	@Override
+	public void onClick(View v) {
+
 	}
 }

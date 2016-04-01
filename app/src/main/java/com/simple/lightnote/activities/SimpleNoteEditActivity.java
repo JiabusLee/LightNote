@@ -13,6 +13,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.constant.Constans;
@@ -53,6 +54,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simplenoteedit);
+        String clickItem = getIntent().getStringExtra("clickItem");
+        Note note = JSON.parseObject(clickItem, Note.class);
+
         initView();
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle("编辑");
@@ -60,6 +64,11 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         edt_noteContent = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
+        String noteContent = note.getNoteContent();
+        if(!TextUtils.isEmpty(noteContent)){
+            edt_content.setText(noteContent);
+            edt_content.setSelection(noteContent.length());
+        }
     }
 
     private void initView() {
