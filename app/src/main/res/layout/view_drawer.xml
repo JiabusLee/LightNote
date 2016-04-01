@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <RelativeLayout
+        android:id="@+id/note_select_item"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="120dip"
+
+                android:background="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/note_select_item_allNote"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/drawer_item_height"
+                android:layout_marginTop="40dip"
+                android:background="@drawable/oval"
+                android:padding="5dip"
+                android:text="所有笔记"
+                android:textSize="18dip" />
+
+            <TextView
+            	android:id="@+id/note_select_item_noteBook"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/drawer_item_height"
+                android:layout_gravity="start"
+                android:padding="5dip"
+                android:text="笔记本"
+                android:textSize="18dip" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/drawer_item_height"
+                android:layout_gravity="start"
+                android:padding="5dip"
+                android:text="标签"
+                android:textSize="18dip" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/drawer_item_height"
+                android:padding="5dip"
+                android:text="设置"
+                android:textSize="18dip" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/note_select_item_set"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/column_height_base"
+            android:layout_alignParentBottom="true"
+            android:padding="5dip"
+            android:text="设置"
+            android:layout_margin="10dip"
+            android:textSize="18dip" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.2dip"
+            android:layout_above="@id/note_select_item_set"
+            android:background="#222222"
+            android:paddingLeft="8dip"
+            android:paddingRight="8dip" />
+    </RelativeLayout>
+</merge>

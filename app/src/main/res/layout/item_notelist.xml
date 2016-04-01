@@ -1,0 +1,21 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <TextView
+        android:id="@+id/item_introduce"
+        android:layout_width="match_parent"
+        android:layout_height="48dip"
+        android:maxHeight="40dip"
+        android:maxLines="3"
+        android:minLines="1"
+        android:paddingBottom="5dip"
+        android:paddingTop="5dip"
+        android:text="第一条"
+        android:paddingLeft="5dip"
+         android:background="@drawable/oval"
+         android:textColor="@color/textColor"
+        android:textSize="16sp" />
+
+</RelativeLayout>

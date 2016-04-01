@@ -1,0 +1,48 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="3dip"></android.support.v7.widget.Toolbar>
+
+    <EditText
+        android:id="@+id/simpleNote_edt_noteContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar"
+        android:layout_margin="8dip"
+        android:background="@null"
+        android:lineSpacingMultiplier="1.5"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/simpleNote_ll_actionbar"
+        android:layout_width="match_parent"
+        android:layout_height="45dip"
+        android:layout_alignParentBottom="true"
+        android:background="@color/gray_dark">
+
+        <TextView
+            style="@style/simpleInputButton"
+            android:text="#" /><TextView
+            style="@style/simpleInputButton"
+            android:text="-" /><TextView
+            style="@style/simpleInputButton"
+            android:text="*" /><TextView
+            style="@style/simpleInputButton"
+            android:text=">" /><TextView
+            style="@style/simpleInputButton"
+            android:text="---" /><TextView
+            style="@style/simpleInputButton"
+            android:text="保存" />
+
+
+    </LinearLayout>
+
+</RelativeLayout>

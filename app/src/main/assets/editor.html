@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!--  <link rel="stylesheet" type="text/css" href="normalize.css">
+    <link rel="stylesheet" type="text/css" href="style.css">-->
+
+    <link href="justwetools/markdown.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id="editor" contentEditable="true" class="markdown-body"></div>
+<script type="text/javascript" src="rich_editor.js"></script>
+<!--<input type="button" value="Say hello" onClick="showAndroidToast('Hello Android!')" /><br/>
+<input type="button" value="Say hello2" onClick="alertData('Hello Android!')" /><br/>
+<input type="button" value="Say hello3" onClick="RE.setHtml('<h4>parseMarkdown</h4>');" /><br/>-->
+<script type="text/javascript">
+
+        function parseMarkdown(content){
+        alertData(data);
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                gfm: true,
+                tables: true,
+                breaks: false,
+                pedantic: false,
+                sanitize: true,
+                smartLists: true,
+                smartypants: false
+            });
+            document.getElementById('content').innerHTML = marked(content);
+            <!--alignScroll();-->
+
+        }
+        function alignScroll() {
+            window.handler.onHTMLGenerated();
+        }
+		function alertData(data){
+		   if (data == null || data == undefined) {
+				alert("loading html");
+			}else{
+				alert(data);
+			}
+		}
+
+	 function showAndroidToast(toast) {
+			Android.showToast(toast);
+    }
+</script>
+</body>
+</html>

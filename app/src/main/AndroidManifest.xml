@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.simple.lightnote"
+    android:versionCode="1"
+    android:versionName="1.0.0">
+
+    <uses-sdk
+        android:minSdkVersion="22"
+        android:targetSdkVersion="23" />
+
+    <application
+        android:name="com.simple.lightnote.LightNoteApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="com.simple.lightnote.activities.MainActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.simple.lightnote.activities.NoteEditActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name="jp.wasabeef.richeditor.RichEditorActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <!--
+             <activity
+            android:name="io.github.mthli.knifedemo.KnifeMutiEditTextActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+             />
+        -->
+
+
+        <!-- <activity
+             android:name="io.github.mthli.knifedemo.KnifeMutiEditTextActivity"
+             android:theme="@style/Theme.AppCompat.Light"
+
+             android:windowSoftInputMode="adjustResize|stateHidden" >
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity>-->
+
+        <activity android:name=".activities.base.FileSelectActivity"/>
+        <activity
+            android:name="com.simple.lightnote.activities.SimpleNoteEditActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"></activity>
+        <activity android:name=".activities.NotePreViewActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+          <!--  <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="*"
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.md"
+                    android:scheme="file"></data>
+            </intent-filter>-->
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="file" />
+                    <data android:host="*" />
+                    <data android:mimeType="*/*" />
+                    <data android:pathPattern=".*\\.md" />
+                    <data android:pathPattern=".*\\..*\\.md" />
+                    <data android:pathPattern=".*\\..*\\..*\\.md" />
+                    <data android:pathPattern=".*\\..*\\..*\\..*\\.md" />
+                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.md" />
+                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.md" />
+                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.md" />
+            </intent-filter>
+        </activity>
+
+        <!--        android:theme="@style/Theme.AppCompat.Light"-->
+
+
+        <!-- 请填写应用实际的APP_ID -->
+        <meta-data android:name="com.baidu.speech.APP_ID" android:value="7929460"/>
+        <!-- 请填写应用实际的API_KEY -->
+        <meta-data android:name="com.baidu.speech.API_KEY" android:value="gkXg1nksIE9N8MVWD9MkM83N"/>
+        <!-- 请填写应用实际的SECRET_KEY -->
+        <meta-data android:name="com.baidu.speech.SECRET_KEY" android:value="eb4c7b29c1640351ee6764d5e6b37d63"/>
+        <service android:name="com.baidu.speech.VoiceRecognitionService" android:exported="false" ></service>
+        <activity
+            android:name="com.baidu.voicerecognition.android.ui.BaiduASRDigitalDialog"
+            android:configChanges="orientation|keyboardHidden|screenLayout"
+            android:theme="@android:style/Theme.Dialog"
+            android:exported="false"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="com.baidu.action.RECOGNIZE_SPEECH" ></action>
+                <category android:name="android.intent.category.DEFAULT" ></category>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="AA_DB_NAME"
+            android:value="note.db" />
+        <meta-data
+            android:name="AA_DB_VERSION"
+            android:value="1" />
+        <meta-data
+            android:name="AA_MODELS"
+            android:value="com.simple.lightnote.model.Note" />
+
+    </application>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+
+
+</manifest>

@@ -1,0 +1,67 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEEEEE" >
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/actionBarSize"
+        android:elevation="3dip"
+        android:background="@color/colorPrimary" >
+    </android.support.v7.widget.Toolbar>
+
+    <EditText
+        android:layout_margin="8dip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar"
+        android:background="@null"
+        android:lineSpacingMultiplier="1.2"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/ll_bottomToolBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dip"
+        android:layout_alignParentBottom="true"
+        android:background="@color/gray_dark"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/menubar_1"
+            style="@style/menuBar"
+            android:text="-" />
+
+        <View style="@style/menuBarline" />
+
+        <TextView
+            android:id="@+id/menubar_2"
+            style="@style/menuBar"
+            android:text="*" />
+
+        <View style="@style/menuBarline" />
+
+        <TextView
+            android:id="@+id/menubar_3"
+            style="@style/menuBar"
+            android:text=">" />
+
+        <View style="@style/menuBarline" />
+
+        <TextView
+            android:id="@+id/menubar_4"
+            style="@style/menuBar"
+
+            android:text="---" />
+
+        <View style="@style/menuBarline" />
+
+        <TextView
+            android:id="@+id/menubar_save"
+            style="@style/menuBar"
+            android:text="保存" />
+    </LinearLayout>
+
+</RelativeLayout>

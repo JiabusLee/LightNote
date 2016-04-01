@@ -1,0 +1,39 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.simple.lightnote.MainActivity" >
+
+
+
+    <item
+        android:id="@+id/menu_simplenoteedit_actionBar"
+        android:orderInCategory="100"
+        android:title="HIDE"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_simplenoteedit_caption"
+        android:orderInCategory="100"
+        android:title="标题"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_simplenoteedit_orderlist"
+        android:orderInCategory="100"
+        android:title="有序列表"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_simplenoteedit_disorderlist"
+        android:orderInCategory="100"
+        android:title="无序列表"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_simplenoteedit_list"
+        android:orderInCategory="100"
+        android:title="清单"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_simplenoteedit_reference"
+        android:orderInCategory="100"
+        android:title="引用"
+        app:showAsAction="never"/>
+
+</menu>

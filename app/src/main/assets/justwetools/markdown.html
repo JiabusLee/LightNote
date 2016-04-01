@@ -1,0 +1,54 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <link href="markdown.css" rel="stylesheet" type="text/css">
+    <script src="marked.min.js"></script>
+
+</head>
+<body >
+<article id="content" class="markdown-body">
+    <h4>article markdown</h4>
+
+</article>
+
+<h3>bbbbb</h3>
+<input type="button" value="Say hello" onClick="showAndroidToast('Hello Android!')" /><br/>
+<input type="button" value="Say hello2" onClick="alertData('Hello Android!')" /><br/>
+<input type="button" value="Say hello3" onClick="parseMarkdown('<h4>parseMarkdown</h4>');" /><br/>
+<script type="text/javascript">
+
+        function parseMarkdown(content){
+        alertData(data);
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                gfm: true,
+                tables: true,
+                breaks: false,
+                pedantic: false,
+                sanitize: true,
+                smartLists: true,
+                smartypants: false
+            });
+            document.getElementById('content').innerHTML = marked(content);
+            <!--alignScroll();-->
+
+        }
+        function alignScroll() {
+            window.handler.onHTMLGenerated();
+        }
+		function alertData(data){
+		   if (data == null || data == undefined) {
+				alert("loading html");
+			}else{
+				alert(data);
+			}
+		}
+
+	 function showAndroidToast(toast) {
+			Android.showToast(toast);
+    }
+</script>
+</body>
+</html>

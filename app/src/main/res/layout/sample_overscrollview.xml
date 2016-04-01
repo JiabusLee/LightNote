@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.simple.lightnote.view.OverScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E3E3E3" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:id="@+id/note_select_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/header" />
+
+                <TextView
+                    android:id="@+id/note_select_item_allNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/drawer_item_height"
+                    android:layout_gravity="start"
+                    android:layout_marginTop="40dip"
+                    android:background="@drawable/oval"
+                    android:padding="5dip"
+                    android:text="所有笔记"
+                    android:textSize="18dip" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/drawer_item_height"
+                    android:layout_gravity="start"
+                    android:layout_margin="8dip"
+                    android:background="#C1C1C1"
+                    android:padding="5dip"
+                    android:text="笔记本"
+                    android:textSize="18dip" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/drawer_item_height"
+                    android:layout_gravity="start"
+                    android:layout_margin="8dip"
+                    android:background="#C1C1C1"
+                    android:padding="5dip"
+                    android:text="标签"
+                    android:textSize="18dip" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/drawer_item_height"
+                    android:layout_margin="8dip"
+                    android:background="#C1C1C1"
+                    android:padding="5dip"
+                    android:text="设置"
+                    android:textSize="18dip" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/note_select_item_set"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/drawer_item_height"
+                android:layout_margin="8dip"
+                android:background="#C1C1C1"
+                android:padding="5dip"
+                android:text="设置"
+                android:textSize="18dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.2dip"
+                android:layout_above="@id/note_select_item_set"
+                android:background="#000000"
+                android:paddingLeft="8dip"
+                android:paddingRight="8dip" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/drawer_item_height"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/drawer_item_height"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/drawer_item_height"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="120dip"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="120dip"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="120dip"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="120dip"
+            android:layout_margin="8dip"
+            android:background="#C1C1C1"
+            android:padding="5dip"
+            android:text="Test"
+            android:textSize="18dip" />
+    </LinearLayout>
+
+</com.simple.lightnote.view.OverScrollView>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <declare-styleable name="FloatingActionButton">
+        <attr name="fab_colorPressed" format="color" />
+        <attr name="fab_colorNormal" format="color" />
+        <attr name="fab_colorRipple" format="color" />
+        <attr name="fab_colorDisabled" format="color" />
+        <attr name="fab_shadow" format="boolean" />
+        <attr name="fab_type" format="enum">
+            <enum name="normal" value="0" />
+            <enum name="mini" value="1" />
+        </attr>
+    </declare-styleable>
+    
+    <declare-styleable name="KnifeText">
+        <attr name="bulletColor" format="reference|color" />
+        <attr name="bulletRadius" format="reference|dimension" />
+        <attr name="bulletGapWidth" format="reference|dimension" />
+        <attr name="historyEnable" format="reference|boolean" />
+        <attr name="historySize" format="reference|integer" />
+        <attr name="linkColor" format="reference|color" />
+        <attr name="linkUnderline" format="reference|boolean" />
+        <attr name="quoteColor" format="reference|color" />
+        <attr name="quoteStripeWidth" format="reference|dimension" />
+        <attr name="quoteCapWidth" format="reference|dimension" />
+    </declare-styleable>
+    <declare-styleable name="SwipeMenu">
+        <attr name="anim_duration" format="integer" />
+    </declare-styleable>
+</resources>
