@@ -27,7 +27,6 @@ import com.simple.lightnote.utils.ToastUtils;
 
 import rx.Observable;
 import rx.Subscriber;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -108,39 +107,40 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             writableDatabase.execSQL(sql);
             writableDatabase.endTransaction();
 
-          note = new Note();
+            note = new Note();
             note.setCreateTime(System.currentTimeMillis());
             note.setLastModifyTime(System.currentTimeMillis());
             note.setNoteContent(s_noteContent);
             note.setNoteType(Constans.NoteType.normal);
             note.setNoteMd5(md5);
+            note.setNoteTitle("");
             LogUtils.e(TAG, note);
-            note.setNoteTitle("AAAANoteTitle");
         }
 
 
         Observable
-               .just(note)
+                .just(note)
                 .filter(new Func1<Note, Boolean>() {
                     @Override
                     public Boolean call(Note note) {
-                        return note!=null;
+                        return note != null;
                     }
                 })
-                .doOnNext(new Action1<Note>() {
+                .map(new Func1<Note, Long>() {
                     @Override
-                    public void call(Note note) {
+                    public Long call(Note note) {
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(SimpleNoteEditActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        noteDao.insert(note);
+                        return noteDao.insert(note);
 
                     }
                 })
+
                 .observeOn(Schedulers.io())
-                .subscribe(new Subscriber<Note>() {
+                .subscribe(new Subscriber<Long>() {
                     @Override
                     public void onCompleted() {
                         Log.e(TAG, "onCompleted:");
@@ -152,8 +152,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     }
 
                     @Override
-                    public void onNext(Note note) {
-                        Log.e(TAG, "onNext:");
+                    public void onNext(Long l) {
+
+                        Log.e(TAG, "onNext:" + l);
                     }
                 });
 
