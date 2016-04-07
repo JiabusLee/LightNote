@@ -1,7 +1,8 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#EEEEEE">
 
     <android.support.v7.widget.Toolbar
@@ -16,9 +17,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toolbar"
-        android:layout_margin="8dip"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
         android:background="@null"
         android:lineSpacingMultiplier="1.5"
+        android:gravity="left"
+        android:text="生活"
+        android:layout_weight="1"
         android:textSize="18sp" />
 
     <LinearLayout
@@ -30,6 +35,7 @@
 
         <TextView
             style="@style/simpleInputButton"
+            android:clickable="true"
             android:text="#" /><TextView
             style="@style/simpleInputButton"
             android:text="-" /><TextView
@@ -40,9 +46,10 @@
             style="@style/simpleInputButton"
             android:text="---" /><TextView
             style="@style/simpleInputButton"
+            android:clickable="true"
             android:text="保存" />
 
 
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

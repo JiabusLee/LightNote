@@ -135,4 +135,14 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public long insert(Note entity) {
         return super.insert(entity);
     }
+
+    @Override
+    public void delete(Note entity) {
+        super.delete(entity);
+    }
+
+
+    public void deleteByKey(Integer key) {
+        super.deleteByKey(Long.valueOf(key));
+    }
 }

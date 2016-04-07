@@ -7,7 +7,7 @@ public class LightNoteApplication extends Application{
 	public void onCreate() {
 		super.onCreate();
 
-//		CustomCrashHandler.getInstance().initCrashHanler(getApplicationContext());
+		CustomCrashHandler.getInstance().initCrashHanler(getApplicationContext());
 	/*	Stetho.initialize(
 				Stetho.newInitializerBuilder(this)
 						.enableDumpapp(

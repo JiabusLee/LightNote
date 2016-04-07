@@ -1,77 +1,83 @@
-<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/hsv"
     android:layout_width="wrap_content"
-    android:layout_height="80dip"
-    android:scrollbars="none" >
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal" >
-
-        <RelativeLayout
-            android:id="@+id/ll_container"
+    <RelativeLayout
+        android:id="@+id/ll_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="12dp"
             >
 
             <TextView
+                android:textSize="16sp"
                 android:id="@+id/item_introduce"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="" />
+                android:layout_height="80dip"
+                android:gravity="left|center_vertical"
+                android:maxHeight="120dip"
+                android:minHeight="60dip"
+                android:text="多少六朝兴废事，尽入渔樵闲话
+                一个人的品味来源于对更好的自己无止境的追求
+                北方有佳人，绝世而独立。一顾倾人城，再顾倾人国。
+                宁不知倾城与倾国？佳人难再得！" />
 
-            <ImageView
-                android:layout_width="9dip"
-                android:layout_height="9dip"
-                android:src="@drawable/circlepoint" 
-				android:layout_alignParentRight="true"			     
-				android:layout_marginRight="10dip"
-				android:layout_centerVertical="true"
-				
-                 />
-        </RelativeLayout>
+        </LinearLayout>
 
-        <LinearLayout
-            android:visibility="gone"
-            android:id="@+id/ll_action"
+        <ImageView
+            android:layout_width="9dip"
+            android:layout_height="9dip"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dip"
+            android:src="@drawable/circlepoint"
+            />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_action"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:orientation="horizontal" >
+            android:background="@color/orange"
+            android:gravity="center"
+            android:paddingLeft="20dip"
+            android:paddingRight="20dip"
+            android:text="置顶" />
 
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@color/orange"
-                android:gravity="center"
-                android:paddingLeft="20dip"
-                android:paddingRight="20dip"
-                android:text="置顶" />
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dip"
+            android:layout_marginRight="2dip"
+            android:background="@android:color/darker_gray"
+            android:gravity="center"
+            android:paddingLeft="20dip"
+            android:paddingRight="20dip"
+            android:text="标为未读" />
 
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="2dip"
-                android:layout_marginRight="2dip"
-                android:background="@android:color/darker_gray"
-                android:gravity="center"
-                android:paddingLeft="20dip"
-                android:paddingRight="20dip"
-                android:text="标为未读" />
-
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@color/red"
-                android:gravity="center"
-                android:paddingLeft="20dip"
-                android:paddingRight="20dip"
-                android:text="删除" />
-        </LinearLayout>
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@color/red"
+            android:gravity="center"
+            android:paddingLeft="20dip"
+            android:paddingRight="20dip"
+            android:text="删除" />
     </LinearLayout>
 
-</HorizontalScrollView>
+</LinearLayout>

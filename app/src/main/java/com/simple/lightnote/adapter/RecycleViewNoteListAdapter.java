@@ -4,6 +4,7 @@ package com.simple.lightnote.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
@@ -18,123 +19,187 @@ import android.widget.TextView;
 import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
+import com.simple.lightnote.db.DaoMaster;
+import com.simple.lightnote.db.DaoSession;
+import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
 import java.util.ArrayList;
+
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+
 /**
  * 列表ListView的Adapter
- *
  */
-public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnClickListener{
-	private Cursor cursor;
-	Context mContext;
-	private static ArrayList<Note> list;
-	public RecycleViewNoteListAdapter(ArrayList<Note> note) {
-		this.list=note;
-	}
+public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private Cursor cursor;
+    Context mContext;
+    private static ArrayList<Note> list;
 
-	public RecycleViewNoteListAdapter(Cursor cursor){
-		this.cursor=cursor;
-	}
+    public RecycleViewNoteListAdapter(ArrayList<Note> note) {
+        this.list = note;
+    }
 
-	public void setList(ArrayList<Note> note){
-		this.list=note;
-	}
-	
-	@Override
-	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-		mContext=parent.getContext();
-		View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_2, parent, false);
-		return new RecyclerViewHolder(view,this,mContext) ;
-	}
+    public RecycleViewNoteListAdapter(Cursor cursor) {
+        this.cursor = cursor;
+    }
 
-	@Override
-	public void onBindViewHolder(ViewHolder holder, int position) {
-		if(!ListUtils.isEmpty(list)){
-			Note note = list.get(position);
-			((RecyclerViewHolder)holder).tv_introduce.setText(note.getNoteContent());
-		}
-	}
+    public void setList(ArrayList<Note> note) {
+        this.list = note;
+    }
 
-	@Override
-	public int getItemCount() {
-		if(!ListUtils.isEmpty(list)){
-			return list.size();
-		}
-		return 0;
-	}
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        mContext = parent.getContext();
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_2, parent, false);
+        return new RecyclerViewHolder(view, this, mContext);
+    }
 
-	@Override
-	public long getItemId(int position) {
-		return super.getItemId(position);
-	}
+    @Override
+    public void onBindViewHolder(ViewHolder holder, final int position) {
+        if (!ListUtils.isEmpty(list)) {
+            Note note = list.get(position);
+            ((RecyclerViewHolder) holder).tv_introduce.setText(note.getNoteContent());
+            ((RecyclerViewHolder) holder).ll_container.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    ToastUtils.showSequenceToast(mContext, "delete position:" + position);
+                    Note note1 = list.remove(position);
+                    removeEntity(note1);
+                    notifyItemRemove(position);
+                    return false;
+                }
+            });
+        }
+    }
 
-	@Override
-	public int getItemViewType(int position) {
-		return super.getItemViewType(position);
-	}
+    /**
+     * 从数据库中指定的删除数据
+     *
+     * @param note1
+     */
+    private void removeEntity(Note note1) {
 
 
-	public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener{
-		RecyclerView.Adapter<ViewHolder> mAdapter;
-		Context mContext;
-		RelativeLayout ll_container;
-		LinearLayout ll_action;
-		Button action1,action2,action3;
-		TextView tv_introduce;
-		public RecyclerViewHolder(View view,RecyclerView.Adapter<ViewHolder> adapter,Context context) {
-			super(view);
-			this.mAdapter=adapter;
-			this.mContext=context;
-			tv_introduce = (TextView) view.findViewById(R.id.item_introduce);
-			action1=(Button) view.findViewById(R.id.button1);
-			action2=(Button) view.findViewById(R.id.button2);
-			action3=(Button) view.findViewById(R.id.button3);
-			ll_container=(RelativeLayout) view.findViewById(R.id.ll_container);
-			ll_action=(LinearLayout) view.findViewById(R.id.ll_action);
-			
+        Observable.just(note1).map(new Func1<Note, Void>() {
+            @Override
+            public Void call(Note note) {
 
-			action1.setOnClickListener(RecyclerViewHolder.this);
-			action2.setOnClickListener(RecyclerViewHolder.this);
-			action3.setOnClickListener(RecyclerViewHolder.this);
+                DaoMaster daoMaster;
+                DaoSession daoSession;
+                NoteDao noteDao;
 
-			ll_container.setOnClickListener(RecyclerViewHolder.this);
-			
-		}
-		@Override
-		public void onClick(View v) {
+                DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(mContext, "lightnote", null);
+                SQLiteDatabase db = helper.getWritableDatabase();
+                daoMaster = new DaoMaster(db);
+                daoSession = daoMaster.newSession();
+                noteDao = daoSession.getNoteDao();
+                noteDao.deleteByKey(note.getId());
+                return null;
+            }
 
-			switch (v.getId()) {
-			case R.id.button1:
-				ToastUtils.showToast(mContext, "onClick1");
-				break;
-			case R.id.button2:
-				ToastUtils.showToast(mContext, "onClick2");
-				break;
-			case R.id.button3:
-				ToastUtils.showToast(mContext, "onClick3");
-				break;
-			case R.id.ll_container:
-				int adapterPosition = getAdapterPosition();
-				Note note = list.get(adapterPosition);
-				String s = JSON.toJSONString(note);
-				Intent intent=new Intent(mContext,SimpleNoteEditActivity.class);
-				intent.putExtra("clickItem",s);
-				mContext.startActivity(intent);
-				break;
-			default:
-				break;
-			}
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Void>() {
+                    @Override
+                    public void call(Void v) {
 
-		}
+                    }
+                });
 
-		
-	}
 
-	@Override
-	public void onClick(View v) {
+    }
 
-	}
+    public void notifyItemRemove(int position) {
+
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, list.size());
+    }
+
+
+    @Override
+    public int getItemCount() {
+        if (!ListUtils.isEmpty(list)) {
+            return list.size();
+        }
+        return 0;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
+    }
+
+
+    public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
+        RecyclerView.Adapter<ViewHolder> mAdapter;
+        Context mContext;
+        RelativeLayout ll_container;
+        LinearLayout ll_action;
+        Button action1, action2, action3;
+        TextView tv_introduce;
+
+        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
+            super(view);
+            this.mAdapter = adapter;
+            this.mContext = context;
+            tv_introduce = (TextView) view.findViewById(R.id.item_introduce);
+            action1 = (Button) view.findViewById(R.id.button1);
+            action2 = (Button) view.findViewById(R.id.button2);
+            action3 = (Button) view.findViewById(R.id.button3);
+            ll_container = (RelativeLayout) view.findViewById(R.id.ll_container);
+            ll_action = (LinearLayout) view.findViewById(R.id.ll_action);
+
+
+            action1.setOnClickListener(this);
+            action2.setOnClickListener(this);
+            action3.setOnClickListener(this);
+            ll_container.setOnClickListener(this);
+
+
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            switch (v.getId()) {
+                case R.id.button1:
+                    ToastUtils.showToast(mContext, "onClick1");
+                    break;
+                case R.id.button2:
+                    ToastUtils.showToast(mContext, "onClick2");
+                    break;
+                case R.id.button3:
+                    ToastUtils.showToast(mContext, "onClick3");
+                    break;
+                case R.id.ll_container:
+
+                    int adapterPosition = getAdapterPosition();
+                    getLayoutPosition();
+                    Note note = list.get(adapterPosition);
+                    String s = JSON.toJSONString(note);
+                    Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
+                    intent.putExtra("clickItem", s);
+                    mContext.startActivity(intent);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+
+    }
+
 }

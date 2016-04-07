@@ -17,11 +17,13 @@ import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.constant.Constans;
+import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.db.NoteSqliteOpenHelper;
 import com.simple.lightnote.model.Note;
+import com.simple.lightnote.util.SharePreferenceUtil;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -54,26 +56,34 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simplenoteedit);
-        String clickItem = getIntent().getStringExtra("clickItem");
-        Note note = JSON.parseObject(clickItem, Note.class);
 
         initView();
+        initData();
+
+    }
+
+    private void initData() {
+        String clickItem = getIntent().getStringExtra("clickItem");
+        Note note = JSON.parseObject(clickItem, Note.class);
+        String noteContent = note.getNoteContent();
+        if (!TextUtils.isEmpty(noteContent)) {
+            edt_content.setText(noteContent);
+            edt_content.setSelection(noteContent.length());
+        }
+
+        int showToolBar = SharePreferenceUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
+        setToolBarVisible(showToolBar);
+    }
+
+    private void initView() {
+        ll_acitonBar = (LinearLayout) findViewById(R.id.simpleNote_ll_actionbar);
+        edt_content = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle("编辑");
         mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         edt_noteContent = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
-        String noteContent = note.getNoteContent();
-        if(!TextUtils.isEmpty(noteContent)){
-            edt_content.setText(noteContent);
-            edt_content.setSelection(noteContent.length());
-        }
-    }
-
-    private void initView() {
-        ll_acitonBar = (LinearLayout) findViewById(R.id.simpleNote_ll_actionbar);
-        edt_content = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
 
     }
 
@@ -178,21 +188,15 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 return true;
             case R.id.menu_simplenoteedit_actionBar:
 
+                int flag_actionBar = -1;
                 if (ll_acitonBar.getVisibility() == View.VISIBLE) {
-                    ll_acitonBar.setVisibility(View.GONE);
-
-                    AlphaAnimation alpha = new AlphaAnimation(1, 0);
-                    alpha.setDuration(300);
-                    alpha.setFillAfter(true);
-                    ll_acitonBar.startAnimation(alpha);
+                    setToolBarVisible(1);
+                    flag_actionBar = 1;
                 } else {
-                    ll_acitonBar.setVisibility(View.VISIBLE);
-                    AlphaAnimation alpha = new AlphaAnimation(0, 1);
-                    alpha.setDuration(300);
-                    alpha.setFillAfter(true);
-                    ll_acitonBar.startAnimation(alpha);
-
+                    setToolBarVisible(0);
+                    flag_actionBar = 0;
                 }
+                SharePreferenceUtil.getEditor(SimpleNoteEditActivity.this).putInt(SPConstans.EDIT_TOOL_BAR, flag_actionBar).commit();
                 //TODO 修改点击和隐藏的状态
                 return true;
 
@@ -210,5 +214,23 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+    public void setToolBarVisible(int i) {
+        if (i == 0) {
+            ll_acitonBar.setVisibility(View.VISIBLE);
+            AlphaAnimation alpha = new AlphaAnimation(0, 1);
+            alpha.setDuration(300);
+            alpha.setFillAfter(true);
+            ll_acitonBar.startAnimation(alpha);
+        } else {
+            ll_acitonBar.setVisibility(View.GONE);
+            AlphaAnimation alpha = new AlphaAnimation(1, 0);
+            alpha.setDuration(300);
+            alpha.setFillAfter(true);
+            ll_acitonBar.startAnimation(alpha);
+        }
+    }
+
 
 }

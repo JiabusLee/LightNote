@@ -26,6 +26,8 @@ import java.util.Set;
 
 public class CustomCrashHandler implements UncaughtExceptionHandler {
 	private static final String TAG = CustomCrashHandler.class.getSimpleName();
+	private static final String AppRoot="/lightnote";
+	public static final String CrashDIR = AppRoot+"/crash";
 	private Context mContext;
 	private static CustomCrashHandler mInstance = new CustomCrashHandler();
 
@@ -155,7 +157,7 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 		if(!TextUtils.isEmpty(exceptionInfo)){
 			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 				File externalStorageDirectory = Environment.getExternalStorageDirectory();
-				File crashFilePath =new File(externalStorageDirectory, "/lightnote/crash");
+				File crashFilePath =new File(externalStorageDirectory, CrashDIR);
 				if(!crashFilePath.exists())crashFilePath.mkdir();
 				try {
 					String fileName=DateUtils.getDateByTimestamp(System.currentTimeMillis(),"yyyyMMddHHss") + ".log";

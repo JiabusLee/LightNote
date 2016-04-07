@@ -43,6 +43,7 @@ import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
+import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
@@ -148,15 +149,7 @@ public class MainActivity extends BaseActivity {
         mRecycleView.setCloseInterpolator(new BounceInterpolator());
         mRecycleView.setItemAnimator(new DefaultItemAnimator());
         //TODO 添加分隔线
-        /*mRecycleView.addItemDecoration(new RecyclerView.ItemDecoration() {
-            @Override
-			public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-				super.onDraw(c, parent, state);
-				c.drawLine();
-
-
-			}
-		});*/
+        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         mSwipeRefreshLayout
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -262,7 +255,7 @@ public class MainActivity extends BaseActivity {
                         String columnName = NoteDao.Properties.LastModifyTime.columnName;
                         String orderBy = columnName + " COLLATE LOCALIZED DESC";
                         cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                        if (cursor.getCount() <= 100) {
+                        if (cursor.getCount() <40) {
                             for (int i = 0; i < 40; i++) {
                                 db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'学生时代的" + i + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
                             }
