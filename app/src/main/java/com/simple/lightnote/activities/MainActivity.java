@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -43,6 +44,7 @@ import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
+import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
@@ -78,14 +80,15 @@ public class MainActivity extends BaseActivity {
 
     private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
-
+    View contentView;
 
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        contentView = View.inflate(this, R.layout.activity_main, null);
+        setContentView(contentView);
         initView();
         initDrawerView();
         initListener();
@@ -213,10 +216,46 @@ public class MainActivity extends BaseActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
+        noteAdapter.setActionListener(new ActionListener() {
+            @Override
+            public void onDelete(final Note note) {
+                Snackbar snackbar = Snackbar.make(contentView,
+                        "Welcome to AndroidHive", Snackbar.LENGTH_LONG);
+                snackbar.setCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        super.onDismissed(snackbar, event);
+//                        ToastUtils.showToast(MainActivity.this, "关闭了。。。");
+                    }
+                    @Override
+                    public void onShown(Snackbar snackbar) {
+                        super.onShown(snackbar);
 
+                    }
+                });
+                snackbar.setAction("取消", new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        //取消删除操作
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                        SQLiteDatabase db = helper.getWritableDatabase();
+                        daoMaster = new DaoMaster(db);
+                        daoSession = daoMaster.newSession();
+                        noteDao = daoSession.getNoteDao();
+                        noteDao.insert(note);
+                        noteAdapter.notifyItemInserted(note.getId());
+                        ToastUtils.showToast(MainActivity.this,"取消删除");
+                    }
+                });
+                snackbar.show();
+
+            }
+        });
 //		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
 //		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
         mRecycleView.setAdapter(noteAdapter);
+
 //		mListView.setAdapter(noteListAdapter);
         //添加分隔线
         mRecycleView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -407,4 +446,13 @@ public class MainActivity extends BaseActivity {
         super.onResume();
         getListData();
     }
+
+
+    public interface ActionListener{
+        void onDelete(Note note);
+
+    }
+
+
+
 }

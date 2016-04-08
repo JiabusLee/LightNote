@@ -133,6 +133,9 @@ public class NoteDao extends AbstractDao<Note, Long> {
 
     @Override
     public long insert(Note entity) {
+        if(entity.getNoteTitle()==null){
+            entity.setNoteTitle("");
+        }
         return super.insert(entity);
     }
 

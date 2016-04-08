@@ -528,11 +528,11 @@ public class FileUtils {
     }
 
     /**
-     * delete file or directory
+     * onDelete file or directory
      * <ul>
      * <li>if path is null or empty, return true</li>
      * <li>if path not exist, return true</li>
-     * <li>if path exist, delete recursion. return true</li>
+     * <li>if path exist, onDelete recursion. return true</li>
      * <ul>
      * 
      * @param path

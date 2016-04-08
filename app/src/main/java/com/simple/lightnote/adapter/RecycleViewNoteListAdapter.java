@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
+import com.simple.lightnote.activities.MainActivity;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
@@ -29,8 +30,8 @@ import com.simple.lightnote.utils.ToastUtils;
 import java.util.ArrayList;
 
 import rx.Observable;
+import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -69,7 +70,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             ((RecyclerViewHolder) holder).ll_container.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    ToastUtils.showSequenceToast(mContext, "delete position:" + position);
+                    ToastUtils.showSequenceToast(mContext, "onDelete position:" + position);
                     Note note1 = list.remove(position);
                     removeEntity(note1);
                     notifyItemRemove(position);
@@ -84,7 +85,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
      *
      * @param note1
      */
-    private void removeEntity(Note note1) {
+    private void removeEntity(final Note note1) {
 
 
         Observable.just(note1).map(new Func1<Note, Void>() {
@@ -106,10 +107,20 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Void>() {
+                .subscribe(new Observer<Void>() {
                     @Override
-                    public void call(Void v) {
+                    public void onCompleted() {
 
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Void aVoid) {
+                        listener.onDelete(note1);
                     }
                 });
 
@@ -200,6 +211,11 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         }
 
 
+    }
+
+    MainActivity.ActionListener listener;
+    public void setActionListener(MainActivity.ActionListener listener){
+        this.listener=listener;
     }
 
 }

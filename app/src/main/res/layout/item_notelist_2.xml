@@ -13,6 +13,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="12dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
             >
 
             <TextView
@@ -20,11 +22,10 @@
                 android:id="@+id/item_introduce"
                 android:layout_width="match_parent"
                 android:layout_height="80dip"
-                android:gravity="left|center_vertical"
+                android:gravity="left"
                 android:maxHeight="120dip"
                 android:minHeight="60dip"
                 android:text="多少六朝兴废事，尽入渔樵闲话
-                一个人的品味来源于对更好的自己无止境的追求
                 北方有佳人，绝世而独立。一顾倾人城，再顾倾人国。
                 宁不知倾城与倾国？佳人难再得！" />
 
