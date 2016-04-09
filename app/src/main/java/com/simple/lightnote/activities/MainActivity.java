@@ -294,8 +294,8 @@ public class MainActivity extends BaseActivity {
                         String columnName = NoteDao.Properties.LastModifyTime.columnName;
                         String orderBy = columnName + " COLLATE LOCALIZED DESC";
                         cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                        if (cursor.getCount() <40) {
-                            for (int i = 0; i < 40; i++) {
+                        if (cursor.getCount() <20) {
+                            for (int i = 0; i < 20; i++) {
                                 db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'学生时代的" + i + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
                             }
 
