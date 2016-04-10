@@ -56,6 +56,9 @@
         <item name="android:textColor">@android:color/white</item>
         <item name="android:gravity">center</item>
         <item name="android:textSize">20sp</item>
+        <item name="android:background">@drawable/selector_noteedit_toolbar</item>
+        <item name="android:clickable">true</item>
+        <item name="android:onClick">onToolBarClick</item>
     </style>
 
 

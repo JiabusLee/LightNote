@@ -1,7 +1,6 @@
 package com.simple.lightnote.activities;
 
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -9,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -21,7 +21,6 @@ import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
-import com.simple.lightnote.db.NoteSqliteOpenHelper;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.util.SharePreferenceUtil;
 import com.simple.lightnote.utils.LogUtils;
@@ -30,6 +29,7 @@ import com.simple.lightnote.utils.ToastUtils;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -50,6 +50,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     private NoteDao noteDao;
     private String s_noteContent;
     private String md5;
+    private Note note;
 
 
     @Override
@@ -64,13 +65,19 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
     private void initData() {
         String clickItem = getIntent().getStringExtra("clickItem");
-        Note note = JSON.parseObject(clickItem, Note.class);
-        String noteContent = note.getNoteContent();
-        if (!TextUtils.isEmpty(noteContent)) {
-            edt_content.setText(noteContent);
-            edt_content.setSelection(noteContent.length());
-        }
+        Log.e(TAG, "initData: " + clickItem);
+        if (clickItem != null) {
+            note = JSON.parseObject(clickItem, Note.class);
+            String noteContent = note.getNoteContent();
+            if (!TextUtils.isEmpty(noteContent)) {
+                edt_content.setText(noteContent);
+                edt_content.setSelection(noteContent.length());
+            }
 
+        } else {
+//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
         int showToolBar = SharePreferenceUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
         setToolBarVisible(showToolBar);
     }
@@ -112,30 +119,41 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         //TODO 保存文件
         s_noteContent = edt_noteContent.getText().toString().trim();
         md5 = MD5Utils.MD5Encode(s_noteContent);
-        Note note = null;
-        if (!TextUtils.isEmpty(s_noteContent)) {
+        if (note != null) {
+            //更新
+            if (!note.getNoteContent().trim().equals(s_noteContent)) {
+                note.setNoteType(Constans.NoteType.normal);
+                note.setNoteMd5(md5);
+                note.setNoteTitle(note.getNoteTitle());
+                note.setCreateTime(note.getCreateTime());
+                note.setLastModifyTime(System.currentTimeMillis());
+                note.setNoteContent(s_noteContent);
+                LogUtils.e(TAG, "更新");
+                LogUtils.e(TAG, note);
+                insertAndUpdate();
+            }
+        } else {
+            //新建
+            if (!TextUtils.isEmpty(s_noteContent)) {
+                note = new Note();
+                note.setLastModifyTime(System.currentTimeMillis());
+                note.setCreateTime(System.currentTimeMillis());
+                note.setLastModifyTime(System.currentTimeMillis());
+                note.setNoteType(Constans.NoteType.normal);
+                note.setNoteMd5(md5);
+                note.setNoteTitle(note.getNoteTitle());
+                note.setNoteContent(s_noteContent);
+                LogUtils.e(TAG, "新建");
+                LogUtils.e(TAG, note);
+                insertAndUpdate();
+            }
 
-
-            SQLiteOpenHelper instance = NoteSqliteOpenHelper.getInstance(this, "lightnote", 1000);
-            SQLiteDatabase writableDatabase = instance.getWritableDatabase();
-
-            writableDatabase.beginTransaction();
-            String sql = "insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) " +
-                    "values(null,'" + s_noteContent + "','" + md5 + "',"
-                    + System.currentTimeMillis() + "," + System.currentTimeMillis() + ",'" + Constans.NoteType.normal + "')";
-            writableDatabase.execSQL(sql);
-            writableDatabase.endTransaction();
-
-            note = new Note();
-            note.setCreateTime(System.currentTimeMillis());
-            note.setLastModifyTime(System.currentTimeMillis());
-            note.setNoteContent(s_noteContent);
-            note.setNoteType(Constans.NoteType.normal);
-            note.setNoteMd5(md5);
-            note.setNoteTitle("");
-            LogUtils.e(TAG, note);
         }
 
+
+    }
+
+    private void insertAndUpdate() {
 
         Observable
                 .just(note)
@@ -145,40 +163,45 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         return note != null;
                     }
                 })
-                .map(new Func1<Note, Long>() {
+                .doOnSubscribe(new Action0() {
                     @Override
-                    public Long call(Note note) {
+                    public void call() {
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(SimpleNoteEditActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        return noteDao.insert(note);
+                        Integer id = note.getId();
+                        if (id == null) {
+                            noteDao.insert(note);
+                        } else {
+                            noteDao.update(note);
+                        }
+
 
                     }
                 })
-
                 .observeOn(Schedulers.io())
-                .subscribe(new Subscriber<Long>() {
+                .subscribe(new Subscriber<Note>() {
                     @Override
                     public void onCompleted() {
-                        Log.e(TAG, "onCompleted:");
+                        LogUtils.d(TAG, "completed");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
-                    public void onNext(Long l) {
-
-                        Log.e(TAG, "onNext:" + l);
+                    public void onNext(Note note) {
+                        onCompleted();
                     }
                 });
 
 
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -229,6 +252,36 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             alpha.setDuration(300);
             alpha.setFillAfter(true);
             ll_acitonBar.startAnimation(alpha);
+        }
+    }
+
+    public void onToolBarClick(View v) {
+        String trim = edt_content.getText().toString();
+
+        switch (v.getId()) {
+            case R.id.edit_toolbar_item_1:
+                if (trim.length() > 0) {
+                    if (trim.trim().lastIndexOf('#') == trim.length() - 1) {
+                        edt_content.append("#");
+                    } else {
+                        edt_content.append("\r\n# ");
+                    }
+                } else {
+                    edt_content.append("# ");
+                }
+
+                break;
+            case R.id.edit_toolbar_item_2:
+                break;
+            case R.id.edit_toolbar_item_3:
+                break;
+            case R.id.edit_toolbar_item_4:
+                break;
+            case R.id.edit_toolbar_item_5:
+                break;
+            case R.id.edit_toolbar_item_save:
+                finish();
+                break;
         }
     }
 

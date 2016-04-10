@@ -3,8 +3,10 @@ package com.simple.lightnote.db;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 import com.simple.lightnote.model.Note;
+import com.simple.lightnote.utils.LogUtils;
 
 import de.greenrobot.dao.AbstractDao;
 import de.greenrobot.dao.AbstractDaoSession;
@@ -15,6 +17,7 @@ import de.greenrobot.dao.internal.DaoConfig;
  * Created by homelink on 2016/3/29.
  */
 public class NoteDao extends AbstractDao<Note, Long> {
+    private static final String TAG = "NoteDao";
     public static final String TABLENAME = "note";
     public static class Properties {
         public final static Property Id = new Property(0, Integer.class, "id", true, "_id");
@@ -122,8 +125,16 @@ public class NoteDao extends AbstractDao<Note, Long> {
     }
 
     @Override
+    public void update(Note entity) {
+        if(entity.getNoteTitle()==null)
+            entity.setNoteTitle("");
+        super.update(entity);
+    }
+
+    @Override
     protected Long getKey(Note entity) {
-        return null;
+        Log.e(TAG, "getKey: "+String.valueOf("项:"+entity.getId().toString()) );
+        return Long.valueOf(entity.getId());
     }
 
     @Override
@@ -148,4 +159,6 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public void deleteByKey(Integer key) {
         super.deleteByKey(Long.valueOf(key));
     }
+
+
 }

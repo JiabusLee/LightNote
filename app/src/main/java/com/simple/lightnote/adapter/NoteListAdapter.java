@@ -71,7 +71,7 @@ public class NoteListAdapter extends BaseAdapter implements OnTouchListener,OnCl
 		if(convertView==null){
 			holder=new ViewHolder();
 			convertView=View.inflate(mContext, R.layout.item_notelist_2,null);
-			holder.tv_introduce = (TextView) convertView.findViewById(R.id.item_introduce);
+			holder.tv_introduce = (TextView) convertView.findViewById(R.id.item_content);
 			holder.action1=(Button) convertView.findViewById(R.id.button1);
 			holder.action2=(Button) convertView.findViewById(R.id.button2);
 			holder.action3=(Button) convertView.findViewById(R.id.button3);

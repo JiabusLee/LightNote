@@ -1,5 +1,4 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -22,7 +21,7 @@
         android:background="@null"
         android:lineSpacingMultiplier="1.5"
         android:gravity="left"
-        android:text="生活"
+        android:text=""
         android:layout_weight="1"
         android:textSize="18sp" />
 
@@ -34,19 +33,23 @@
         android:background="@color/gray_dark">
 
         <TextView
+            android:id="@+id/edit_toolbar_item_1"
             style="@style/simpleInputButton"
-            android:clickable="true"
             android:text="#" /><TextView
+        android:id="@+id/edit_toolbar_item_2"
             style="@style/simpleInputButton"
             android:text="-" /><TextView
+        android:id="@+id/edit_toolbar_item_3"
             style="@style/simpleInputButton"
             android:text="*" /><TextView
+        android:id="@+id/edit_toolbar_item_4"
             style="@style/simpleInputButton"
             android:text=">" /><TextView
+        android:id="@+id/edit_toolbar_item_5"
             style="@style/simpleInputButton"
             android:text="---" /><TextView
+        android:id="@+id/edit_toolbar_item_save"
             style="@style/simpleInputButton"
-            android:clickable="true"
             android:text="保存" />
 
 

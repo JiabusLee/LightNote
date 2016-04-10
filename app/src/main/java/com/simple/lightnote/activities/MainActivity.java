@@ -41,6 +41,7 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.Note;
+import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
@@ -196,6 +197,8 @@ public class MainActivity extends BaseActivity {
               }
           }*/
         fab.attachToRecyclerView(mRecycleView, listener);
+        fab.setOnClickListener(this);
+//        fab.setOnLongClickListener();
     }
 
     private void initData() {
@@ -220,20 +223,21 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onDelete(final Note note) {
                 Snackbar snackbar = Snackbar.make(contentView,
-                        "Welcome to AndroidHive", Snackbar.LENGTH_LONG);
+                        "删除内容", Snackbar.LENGTH_LONG);
                 snackbar.setCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar snackbar, int event) {
                         super.onDismissed(snackbar, event);
 //                        ToastUtils.showToast(MainActivity.this, "关闭了。。。");
                     }
+
                     @Override
                     public void onShown(Snackbar snackbar) {
                         super.onShown(snackbar);
 
                     }
                 });
-                snackbar.setAction("取消", new View.OnClickListener() {
+                snackbar.setAction("撒销", new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
@@ -245,7 +249,7 @@ public class MainActivity extends BaseActivity {
                         noteDao = daoSession.getNoteDao();
                         noteDao.insert(note);
                         noteAdapter.notifyItemInserted(note.getId());
-                        ToastUtils.showToast(MainActivity.this,"取消删除");
+                        ToastUtils.showToast(MainActivity.this, "取消删除");
                     }
                 });
                 snackbar.show();
@@ -294,9 +298,9 @@ public class MainActivity extends BaseActivity {
                         String columnName = NoteDao.Properties.LastModifyTime.columnName;
                         String orderBy = columnName + " COLLATE LOCALIZED DESC";
                         cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                        if (cursor.getCount() <20) {
-                            for (int i = 0; i < 20; i++) {
-                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'学生时代的" + i + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
+                        if (cursor.getCount() < 20) {
+                            for (int i = 0; i < 2; i++) {
+                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
                             }
 
                         }
@@ -311,8 +315,7 @@ public class MainActivity extends BaseActivity {
                         cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
                         int count = cursor.getCount();
                         ArrayList<Note> noteList = new ArrayList<Note>();
-                        for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext())
-                        {
+                        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
                             noteList.add(noteDao.readEntity(cursor, 0));
                         }
 
@@ -357,8 +360,6 @@ public class MainActivity extends BaseActivity {
                 });
 
 
-
-
     }
 
     private void initListener() {
@@ -381,6 +382,10 @@ public class MainActivity extends BaseActivity {
                 Toast.makeText(MainActivity.this, "全部笔记", Toast.LENGTH_LONG).show();
                 break;
             case R.id.note_select_item_noteBook:
+                break;
+            case R.id.fab:
+                Intent intent=new Intent(this,SimpleNoteEditActivity.class);
+                startActivity(intent);
                 break;
             default:
                 break;
@@ -448,11 +453,10 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    public interface ActionListener{
+    public interface ActionListener {
         void onDelete(Note note);
 
     }
-
 
 
 }

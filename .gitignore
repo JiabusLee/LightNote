@@ -33,4 +33,4 @@ proguard/
 build/
 gradle/
 doc/
-
+gradlew
