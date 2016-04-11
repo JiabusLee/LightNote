@@ -30,6 +30,7 @@ import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
@@ -43,7 +44,7 @@ import rx.schedulers.Schedulers;
 public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Cursor cursor;
     Context mContext;
-    private static ArrayList<Note> list;
+    private static List<Note> list;
 
     public RecycleViewNoteListAdapter(ArrayList<Note> note) {
         this.list = note;
@@ -53,7 +54,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         this.cursor = cursor;
     }
 
-    public void setList(ArrayList<Note> note) {
+    public void setList(List<Note> note) {
         this.list = note;
     }
 
@@ -213,7 +214,6 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 case R.id.ll_container:
                     int adapterPosition = getAdapterPosition();
                     if (adapterPosition != RecyclerView.NO_POSITION) {
-                        getLayoutPosition();
                         Note note = list.get(adapterPosition);
                         String s = JSON.toJSONString(note);
                         Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);

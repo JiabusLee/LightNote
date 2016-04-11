@@ -46,6 +46,7 @@ import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
@@ -266,69 +267,75 @@ public class MainActivity extends BaseActivity {
                 .create(new Observable.OnSubscribe<String>() {
                     @Override
                     public void call(Subscriber<? super String> subscriber) {
-
+                        mSwipeRefreshLayout.setRefreshing(true);
                     }
                 })
-                .fromCallable(new Func0<SQLiteDatabase>() {
+                .fromCallable(new Func0<NoteDao>() {
                     @Override
-                    public SQLiteDatabase call() {
+                    public NoteDao call() {
 
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
-                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
-                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                        if (cursor.getCount() < 20) {
-                            int count = 0;
-                            if (cursor.getCount() < 10) {
-                                count = 10;
+//                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
+//                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
+//                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
+                        long count = noteDao.count();
+
+                        if (count < 20) {
+                            int sum = 0;
+                            if (count < 10) {
+                                sum = 10;
                             } else {
-                                count = 2;
+                                sum = 2;
                             }
-                            for (int i = 0; i < count; i++) {
+                            for (int i = 0; i < sum; i++) {
                                 db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
                             }
 
                         }
-                        return db;
+                        return noteDao;
                     }
                 })
-                .map(new Func1<SQLiteDatabase, ArrayList<Note>>() {
+                .subscribeOn(Schedulers.newThread())
+                .map(new Func1<NoteDao, List<Note>>() {
                     @Override
-                    public ArrayList<Note> call(SQLiteDatabase db) {
-                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
-                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
-                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                        int count = cursor.getCount();
-                        ArrayList<Note> noteList = new ArrayList<Note>();
-                        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                    public List<Note> call(NoteDao noteDao) {
+//                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
+//                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
+                        List<Note> list = noteDao.queryBuilder().orderDesc(NoteDao.Properties.LastModifyTime).list();
+//                        noteDao.queryRaw(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
+//                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
+                    /*    int count = cursor.getCount();
+                        ArrayList<Note> noteList = new ArrayList<Note>();*/
+                      /*  for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
                             noteList.add(noteDao.readEntity(cursor, 0));
                         }
 
 
-                        db.close();
+                        db.close();*/
 
-                        return noteList;
-                    }
-                })
-                .filter(new Func1<ArrayList<Note>, Boolean>() {
-                    @Override
-                    public Boolean call(ArrayList<Note> notes) {
-                        return !ListUtils.isEmpty(notes);
-                    }
-                })
-                .doOnNext(new Action1<ArrayList<Note>>() {
-                    @Override
-                    public void call(ArrayList<Note> notes) {
-                        System.out.println(notes);
+                        return list;
                     }
                 })
                 .subscribeOn(Schedulers.io())
+                .filter(new Func1<List<Note>, Boolean>() {
+                    @Override
+                    public Boolean call(List<Note> notes) {
+                        return !ListUtils.isEmpty(notes);
+                    }
+                })
+                .doOnNext(new Action1<List<Note>>() {
+                    @Override
+                    public void call(List<Note> notes) {
+                        System.out.println(notes);
+                    }
+                })
+
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ArrayList<Note>>() {
+                .subscribe(new Observer<List<Note>>() {
                     @Override
                     public void onCompleted() {
                         System.out.println("over");
@@ -341,7 +348,7 @@ public class MainActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onNext(ArrayList<Note> o) {
+                    public void onNext(List<Note> o) {
                         noteAdapter.setList(o);
                         noteAdapter.notifyDataSetChanged();
                         onCompleted();
