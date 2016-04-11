@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
@@ -18,7 +16,6 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.graphics.Palette.Builder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,7 +41,6 @@ import com.simple.lightnote.model.Note;
 import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
-import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
@@ -53,6 +49,7 @@ import java.util.ArrayList;
 
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func0;
@@ -203,7 +200,7 @@ public class MainActivity extends BaseActivity {
 
     private void initData() {
         noteList = new ArrayList<Note>();
-        Note note = null;
+/*        Note note = null;
         for (int i = 0; i < 50; i++) {
             note = new Note();
             String md5Encode = MD5Utils.MD5Encode(String.valueOf(System
@@ -211,7 +208,7 @@ public class MainActivity extends BaseActivity {
             note.setNoteTitle(md5Encode);
             note.setNoteMd5(md5Encode);
             noteList.add(note);
-        }
+        }*/
 //		noteListAdapter = new NoteListAdapter(this, noteList);
 
         //设置 RecycleView的显示方式
@@ -261,31 +258,17 @@ public class MainActivity extends BaseActivity {
         mRecycleView.setAdapter(noteAdapter);
 
 //		mListView.setAdapter(noteListAdapter);
-        //添加分隔线
-        mRecycleView.addItemDecoration(new RecyclerView.ItemDecoration() {
-            @Override
-            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-                super.onDraw(c, parent, state);
-            }
-
-            @Override
-            public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
-                super.onDrawOver(c, parent, state);
-            }
-
-            @Override
-            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-                super.getItemOffsets(outRect, view, parent, state);
-            }
-
-        });
-
-
         getListData();
     }
 
     private void getListData() {
-        Observable.empty()
+        Observable
+                .create(new Observable.OnSubscribe<String>() {
+                    @Override
+                    public void call(Subscriber<? super String> subscriber) {
+
+                    }
+                })
                 .fromCallable(new Func0<SQLiteDatabase>() {
                     @Override
                     public SQLiteDatabase call() {
@@ -299,7 +282,13 @@ public class MainActivity extends BaseActivity {
                         String orderBy = columnName + " COLLATE LOCALIZED DESC";
                         cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
                         if (cursor.getCount() < 20) {
-                            for (int i = 0; i < 2; i++) {
+                            int count = 0;
+                            if (cursor.getCount() < 10) {
+                                count = 10;
+                            } else {
+                                count = 2;
+                            }
+                            for (int i = 0; i < count; i++) {
                                 db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values(null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827',1459495723877," + System.currentTimeMillis() + ",'normal')");
                             }
 
@@ -384,7 +373,7 @@ public class MainActivity extends BaseActivity {
             case R.id.note_select_item_noteBook:
                 break;
             case R.id.fab:
-                Intent intent=new Intent(this,SimpleNoteEditActivity.class);
+                Intent intent = new Intent(this, SimpleNoteEditActivity.class);
                 startActivity(intent);
                 break;
             default:

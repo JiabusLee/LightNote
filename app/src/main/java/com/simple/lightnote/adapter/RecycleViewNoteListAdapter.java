@@ -211,14 +211,16 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                     ToastUtils.showToast(mContext, "onClick3");
                     break;
                 case R.id.ll_container:
-
                     int adapterPosition = getAdapterPosition();
-                    getLayoutPosition();
-                    Note note = list.get(adapterPosition);
-                    String s = JSON.toJSONString(note);
-                    Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
-                    intent.putExtra("clickItem", s);
-                    mContext.startActivity(intent);
+                    if (adapterPosition != RecyclerView.NO_POSITION) {
+                        getLayoutPosition();
+                        Note note = list.get(adapterPosition);
+                        String s = JSON.toJSONString(note);
+                        Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
+                        intent.putExtra("clickItem", s);
+                        mContext.startActivity(intent);
+                    }
+
                     break;
                 default:
                     break;

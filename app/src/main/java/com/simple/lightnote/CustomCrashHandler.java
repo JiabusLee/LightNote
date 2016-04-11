@@ -158,7 +158,7 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 				File externalStorageDirectory = Environment.getExternalStorageDirectory();
 				File crashFilePath =new File(externalStorageDirectory, CrashDIR);
-				if(!crashFilePath.exists())crashFilePath.mkdir();
+				if(!crashFilePath.exists())crashFilePath.mkdirs();
 				try {
 					String fileName=DateUtils.getDateByTimestamp(System.currentTimeMillis(),"yyyyMMddHHss") + ".log";
 					crashFile=new File(crashFilePath,fileName);
