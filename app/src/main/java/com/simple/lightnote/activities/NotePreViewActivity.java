@@ -52,12 +52,15 @@ public class NotePreViewActivity extends BaseActivity {
     private static String basePath = "/sdcard/lightnote/htmlsource";
     private String filePath;
     private Toolbar mToolbar;
-
+    int sourceType;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notepreview);
         Log.e(TAG, "onCreate:" + getIntent().toString());
+
+       sourceType = getIntent().getIntExtra("sourceType", 0);
+
 
         filePath = getIntent().getStringExtra("filePath");
         if(TextUtils.isEmpty(filePath)){
@@ -82,7 +85,11 @@ public class NotePreViewActivity extends BaseActivity {
                 .map(new Func1<String, String>() {
                     @Override
                     public String call(String s) {
+                        if(sourceType==1){
+                            return s;
+                        }else{
                         return getFileContents(s);
+                        }
                     }
                 })
                 .subscribeOn(Schedulers.io())

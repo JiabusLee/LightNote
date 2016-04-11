@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,6 +25,7 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.Note;
+import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
@@ -66,7 +68,19 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
             Note note = list.get(position);
-            ((RecyclerViewHolder) holder).tv_introduce.setText(note.getNoteContent());
+            ((RecyclerViewHolder) holder).tv_title.setText(note.getNoteContent());
+
+            StringBuilder sb = new StringBuilder();
+            Long lastModifyTime = note.getLastModifyTime();
+            if (lastModifyTime != null) {
+
+                String dateByTimestamp = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
+                sb.append("<font color='#228B22'>").append(dateByTimestamp).append("</font>  ");
+            }
+            sb.append(note.getNoteContent());
+            ((RecyclerViewHolder) holder).tv_content.setText(Html.fromHtml(sb.toString()));
+
+
             ((RecyclerViewHolder) holder).ll_container.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -159,13 +173,15 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         RelativeLayout ll_container;
         LinearLayout ll_action;
         Button action1, action2, action3;
-        TextView tv_introduce;
+        TextView tv_content;
+        TextView tv_title;
 
         public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
             super(view);
             this.mAdapter = adapter;
             this.mContext = context;
-            tv_introduce = (TextView) view.findViewById(R.id.item_introduce);
+            tv_content = (TextView) view.findViewById(R.id.item_content);
+            tv_title = (TextView) view.findViewById(R.id.item_title);
             action1 = (Button) view.findViewById(R.id.button1);
             action2 = (Button) view.findViewById(R.id.button2);
             action3 = (Button) view.findViewById(R.id.button3);
@@ -214,8 +230,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     }
 
     MainActivity.ActionListener listener;
-    public void setActionListener(MainActivity.ActionListener listener){
-        this.listener=listener;
+
+    public void setActionListener(MainActivity.ActionListener listener) {
+        this.listener = listener;
     }
 
 }
