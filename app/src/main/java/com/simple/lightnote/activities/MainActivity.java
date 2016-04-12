@@ -50,15 +50,15 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity {
-
+    private static final String TAG = "MainActivity";
     //	private ListView mListView;
     private ArrayList<Note> noteList;
     private RecycleViewNoteListAdapter noteListAdapter;
@@ -80,10 +80,14 @@ public class MainActivity extends BaseActivity {
     private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
     View contentView;
+    private long end;
+    private long start;
 
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        start = System.currentTimeMillis();
+
 //		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
         contentView = View.inflate(this, R.layout.activity_main, null);
@@ -264,24 +268,15 @@ public class MainActivity extends BaseActivity {
 
     private void getListData() {
         Observable
-                .create(new Observable.OnSubscribe<String>() {
-                    @Override
-                    public void call(Subscriber<? super String> subscriber) {
-                        mSwipeRefreshLayout.setRefreshing(true);
-                    }
-                })
                 .fromCallable(new Func0<NoteDao>() {
                     @Override
                     public NoteDao call() {
-
+                        LogUtils.e(TAG, "call2: " +Thread.currentThread());
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-//                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
-//                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
-//                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
                         long count = noteDao.count();
 
                         if (count < 20) {
@@ -299,37 +294,35 @@ public class MainActivity extends BaseActivity {
                         return noteDao;
                     }
                 })
-                .subscribeOn(Schedulers.newThread())
+                .doOnSubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                })
+                .subscribeOn(AndroidSchedulers.mainThread())
+               .observeOn(Schedulers.newThread())
                 .map(new Func1<NoteDao, List<Note>>() {
                     @Override
                     public List<Note> call(NoteDao noteDao) {
-//                        String columnName = NoteDao.Properties.LastModifyTime.columnName;
-//                        String orderBy = columnName + " COLLATE LOCALIZED DESC";
                         List<Note> list = noteDao.queryBuilder().orderDesc(NoteDao.Properties.LastModifyTime).list();
-//                        noteDao.queryRaw(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-//                        cursor = db.query(noteDao.getTablename(), noteDao.getAllColumns(), null, null, null, null, orderBy);
-                    /*    int count = cursor.getCount();
-                        ArrayList<Note> noteList = new ArrayList<Note>();*/
-                      /*  for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-                            noteList.add(noteDao.readEntity(cursor, 0));
-                        }
-
-
-                        db.close();*/
-
+                        LogUtils.e(TAG, "call3: " +Thread.currentThread() );
                         return list;
                     }
                 })
-                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.newThread())
                 .filter(new Func1<List<Note>, Boolean>() {
                     @Override
                     public Boolean call(List<Note> notes) {
+                        LogUtils.e(TAG, "call4: " +Thread.currentThread() );
                         return !ListUtils.isEmpty(notes);
                     }
                 })
+                .observeOn(Schedulers.io())
                 .doOnNext(new Action1<List<Note>>() {
                     @Override
                     public void call(List<Note> notes) {
+                        LogUtils.e(TAG, "call5: " +Thread.currentThread() );
                         System.out.println(notes);
                     }
                 })
@@ -351,9 +344,11 @@ public class MainActivity extends BaseActivity {
                     public void onNext(List<Note> o) {
                         noteAdapter.setList(o);
                         noteAdapter.notifyDataSetChanged();
+                        LogUtils.e(TAG, "call6: " +Thread.currentThread() );
                         onCompleted();
                     }
                 });
+
 
 
     }
@@ -445,7 +440,10 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getListData();
+//        getListData();
+        end = System.currentTimeMillis();
+        long l = end - start;
+        LogUtils.e(TAG, "onResume: 应用的启动时间:" +l );
     }
 
 
