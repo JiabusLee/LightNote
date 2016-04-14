@@ -46,10 +46,11 @@
                 android:textSize="18dip" />
 
             <TextView
+                android:id="@+id/note_select_item_recovery"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/drawer_item_height"
                 android:padding="5dip"
-                android:text="设置"
+                android:text="垃圾篓"
                 android:textSize="18dip" />
         </LinearLayout>
 

@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import com.simple.lightnote.model.Note;
-import com.simple.lightnote.utils.LogUtils;
 
 import de.greenrobot.dao.AbstractDao;
 import de.greenrobot.dao.AbstractDaoSession;
@@ -19,6 +18,7 @@ import de.greenrobot.dao.internal.DaoConfig;
 public class NoteDao extends AbstractDao<Note, Long> {
     private static final String TAG = "NoteDao";
     public static final String TABLENAME = "note";
+
     public static class Properties {
         public final static Property Id = new Property(0, Integer.class, "id", true, "_id");
         public final static Property NoteTitle = new Property(1, String.class, "noteTitle", false, "noteTitle");
@@ -27,6 +27,9 @@ public class NoteDao extends AbstractDao<Note, Long> {
         public final static Property CreateTime = new Property(4, Long.class, "createTime", false, "createTime");
         public final static Property LastModifyTime = new Property(5, Long.class, "lastModifyTime", false, "lastModifyTime");
         public final static Property NoteType = new Property(6, int.class, "noteType", false, "noteType");
+        public final static Property NoteState = new Property(7, int.class, "noteState", false, "noteState");
+        public final static Property NoteLabel = new Property(8, String.class, "noteState", false, "noteState");
+        public final static Property NoteBook = new Property(9, String.class, "noteState", false, "noteState");
 
     }
 
@@ -45,30 +48,36 @@ public class NoteDao extends AbstractDao<Note, Long> {
      */
     public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
         String constraint = ifNotExists ? "IF NOT EXISTS " : "";
+
+
         db.execSQL("CREATE TABLE note (\n" +
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
                 "\tnoteTitle VARCHAR (20),\n" +
                 "\tnoteContent VARCHAR (500) NOT NULL,\n" +
-                "\tnoteMd5 VARCHAR (20) NOT NULL,\n" +
-                "\tcreateTime VARCHAR (32) NOT NULL,\n" +
-                "\tlastModifyTime VARCHAR (32) NOT NULL,\n" +
-                "\tnoteType VARCHAR (10)\n" +
+                "\tnoteMd5 VARCHAR (32) NOT NULL,\n" +
+                "\tcreateTime Long NOT NULL,\n" +
+                "\tlastModifyTime Long NOT NULL,\n" +
+                "\tnoteType VARCHAR (10) DEFAULT 'normal' ,\n" +
+                "\tnoteState INTEGER DEFAULT 0,\n" +
+                "\tnoteLabel varchar(20),\n" +
+                "\tbook varchar(20)\n" +
                 "); \n"// 1: noteType
-
         ); // 3: date
     }
-
 
     @Override
     public Note readEntity(Cursor cursor, int offset) {
         Note entity = new Note(
                 cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0), // id
-                cursor.isNull(offset + 1) ? null:cursor.getString(offset + 1), // title
+                cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // title
                 cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // contnet
                 cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // md5
-                cursor.isNull(offset+4)?null:Long.valueOf(cursor.getString(offset + 4)),//createTime
-                cursor.isNull(offset+5)?null:Long.valueOf(cursor.getString(offset + 5)),//lastModifyTime
-                cursor.isNull(offset+6)?null:cursor.getString(offset + 6)//noteType
+                cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4),//createTime
+                cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5),//lastModifyTime
+                cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6),//noteType
+                cursor.isNull(offset + 7) ? null : cursor.getInt(offset + 7),//noteState
+                cursor.isNull(offset + 7) ? null : cursor.getString(offset + 8),//label
+                cursor.isNull(offset + 8) ? null : cursor.getString(offset + 9)//book
                 //TODO 添加构造函数
         );
         return entity;
@@ -76,19 +85,24 @@ public class NoteDao extends AbstractDao<Note, Long> {
 
     @Override
     protected Long readKey(Cursor cursor, int offset) {
-        return null;
+        boolean b = cursor.moveToPosition(offset);
+        if(b){
+            return Long.valueOf(readEntity(cursor,offset).getId());
+        }
+        return  null;
+
     }
 
     @Override
     protected void readEntity(Cursor cursor, Note entity, int offset) {
-
+            entity=readEntity(cursor,offset);
     }
 
     @Override
     protected void bindValues(SQLiteStatement stmt, Note entity) {
         stmt.clearBindings();
-        Integer id = entity.getId();
-        if (id != null) {
+        long id = entity.getId();
+        if (id != 0l) {
             stmt.bindLong(1, id);
         }
         stmt.bindString(2, entity.getNoteTitle());
@@ -98,27 +112,32 @@ public class NoteDao extends AbstractDao<Note, Long> {
             stmt.bindString(3, noteContent);
         }
 
-        stmt.bindString(4,entity.getNoteMd5());
+        stmt.bindString(4, entity.getNoteMd5());
         Long createTime = entity.getCreateTime();
-        if(createTime!=null){
-            stmt.bindLong(5,createTime);
-        }else{
-            stmt.bindLong(5,System.currentTimeMillis());
+        if (createTime != null) {
+            stmt.bindLong(5, createTime);
+        } else {
+            stmt.bindLong(5, System.currentTimeMillis());
         }
         Long lastModifyTime = entity.getLastModifyTime();
 
-        if(lastModifyTime!=null){
-            stmt.bindLong(6,System.currentTimeMillis());
+        if (lastModifyTime != null) {
+            stmt.bindLong(6, System.currentTimeMillis());
         }
-        stmt.bindString(7,entity.getNoteType());
+        stmt.bindString(7, entity.getNoteType());
+        stmt.bindLong(8, entity.getNoteState());
 
 
     }
-    /** Drops the underlying database table. */
+
+    /**
+     * Drops the underlying database table.
+     */
     public static void dropTable(SQLiteDatabase db, boolean ifExists) {
         String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"NOTE\"";
         db.execSQL(sql);
     }
+
     @Override
     protected Long updateKeyAfterInsert(Note entity, long rowId) {
         return null;
@@ -126,25 +145,25 @@ public class NoteDao extends AbstractDao<Note, Long> {
 
     @Override
     public void update(Note entity) {
-        if(entity.getNoteTitle()==null)
+        if (entity.getNoteTitle() == null)
             entity.setNoteTitle("");
         super.update(entity);
     }
 
     @Override
     protected Long getKey(Note entity) {
-        Log.e(TAG, "getKey: "+String.valueOf("项:"+entity.getId().toString()) );
+        Log.e(TAG, "getKey: " + "项:" + entity.getId());
         return Long.valueOf(entity.getId());
     }
 
     @Override
     protected boolean isEntityUpdateable() {
-        return false;
+        return true;
     }
 
     @Override
     public long insert(Note entity) {
-        if(entity.getNoteTitle()==null){
+        if (entity.getNoteTitle() == null) {
             entity.setNoteTitle("");
         }
         return super.insert(entity);
@@ -159,6 +178,5 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public void deleteByKey(Integer key) {
         super.deleteByKey(Long.valueOf(key));
     }
-
 
 }

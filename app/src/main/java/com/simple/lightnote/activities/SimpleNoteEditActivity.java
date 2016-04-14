@@ -56,6 +56,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_simplenoteedit);
 
         initView();
@@ -149,7 +150,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             }
 
         }
-
+ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
 
     }
 

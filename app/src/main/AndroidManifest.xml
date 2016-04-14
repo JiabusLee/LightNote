@@ -53,6 +53,9 @@
         <activity
             android:name="com.simple.lightnote.activities.SimpleNoteEditActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"></activity>
+        <activity
+            android:name="com.simple.lightnote.activities.RecoveryNoteActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"></activity>
         <activity android:name=".activities.NotePreViewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
