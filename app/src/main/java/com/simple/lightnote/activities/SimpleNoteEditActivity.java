@@ -59,9 +59,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
 //        ViewGroup docurview = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
 //
 //        docurview.getChildAt(0).setBackgroundColor(getResources().getColor(android.R.color.transparent));
+
+
         setContentView(R.layout.activity_simplenoteedit);
 
         initView();
@@ -155,7 +158,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             }
 
         }
-
+ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
 
     }
 

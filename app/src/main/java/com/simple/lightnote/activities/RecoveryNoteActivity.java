@@ -31,7 +31,7 @@ import android.widget.Toast;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.simple.lightnote.R;
-import com.simple.lightnote.activities.base.BaseActivity;
+import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
 import com.simple.lightnote.constant.SQLConstants;
@@ -40,7 +40,6 @@ import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
 import com.simple.lightnote.model.Note;
-import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -53,13 +52,11 @@ import java.util.List;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends BaseActivity {
+public class RecoveryNoteActivity extends BaseSwipeActivity {
     private static final String TAG = "MainActivity";
     //	private ListView mListView;
     private ArrayList<Note> noteList;
@@ -113,8 +110,6 @@ public class MainActivity extends BaseActivity {
         TextView tv_drawer_allNote = (TextView) drawerView.findViewById(R.id.note_select_item_allNote);
         tv_drawer_allNote.setOnClickListener(this);
         drawerView.findViewById(R.id.note_select_item_noteBook).setOnClickListener(this);
-        drawerView.findViewById(R.id.note_select_item_recovery).setOnClickListener(this);
-
     }
 
     @Override
@@ -130,7 +125,7 @@ public class MainActivity extends BaseActivity {
                 SearchView searchView = (SearchView) item.getActionView();
                 searchView.setQueryHint("搜索");
             case R.id.openFile:
-                startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
+                startActivity(new Intent(RecoveryNoteActivity.this, FileSelectActivity.class));
                 return true;
 
             default:
@@ -248,15 +243,15 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         //取消删除操作
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(RecoveryNoteActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        note.setNoteState(SQLConstants.noteState_normal);
+                        note.setNoteState(SQLConstants.noteState_deleted);
                         noteDao.update(note);
                         noteAdapter.notifyItemInserted(note.getId());
-                        ToastUtils.showToast(MainActivity.this, "取消删除");
+                        ToastUtils.showToast(RecoveryNoteActivity.this, "取消删除");
                     }
                 });
                 snackbar.show();
@@ -272,49 +267,23 @@ public class MainActivity extends BaseActivity {
     }
 
     private void getListData() {
-        Observable
-                .fromCallable(new Func0<NoteDao>() {
+        Observable.just(SQLConstants.noteState_deleted)
+                .map(new Func1<Integer, List<Note>>() {
                     @Override
-                    public NoteDao call() {
-                        LogUtils.e(TAG, "call2: " + Thread.currentThread());
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                    public List<Note> call(Integer noteState) {
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(RecoveryNoteActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        long count = noteDao.count();
-
-                        if (count < 20) {
-                            int sum = 0;
-                            if (count < 10) {
-                                sum = 10;
-                            } else {
-                                sum = 2;
-                            }
-                            for (int i = 0; i < sum; i++) {
-                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + System.currentTimeMillis() + ", " + System.currentTimeMillis() + ",'normal');");
-                            }
-
-                        }
-                        return noteDao;
-                    }
-                })
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(Schedulers.newThread())
-                .map(new Func1<NoteDao, List<Note>>() {
-                    @Override
-                    public List<Note> call(NoteDao noteDao) {
-                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderDesc(NoteDao.Properties.LastModifyTime).list();
+                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(noteState)).orderDesc(NoteDao.Properties.LastModifyTime).list();
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                         return list;
                     }
                 })
+
+               .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(Schedulers.newThread())
                 .observeOn(Schedulers.newThread())
                 .filter(new Func1<List<Note>, Boolean>() {
                     @Override
@@ -374,17 +343,16 @@ public class MainActivity extends BaseActivity {
         switch (v.getId()) {
 
             case R.id.note_select_item_allNote:
-                Toast.makeText(MainActivity.this, "全部笔记", Toast.LENGTH_LONG).show();
+                Toast.makeText(RecoveryNoteActivity.this, "全部笔记", Toast.LENGTH_LONG).show();
                 break;
             case R.id.note_select_item_noteBook:
                 break;
             case R.id.note_select_item_recovery:
-                Intent intent = new Intent(this, RecoveryNoteActivity.class);
+                Intent intent = new Intent(this, SimpleNoteEditActivity.class);
                 startActivity(intent);
-                drawerLayout.closeDrawers();
+
                 break;
             case R.id.fab:
-
                 intent = new Intent(this, SimpleNoteEditActivity.class);
                 startActivity(intent);
                 break;
@@ -456,5 +424,8 @@ public class MainActivity extends BaseActivity {
         long l = end - start;
         LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
     }
+
+
+
 
 }

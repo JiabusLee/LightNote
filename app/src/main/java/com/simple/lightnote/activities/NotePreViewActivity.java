@@ -257,7 +257,7 @@ public class NotePreViewActivity extends BaseActivity {
         Context mContext;
 
         /**
-         * Instantiate the interface and set the context
+         * Instantiate the interfaces and set the context
          */
         WebAppInterface(Context c) {
             mContext = c;

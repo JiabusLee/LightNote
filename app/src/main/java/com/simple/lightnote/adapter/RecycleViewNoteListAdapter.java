@@ -19,11 +19,12 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
-import com.simple.lightnote.activities.MainActivity;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
+import com.simple.lightnote.constant.SQLConstants;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
+import com.simple.lightnote.interfaces.ActionListener;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
@@ -116,7 +117,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 daoMaster = new DaoMaster(db);
                 daoSession = daoMaster.newSession();
                 noteDao = daoSession.getNoteDao();
-                noteDao.deleteByKey(note.getId());
+                note.setNoteState(SQLConstants.noteState_deleted);
+                noteDao.update(note);
+//                noteDao.deleteByKey(note.getId());
                 return null;
             }
 
@@ -231,9 +234,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
     }
 
-    MainActivity.ActionListener listener;
+    ActionListener listener;
 
-    public void setActionListener(MainActivity.ActionListener listener) {
+    public void setActionListener(ActionListener listener) {
         this.listener = listener;
     }
 

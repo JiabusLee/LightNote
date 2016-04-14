@@ -1,19 +1,19 @@
 package com.simple.lightnote.utils;
 
-import java.io.BufferedWriter;  
-import java.io.File;  
-import java.io.FileWriter;  
-import java.io.IOException;  
-import java.text.SimpleDateFormat;  
-import java.util.Calendar;  
-import java.util.Date;  
-
 import android.os.Environment;
-import android.util.Log;  
+import android.util.Log;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
  
  
 public class LogUtils {  
-    private static Boolean LOG_SWITCH=false; 				// 日志文件总开关  
+    private static Boolean LOG_SWITCH=true; 				// 日志文件总开关
     private static Boolean LOG_WRITE_TO_FILE=false;			// 日志写入文件开关  
     private static char LOG_TYPE='v';						// 输入日志类型，w代表只输出告警信息等，v代表输出所有信息 
     private static String LOG_PATH_SDCARD_DIR;	// 日志文件在sdcard中的路径  
