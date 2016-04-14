@@ -36,7 +36,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
 
-
                 android:gravity="left"
                 android:maxLines="5"
                 android:textColor="#888888"

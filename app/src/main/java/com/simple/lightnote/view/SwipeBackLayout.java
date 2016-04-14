@@ -55,14 +55,15 @@ public class SwipeBackLayout extends FrameLayout {
 	
 	public void attachToActivity(Activity activity) {
 		mActivity = activity;
-		TypedArray a = activity.getTheme().obtainStyledAttributes(
-				new int[] { android.R.attr.windowBackground });
-		int background = a.getResourceId(0, 0);
-		a.recycle();
+//		TypedArray a = activity.getTheme().obtainStyledAttributes(
+//				new int[] { android.R.attr.windowBackground });
+//		int background = a.getResourceId(0, 0);
+//		a.recycle();
 
 		ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
 		ViewGroup decorChild = (ViewGroup) decor.getChildAt(0);
-		decorChild.setBackgroundResource(background);
+		decor.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+//		decorChild.setBackgroundResource(android.R.color.transparent);
 		decor.removeView(decorChild);
 		this.addView(decorChild);
 		this.setContentView(decorChild);

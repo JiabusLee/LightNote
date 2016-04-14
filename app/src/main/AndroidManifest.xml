@@ -52,6 +52,7 @@
         <activity android:name=".activities.base.FileSelectActivity"/>
         <activity
             android:name="com.simple.lightnote.activities.SimpleNoteEditActivity"
+            android:theme="@style/slideFinish"
             android:windowSoftInputMode="adjustResize|stateHidden"></activity>
         <activity android:name=".activities.NotePreViewActivity">
             <intent-filter>

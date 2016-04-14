@@ -2,6 +2,7 @@ package com.simple.lightnote.activities;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
@@ -56,6 +58,10 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        ViewGroup docurview = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
+//
+//        docurview.getChildAt(0).setBackgroundColor(getResources().getColor(android.R.color.transparent));
         setContentView(R.layout.activity_simplenoteedit);
 
         initView();
