@@ -56,6 +56,7 @@
             android:windowSoftInputMode="adjustResize|stateHidden"></activity>
         <activity
             android:name="com.simple.lightnote.activities.RecoveryNoteActivity"
+            android:theme="@style/slideFinish"
             android:windowSoftInputMode="adjustResize|stateHidden"></activity>
         <activity android:name=".activities.NotePreViewActivity">
             <intent-filter>

@@ -126,10 +126,10 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.ab_search:
+            case R.id.action_search:
                 SearchView searchView = (SearchView) item.getActionView();
                 searchView.setQueryHint("搜索");
-            case R.id.openFile:
+            case R.id.action_openFile:
                 startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
                 return true;
 
@@ -255,7 +255,7 @@ public class MainActivity extends BaseActivity {
                         noteDao = daoSession.getNoteDao();
                         note.setNoteState(SQLConstants.noteState_normal);
                         noteDao.update(note);
-                        noteAdapter.notifyItemInserted(note.getId());
+//                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(MainActivity.this, "取消删除");
                     }
                 });

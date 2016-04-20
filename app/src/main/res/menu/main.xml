@@ -4,30 +4,30 @@
     tools:context="com.simple.lightnote.MainActivity" >
 
     <item
-        android:id="@+id/ab_search"
+        android:id="@+id/action_search"
         android:orderInCategory="80"
-        android:title="action_search"
+        android:title="搜索"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_options"
         android:orderInCategory="100"
-        android:title="action_settings"
+        android:title="查看选项"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/help"
+        android:id="@+id/action_openFile"
         android:orderInCategory="100"
-        android:title="help"
+        android:title="打开文件"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/openFile"
+        android:id="@+id/action_sort"
         android:orderInCategory="100"
-        android:title="openFile"
+        android:title="排序"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/about"
+        android:id="@+id/action_help"
         android:orderInCategory="100"
-        android:title="about"
+        android:title="帮助"
         app:showAsAction="never"/>
 
 </menu>

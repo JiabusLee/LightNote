@@ -1,7 +1,7 @@
 package com.simple.lightnote.model;
 
 public class Note {
-    private int id;
+    private Long id;
     private String noteTitle;
     private String noteContent;
     private String noteMd5;
@@ -18,7 +18,7 @@ public class Note {
     }
 
 
-    public Note(int id, String noteTitle, String noteContent, String noteMd5, long createTime, long lastModifyTime, String noteType, int noteState, String noteLabel, String book) {
+    public Note(Long id, String noteTitle, String noteContent, String noteMd5, long createTime, long lastModifyTime, String noteType, int noteState, String noteLabel, String book) {
         this.id = id;
         this.noteTitle = noteTitle;
         this.noteContent = noteContent;
@@ -31,12 +31,11 @@ public class Note {
         this.book = book;
     }
 
-
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

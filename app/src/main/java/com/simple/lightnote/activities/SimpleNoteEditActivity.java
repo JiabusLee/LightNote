@@ -180,7 +180,7 @@ ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        Integer id = note.getId();
+                        Long id = note.getId();
                         if (id == null) {
                             noteDao.insert(note);
                         } else {

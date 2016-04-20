@@ -70,7 +70,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
             Note note = list.get(position);
-            ((RecyclerViewHolder) holder).tv_title.setText(note.getNoteContent());
+            ((RecyclerViewHolder) holder).tv_title.setText(note.getId()+"  "+note.getNoteContent());
 
             StringBuilder sb = new StringBuilder();
             Long lastModifyTime = note.getLastModifyTime();

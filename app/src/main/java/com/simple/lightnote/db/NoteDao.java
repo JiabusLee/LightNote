@@ -20,16 +20,16 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public static final String TABLENAME = "note";
 
     public static class Properties {
-        public final static Property Id = new Property(0, Integer.class, "id", true, "_id");
+        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
         public final static Property NoteTitle = new Property(1, String.class, "noteTitle", false, "noteTitle");
         public final static Property NoteContent = new Property(2, String.class, "noteContent", false, "noteContent");
         public final static Property NoteMd5 = new Property(3, String.class, "noteMd5", false, "noteMd5");
         public final static Property CreateTime = new Property(4, Long.class, "createTime", false, "createTime");
         public final static Property LastModifyTime = new Property(5, Long.class, "lastModifyTime", false, "lastModifyTime");
-        public final static Property NoteType = new Property(6, int.class, "noteType", false, "noteType");
-        public final static Property NoteState = new Property(7, int.class, "noteState", false, "noteState");
-        public final static Property NoteLabel = new Property(8, String.class, "noteState", false, "noteState");
-        public final static Property NoteBook = new Property(9, String.class, "noteState", false, "noteState");
+        public final static Property NoteType = new Property(6, String.class, "noteType", false, "noteType");
+        public final static Property NoteState = new Property(7, Integer.class, "noteState", false, "noteState");
+        public final static Property NoteLabel = new Property(8, String.class, "noteLabel", false, "noteLabel");
+        public final static Property NoteBook = new Property(9, String.class, "book", false, "book");
 
     }
 
@@ -68,16 +68,16 @@ public class NoteDao extends AbstractDao<Note, Long> {
     @Override
     public Note readEntity(Cursor cursor, int offset) {
         Note entity = new Note(
-                cursor.isNull(offset + 0) ? null : cursor.getInt(offset + 0), // id
-                cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // title
+                cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
+                cursor.getString(offset + 1), // title
                 cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // contnet
                 cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // md5
                 cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4),//createTime
                 cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5),//lastModifyTime
-                cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6),//noteType
-                cursor.isNull(offset + 7) ? null : cursor.getInt(offset + 7),//noteState
-                cursor.isNull(offset + 7) ? null : cursor.getString(offset + 8),//label
-                cursor.isNull(offset + 8) ? null : cursor.getString(offset + 9)//book
+                cursor.getString(offset + 6),//noteType
+                cursor.getInt(offset + 7),//noteState
+                cursor.getString(offset + 8),//label
+                cursor.getString(offset + 9)//book
                 //TODO 添加构造函数
         );
         return entity;
@@ -86,23 +86,23 @@ public class NoteDao extends AbstractDao<Note, Long> {
     @Override
     protected Long readKey(Cursor cursor, int offset) {
         boolean b = cursor.moveToPosition(offset);
-        if(b){
-            return Long.valueOf(readEntity(cursor,offset).getId());
+        if (b) {
+            return readEntity(cursor, offset).getId();
         }
-        return  null;
+        return null;
 
     }
 
     @Override
     protected void readEntity(Cursor cursor, Note entity, int offset) {
-            entity=readEntity(cursor,offset);
+        entity = readEntity(cursor, offset);
     }
 
     @Override
     protected void bindValues(SQLiteStatement stmt, Note entity) {
         stmt.clearBindings();
-        long id = entity.getId();
-        if (id != 0l) {
+        Long id = entity.getId();
+        if (id != null) {
             stmt.bindLong(1, id);
         }
         stmt.bindString(2, entity.getNoteTitle());
@@ -147,14 +147,19 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public void update(Note entity) {
         if (entity.getNoteTitle() == null)
             entity.setNoteTitle("");
+        System.out.println("update :"+entity);
         super.update(entity);
     }
 
     @Override
     protected Long getKey(Note entity) {
-        Log.e(TAG, "getKey: " + "项:" + entity.getId());
+        Log.e(TAG, "getKey: " + "项:" + entity);
         return Long.valueOf(entity.getId());
     }
+
+
+
+
 
     @Override
     protected boolean isEntityUpdateable() {
