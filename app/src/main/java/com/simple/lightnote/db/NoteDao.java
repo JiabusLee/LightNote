@@ -60,7 +60,7 @@ public class NoteDao extends AbstractDao<Note, Long> {
                 "\tnoteType VARCHAR (10) DEFAULT 'normal' ,\n" +
                 "\tnoteState INTEGER DEFAULT 0,\n" +
                 "\tnoteLabel varchar(20),\n" +
-                "\tbook varchar(20)\n" +
+                "\tbook varchar(20) DETAULT 'default'\n" +
                 "); \n"// 1: noteType
         ); // 3: date
     }
