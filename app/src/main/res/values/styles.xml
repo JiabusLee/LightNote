@@ -71,5 +71,23 @@
         <item name="android:onClick">onToolBarClick</item>
     </style>
 
+    <style name="commonDialog" parent="android:Theme.Holo.Light.Dialog">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <!-- 对话框是否浮动 -->
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- 对话框是否透明 -->
+        <item name="android:windowNoTitle">true</item>
+        <!-- 对话框无标题 -->
+        <item name="android:windowContentOverlay">@null</item>
+        <!-- 对话框是否有遮盖 -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <!-- 背景昏暗是否启用 -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 除去背景色 -->
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <!-- 自动弹出输入法 -->
+    </style>
 
 </resources>

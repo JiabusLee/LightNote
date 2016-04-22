@@ -44,6 +44,7 @@ import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
+import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
@@ -131,6 +132,11 @@ public class MainActivity extends BaseActivity {
                 searchView.setQueryHint("搜索");
             case R.id.action_openFile:
                 startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
+                return true;
+            case R.id.action_options:
+                CommonDialog dialog =new CommonDialog(this);
+                dialog.setContentView(R.layout.dialog_menu_options);
+                //TODO 设置Dialog的contentView
                 return true;
 
             default:
@@ -268,6 +274,13 @@ public class MainActivity extends BaseActivity {
         mRecycleView.setAdapter(noteAdapter);
 
 //		mListView.setAdapter(noteListAdapter);
+
+    }
+
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
         getListData();
     }
 

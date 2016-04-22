@@ -65,8 +65,8 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_2, parent, false);
 
-        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext);
-        recyclerViewHolder.setClickListener(this);
+        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext,this);
+//        recyclerViewHolder.setClickListener(this);
         return recyclerViewHolder;
     }
 
@@ -80,7 +80,8 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             Long lastModifyTime = note.getLastModifyTime();
             if (lastModifyTime != null) {
 
-                String dateByTimestamp = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
+                String dateByTimestamp = setShowTime(lastModifyTime);
+//                String dateByTimestamp = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
                 sb.append("<font color='#228B22'>").append(dateByTimestamp).append("</font>  ");
             }
             sb.append(note.getNoteContent());
@@ -98,6 +99,27 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 }
             });
         }
+    }
+
+    private String setShowTime(Long lastModifyTime) {
+        String showTime = null;
+        long l = System.currentTimeMillis();
+        long l1 = l - lastModifyTime;
+        if (l1 < 1000 * 60 * 3) {
+            showTime = "刚刚";
+        } else if (l1 < 1000 * 60 * 60 * 24) {
+            String hh = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
+            if (Integer.valueOf(hh) < 24) {
+                showTime = "今天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
+            } else {
+                showTime = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
+            }
+        } else {
+            showTime = DateUtils.getDateByTimestamp(lastModifyTime, "yyyy/MM/dd");
+        }
+
+        return showTime;
+
     }
 
     /**
@@ -142,7 +164,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
                     @Override
                     public void onNext(Void aVoid) {
-                        listener.onDelete(note1);
+                        actionListener.onDelete(note1);
                     }
                 });
 
@@ -183,8 +205,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         Button action1, action2, action3;
         TextView tv_content;
         TextView tv_title;
+        OnClickListener listener;
 
-        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
+        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context,OnClickListener listener) {
             super(view);
             this.mAdapter = adapter;
             this.mContext = context;
@@ -205,18 +228,17 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
         }
 
-        OnClickListener listener;
 
-        public void setClickListener(OnClickListener listener) {
-            this.listener = listener;
-        }
+//        public void setClickListener(OnClickListener listener) {
+//            this.listener = listener;
+//        }
 
     }
 
-    ActionListener listener;
+    ActionListener actionListener;
 
     public void setActionListener(ActionListener listener) {
-        this.listener = listener;
+        this.actionListener = listener;
     }
 
     @Override

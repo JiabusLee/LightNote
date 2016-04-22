@@ -2,7 +2,6 @@ package com.simple.lightnote.activities;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -10,7 +9,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
@@ -158,12 +156,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             }
 
         }
-ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
+
 
     }
 
     private void insertAndUpdate() {
-
+        ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
         Observable
                 .just(note)
                 .filter(new Func1<Note, Boolean>() {
