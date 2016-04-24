@@ -50,6 +50,8 @@ import com.simple.lightnote.view.SwipeMenuRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -92,6 +94,7 @@ public class MainActivity extends BaseActivity {
 
 //		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
+        ButterKnife.bind(this);
         contentView = View.inflate(this, R.layout.activity_main, null);
         setContentView(contentView);
         initView();
@@ -110,10 +113,11 @@ public class MainActivity extends BaseActivity {
 
     private void initDrawerView() {
         drawerView = findViewById(R.id.drawer_view);
-        TextView tv_drawer_allNote = (TextView) drawerView.findViewById(R.id.note_select_item_allNote);
-        tv_drawer_allNote.setOnClickListener(this);
+        drawerView.findViewById(R.id.note_select_item_allNote).setOnClickListener(this);
         drawerView.findViewById(R.id.note_select_item_noteBook).setOnClickListener(this);
         drawerView.findViewById(R.id.note_select_item_recovery).setOnClickListener(this);
+        drawerView.findViewById(R.id.note_select_item_set).setOnClickListener(this);
+        drawerView.findViewById(R.id.note_select_item_noteLabel).setOnClickListener(this);
 
     }
 
@@ -159,7 +163,7 @@ public class MainActivity extends BaseActivity {
         mRecycleView.setCloseInterpolator(new BounceInterpolator());
         mRecycleView.setItemAnimator(new DefaultItemAnimator());
         //TODO 添加分隔线
-        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+      /*  mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         mSwipeRefreshLayout
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -176,7 +180,7 @@ public class MainActivity extends BaseActivity {
                         }, 3000);
                     }
                 });
-
+*/
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
 
@@ -371,18 +375,26 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onClick(View v) {
         super.onClick(v);
+        Intent intent;
+        drawerLayout.closeDrawers();
         switch (v.getId()) {
-
             case R.id.note_select_item_allNote:
                 Toast.makeText(MainActivity.this, "全部笔记", Toast.LENGTH_LONG).show();
                 break;
             case R.id.note_select_item_noteBook:
                 break;
             case R.id.note_select_item_recovery:
-                Intent intent = new Intent(this, RecoveryNoteActivity.class);
+                intent = new Intent(this, RecoveryNoteActivity.class);
                 startActivity(intent);
-                drawerLayout.closeDrawers();
+
                 break;
+            case R.id.note_select_item_noteLabel:
+                intent = new Intent(this, NoteLabelActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.note_select_item_set:
+                intent = new Intent(this, SettingActivity.class);
+                startActivity(intent);
             case R.id.fab:
 
                 intent = new Intent(this, SimpleNoteEditActivity.class);

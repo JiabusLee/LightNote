@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -62,7 +63,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_2, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_3, parent, false);
         return new RecyclerViewHolder(view, this, mContext);
     }
 
@@ -70,7 +71,13 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
             Note note = list.get(position);
-            ((RecyclerViewHolder) holder).tv_title.setText(note.getId()+"  "+note.getNoteContent());
+            String noteTitle = note.getNoteTitle();
+            if(!TextUtils.isEmpty(noteTitle)){
+                ((RecyclerViewHolder) holder).tv_title.setVisibility(View.VISIBLE);
+                ((RecyclerViewHolder) holder).tv_title.setText(note.getId()+"  "+note.getNoteContent());
+            }else{
+                ((RecyclerViewHolder) holder).tv_title.setVisibility(View.GONE);
+            }
 
             StringBuilder sb = new StringBuilder();
             Long lastModifyTime = note.getLastModifyTime();

@@ -4,7 +4,7 @@
     <color name="textColor">#000000</color>
     <color name="colorPrimary">#1E90FF</color>
     <color name="accent">#1E90FF</color>
-    <color name="accent_pressed">#C2185B</color>
+    <color name="accent_pressed">#5E5E5E</color>
     <color name="ripple">#F06292</color>
     <color name="material_blue_500">#5677fc</color>
     <color name="gray">#D3D3D3</color>

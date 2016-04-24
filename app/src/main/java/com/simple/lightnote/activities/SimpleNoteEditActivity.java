@@ -158,12 +158,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             }
 
         }
-ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
+
 
     }
 
     private void insertAndUpdate() {
-
+        ToastUtils.showToast(SimpleNoteEditActivity.this, "正在保存");
         Observable
                 .just(note)
                 .filter(new Func1<Note, Boolean>() {
@@ -270,10 +270,12 @@ ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
         switch (v.getId()) {
             case R.id.edit_toolbar_item_1:
                 if (trim.length() > 0) {
-                    if (trim.trim().lastIndexOf('#') == trim.length() - 1) {
+//                    int selectionStart = edt_noteContent.getSelectionStart();
+                    int selectionEnd = edt_noteContent.getSelectionEnd();
+                    if (trim.trim().lastIndexOf('#') == trim.length() - 2) {
                         edt_noteContent.append("#");
                     } else {
-                        edt_noteContent.append("\r\n# ");
+                        edt_noteContent.append("# ");
                     }
                 } else {
                     edt_noteContent.append("# ");
@@ -287,6 +289,13 @@ ToastUtils.showToast(SimpleNoteEditActivity.this,"正在保存");
             case R.id.edit_toolbar_item_4:
                 break;
             case R.id.edit_toolbar_item_5:
+                int selectionEnd = edt_noteContent.getSelectionEnd();
+                if (selectionEnd > 1) {
+                    edt_noteContent.append("\n---\n", selectionEnd - 1, selectionEnd);
+                } else {
+                    edt_noteContent.append("---\n");
+                }
+
                 break;
             case R.id.edit_toolbar_item_save:
                 String trim1 = edt_noteContent.getText().toString().trim();
