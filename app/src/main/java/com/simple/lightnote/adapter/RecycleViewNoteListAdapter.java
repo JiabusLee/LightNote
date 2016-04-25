@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -33,6 +34,7 @@ import com.simple.lightnote.utils.ToastUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.http.HEAD;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -63,18 +65,25 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_2, parent, false);
-
-        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext,this);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_3, parent, false);
+        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext, this);
 //        recyclerViewHolder.setClickListener(this);
-        return recyclerViewHolder;
+        return new RecyclerViewHolder(view, this, mContext, this);
+
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
             Note note = list.get(position);
-            ((RecyclerViewHolder) holder).tv_title.setText(note.getId() + "  " + note.getNoteContent());
+            String noteTitle = note.getNoteTitle();
+            if (!TextUtils.isEmpty(noteTitle)) {
+                ((RecyclerViewHolder) holder).tv_title.setVisibility(View.VISIBLE);
+                ((RecyclerViewHolder) holder).tv_title.setText(note.getId() + "  " + note.getNoteContent());
+            } else {
+                ((RecyclerViewHolder) holder).tv_title.setVisibility(View.GONE);
+            }
+
 
             StringBuilder sb = new StringBuilder();
             Long lastModifyTime = note.getLastModifyTime();
@@ -110,7 +119,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         } else if (l1 < 1000 * 60 * 60 * 24) {
             String hh = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
             if (Integer.valueOf(hh) < 24) {
-                showTime = "今天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
+                showTime = "今天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             } else {
                 showTime = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
             }
@@ -207,7 +216,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         TextView tv_title;
         OnClickListener listener;
 
-        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context,OnClickListener listener) {
+        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context, OnClickListener listener) {
             super(view);
             this.mAdapter = adapter;
             this.mContext = context;

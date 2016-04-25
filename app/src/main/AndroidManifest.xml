@@ -3,7 +3,16 @@
     package="com.simple.lightnote"
     android:versionCode="1"
     android:versionName="1.0.0">
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-sdk
         android:minSdkVersion="22"
         android:targetSdkVersion="23" />
@@ -58,6 +67,8 @@
             android:name="com.simple.lightnote.activities.RecoveryNoteActivity"
             android:theme="@style/slideFinish"
             android:windowSoftInputMode="adjustResize|stateHidden"></activity>
+        <activity android:name=".activities.NoteLabelActivity"></activity>
+        <activity android:name=".activities.SettingActivity"></activity>
         <activity android:name=".activities.NotePreViewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -125,17 +136,7 @@
             android:value="com.simple.lightnote.model.Note" />
 
     </application>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
 
 </manifest>
