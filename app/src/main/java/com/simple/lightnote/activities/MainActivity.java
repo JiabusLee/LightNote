@@ -25,7 +25,6 @@ import android.view.Window;
 import android.view.animation.BounceInterpolator;
 import android.widget.EditText;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
@@ -45,14 +44,12 @@ import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
-import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -162,14 +159,14 @@ public class MainActivity extends BaseActivity {
         actionBarDrawerToggle.syncState();
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
+//        mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
         mSwipeRefreshLayout.setEnabled(true);
 
         mRecycleView.setOpenInterpolator(new BounceInterpolator());
         mRecycleView.setCloseInterpolator(new BounceInterpolator());
         mRecycleView.setItemAnimator(new DefaultItemAnimator());
         //TODO 添加分隔线
-      /*  mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+//        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         mSwipeRefreshLayout
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -186,7 +183,6 @@ public class MainActivity extends BaseActivity {
                         }, 3000);
                     }
                 });
-*/
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
 
@@ -408,6 +404,7 @@ public class MainActivity extends BaseActivity {
             case R.id.note_select_item_set:
                 intent = new Intent(this, SettingActivity.class);
                 startActivity(intent);
+                break;
             case R.id.fab:
 
                 intent = new Intent(this, SimpleNoteEditActivity.class);

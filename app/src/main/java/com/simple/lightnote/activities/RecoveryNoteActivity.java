@@ -32,7 +32,6 @@ import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
-import com.simple.lightnote.view.DividerItemDecoration;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+
 
 public class RecoveryNoteActivity extends BaseSwipeActivity {
     private static final String TAG = "RecoveryNoteActivity";
@@ -106,14 +106,15 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         actionBarDrawerToggle.syncState();
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
+        mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.colorPrimary));
         mSwipeRefreshLayout.setEnabled(true);
 
+        findViewById(R.id.fab).setVisibility(View.GONE);
         mRecycleView.setOpenInterpolator(new BounceInterpolator());
         mRecycleView.setCloseInterpolator(new BounceInterpolator());
         mRecycleView.setItemAnimator(new DefaultItemAnimator());
         //TODO 添加分隔线
-        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+//        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         mSwipeRefreshLayout
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

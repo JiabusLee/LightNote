@@ -26,6 +26,8 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.ActionListener;
+import com.simple.lightnote.interfaces.MyItemClickListener;
+import com.simple.lightnote.interfaces.MyItemLongClickListener;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
@@ -34,7 +36,6 @@ import com.simple.lightnote.utils.ToastUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.http.HEAD;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -44,11 +45,12 @@ import rx.schedulers.Schedulers;
 /**
  * 列表ListView的Adapter
  */
-public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnClickListener {
+public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MyItemClickListener {
     private Cursor cursor;
     Context mContext;
     private List<Note> list;
     private RecyclerViewHolder recyclerViewHolder;
+    ActionListener actionListener;
 
     public RecycleViewNoteListAdapter(ArrayList<Note> note) {
         this.list = note;
@@ -66,9 +68,11 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_3, parent, false);
-        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext, this);
+        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext);
 //        recyclerViewHolder.setClickListener(this);
-        return new RecyclerViewHolder(view, this, mContext, this);
+//        recyclerViewHolder.setOnLongClickListener(this);
+        recyclerViewHolder.setClickListener(this);
+        return recyclerViewHolder;
 
     }
 
@@ -206,7 +210,36 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     }
 
 
-    public static class RecyclerViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public void onClick(View v, int postion) {
+        switch (v.getId()) {
+            case R.id.button1:
+                ToastUtils.showToast(mContext, "onClick1");
+                break;
+            case R.id.button2:
+                ToastUtils.showToast(mContext, "onClick2");
+                break;
+            case R.id.button3:
+                ToastUtils.showToast(mContext, "onClick3");
+                break;
+            case R.id.ll_container:
+                if (postion != RecyclerView.NO_POSITION) {
+                    Note note = list.get(postion);
+                    String s = JSON.toJSONString(note);
+                    Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
+                    intent.putExtra("clickItem", s);
+                    mContext.startActivity(intent);
+                }
+
+                break;
+            default:
+                break;
+        }
+
+    }
+
+
+    public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
         RecyclerView.Adapter<ViewHolder> mAdapter;
         Context mContext;
         RelativeLayout ll_container;
@@ -215,8 +248,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         TextView tv_content;
         TextView tv_title;
         OnClickListener listener;
-
-        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context, OnClickListener listener) {
+        MyItemClickListener clickListener;
+        MyItemLongClickListener longClickListener;
+        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
             super(view);
             this.mAdapter = adapter;
             this.mContext = context;
@@ -229,53 +263,31 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             ll_action = (LinearLayout) view.findViewById(R.id.ll_action);
 
 
-            action1.setOnClickListener(listener);
-            action2.setOnClickListener(listener);
-            action3.setOnClickListener(listener);
-            ll_container.setOnClickListener(listener);
+            action1.setOnClickListener(this);
+            action2.setOnClickListener(this);
+            action3.setOnClickListener(this);
+            ll_container.setOnClickListener(this);
 
 
         }
 
+        @Override
+        public void onClick(View v) {
+            if(clickListener!=null)clickListener.onClick(v,getAdapterPosition());
+        }
 
-//        public void setClickListener(OnClickListener listener) {
-//            this.listener = listener;
-//        }
 
+        public void setClickListener(MyItemClickListener l) {
+            this.clickListener=l;
+        }
+
+        public void setOnLongClickListener(MyItemLongClickListener ll) {
+            this.longClickListener=ll;
+        }
     }
-
-    ActionListener actionListener;
 
     public void setActionListener(ActionListener listener) {
         this.actionListener = listener;
     }
 
-    @Override
-    public void onClick(View v) {
-
-        switch (v.getId()) {
-            case R.id.button1:
-                ToastUtils.showToast(mContext, "onClick1");
-                break;
-            case R.id.button2:
-                ToastUtils.showToast(mContext, "onClick2");
-                break;
-            case R.id.button3:
-                ToastUtils.showToast(mContext, "onClick3");
-                break;
-            case R.id.ll_container:
-                int adapterPosition = recyclerViewHolder.getAdapterPosition();
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    Note note = list.get(adapterPosition);
-                    String s = JSON.toJSONString(note);
-                    Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
-                    intent.putExtra("clickItem", s);
-                    mContext.startActivity(intent);
-                }
-
-                break;
-            default:
-                break;
-        }
-    }
 }
