@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
@@ -21,9 +22,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.BounceInterpolator;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -47,6 +53,7 @@ import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -84,6 +91,12 @@ public class MainActivity extends BaseActivity {
     View contentView;
     private long end;
     private long start;
+    private CommonDialog commonDialog;
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
 
     @SuppressLint("NewApi")
     @Override
@@ -100,7 +113,7 @@ public class MainActivity extends BaseActivity {
         initListener();
         initData();
 //		colorChange();
-        if (android.os.Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= 21) {
             Window window = getWindow();
             // 很明显，这两货是新API才有的。
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
@@ -135,15 +148,57 @@ public class MainActivity extends BaseActivity {
                 startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
                 return true;
             case R.id.action_options:
-                CommonDialog dialog =new CommonDialog(this);
-                dialog.setContentView(R.layout.dialog_menu_options);
-                //TODO 设置Dialog的contentView
-                return true;
+                commonDialog = new CommonDialog(this);
+                View contentView = getDialogContent(Arrays.asList(new String[]{"标签", "标题", "多行"}), R.id.action_options);
 
+                //置Dialog的contentView
+                commonDialog.setContentView(contentView);
+                commonDialog.show();
+                return true;
+            case R.id.action_sort:
+                commonDialog = new CommonDialog(this);
+                contentView = getDialogContent(Arrays.asList(new String[]{"最近更新", "创建日期", "标题", "笔记本"}), R.id.action_sort);
+
+                //置Dialog的contentView
+                commonDialog.setContentView(contentView);
+                commonDialog.show();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+    private View getDialogContent(List<String> list, int type) {
+        LinearLayout contentView = (LinearLayout) View.inflate(this, R.layout.dialog_menu_options, null);
+        contentView.findViewById(R.id.dialog_conent);
+
+        ListView lv = new ListView(this);
+        lv.setAdapter(new ArrayAdapter(this, android.R.layout.simple_list_item_1, list));
+
+        ViewGroup.MarginLayoutParams layoutParams =
+                new ViewGroup.MarginLayoutParams(ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lv.setLayoutParams(layoutParams);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                commonDialog.dismiss();
+
+
+            }
+        });
+        contentView.addView(lv);
+        if (type == R.id.action_options) {
+            LinearLayout ll = new LinearLayout(this);
+            lv.setLayoutParams(layoutParams);
+            ll.setOrientation(LinearLayout.HORIZONTAL);
+
+        }
+
+        return contentView;
+    }
+
 
     @SuppressLint("NewApi")
     private void initView() {
@@ -438,7 +493,7 @@ public class MainActivity extends BaseActivity {
                 /* 界面颜色UI统一性处理,看起来更Material一些 */
                 // 其中状态栏、游标、底部导航栏的颜色需要加深一下，也可以不加，具体情况在代码之后说明
                 mToolbar.setBackgroundColor(vibrant.getRgb());
-                if (android.os.Build.VERSION.SDK_INT >= 21) {
+                if (Build.VERSION.SDK_INT >= 21) {
                     Window window = getWindow();
                     // 很明显，这两货是新API才有的。
                     window.setStatusBarColor(colorBurn(vibrant.getRgb()));
@@ -478,5 +533,4 @@ public class MainActivity extends BaseActivity {
         long l = end - start;
         LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
     }
-
 }

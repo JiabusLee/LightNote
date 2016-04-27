@@ -71,7 +71,7 @@
         <item name="android:onClick">onToolBarClick</item>
     </style>
 
-    <style name="commonDialog" parent="android:Theme.Holo.Light.Dialog">
+    <style name="commonDialog" parent="@android:style/Theme.Material.Dialog">
         <item name="android:background">@android:color/transparent</item>
         <item name="android:windowFrame">@null</item>
         <item name="android:windowIsFloating">true</item>

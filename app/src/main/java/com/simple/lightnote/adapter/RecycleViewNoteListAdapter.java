@@ -113,16 +113,22 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             });
         }
     }
-
+    static int day = 3600 * 24 * 1000;
     private String setShowTime(Long lastModifyTime) {
         String showTime = null;
         long l = System.currentTimeMillis();
         long l1 = l - lastModifyTime;
+
         if (l1 < 1000 * 60 * 3) {
             showTime = "刚刚";
         } else if (l1 < 1000 * 60 * 60 * 24) {
-            String hh = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
-            if (Integer.valueOf(hh) < 24) {
+//            String hh = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
+
+            boolean b = l / day - lastModifyTime / day < day;
+
+
+
+            if (b) {
                 showTime = "今天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             } else {
                 showTime = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");

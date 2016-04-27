@@ -3,6 +3,11 @@
     package="com.simple.lightnote"
     android:versionCode="1"
     android:versionName="1.0.0">
+
+    <uses-sdk
+        android:minSdkVersion="21"
+        android:targetSdkVersion="23" />
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,10 +17,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-sdk
-        android:minSdkVersion="22"
-        android:targetSdkVersion="23" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
 
     <application
         android:name="com.simple.lightnote.LightNoteApplication"
@@ -58,7 +61,7 @@
              </intent-filter>
          </activity>-->
 
-        <activity android:name=".activities.base.FileSelectActivity"/>
+        <activity android:name=".activities.base.FileSelectActivity" />
         <activity
             android:name="com.simple.lightnote.activities.SimpleNoteEditActivity"
             android:theme="@style/slideFinish"
@@ -74,33 +77,35 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-          <!--  <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+            <!--  <intent-filter>
+                  <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.md"
-                    android:scheme="file"></data>
-            </intent-filter>-->
+                  <data
+                      android:host="*"
+                      android:mimeType="*/*"
+                      android:pathPattern=".*\\.md"
+                      android:scheme="file"></data>
+              </intent-filter>-->
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                    <data android:scheme="file" />
-                    <data android:host="*" />
-                    <data android:mimeType="*/*" />
-                    <data android:pathPattern=".*\\.md" />
-                    <data android:pathPattern=".*\\..*\\.md" />
-                    <data android:pathPattern=".*\\..*\\..*\\.md" />
-                    <data android:pathPattern=".*\\..*\\..*\\..*\\.md" />
-                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.md" />
-                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.md" />
-                    <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.md" />
+
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.md" />
+                <data android:pathPattern=".*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.md" />
             </intent-filter>
         </activity>
 
@@ -108,23 +113,32 @@
 
 
         <!-- 请填写应用实际的APP_ID -->
-        <meta-data android:name="com.baidu.speech.APP_ID" android:value="7929460"/>
+        <meta-data
+            android:name="com.baidu.speech.APP_ID"
+            android:value="7929460" />
         <!-- 请填写应用实际的API_KEY -->
-        <meta-data android:name="com.baidu.speech.API_KEY" android:value="gkXg1nksIE9N8MVWD9MkM83N"/>
+        <meta-data
+            android:name="com.baidu.speech.API_KEY"
+            android:value="gkXg1nksIE9N8MVWD9MkM83N" />
         <!-- 请填写应用实际的SECRET_KEY -->
-        <meta-data android:name="com.baidu.speech.SECRET_KEY" android:value="eb4c7b29c1640351ee6764d5e6b37d63"/>
-        <service android:name="com.baidu.speech.VoiceRecognitionService" android:exported="false" ></service>
+        <meta-data
+            android:name="com.baidu.speech.SECRET_KEY"
+            android:value="eb4c7b29c1640351ee6764d5e6b37d63" />
+        <service
+            android:name="com.baidu.speech.VoiceRecognitionService"
+            android:exported="false"></service>
         <activity
             android:name="com.baidu.voicerecognition.android.ui.BaiduASRDigitalDialog"
             android:configChanges="orientation|keyboardHidden|screenLayout"
-            android:theme="@android:style/Theme.Dialog"
             android:exported="false"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Dialog">
             <intent-filter>
-                <action android:name="com.baidu.action.RECOGNIZE_SPEECH" ></action>
-                <category android:name="android.intent.category.DEFAULT" ></category>
+                <action android:name="com.baidu.action.RECOGNIZE_SPEECH"></action>
+                <category android:name="android.intent.category.DEFAULT"></category>
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="AA_DB_NAME"
             android:value="note.db" />
@@ -133,10 +147,11 @@
             android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="com.simple.lightnote.model.Note" />
+            android:value="com.simple.lightnote.model.Note" /><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
+     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
+
 
     </application>
-
 
 
 </manifest>

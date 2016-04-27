@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -99,12 +98,12 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         mToolbar.setTitle("垃圾篓");
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
         mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
-        setSupportActionBar(mToolbar);
-        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
-                this, drawerLayout, mToolbar, R.string.open_string,
-                R.string.close_string);
-        actionBarDrawerToggle.syncState();
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+//        setSupportActionBar(mToolbar);
+//        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
+//                this, drawerLayout, mToolbar, R.string.open_string,
+//                R.string.close_string);
+//        actionBarDrawerToggle.syncState();
+//        drawerLayout.setDrawerListener(actionBarDrawerToggle);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.colorPrimary));
         mSwipeRefreshLayout.setEnabled(true);
