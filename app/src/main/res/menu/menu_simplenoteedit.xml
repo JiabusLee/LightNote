@@ -11,6 +11,12 @@
         android:title="HIDE"
         app:showAsAction="ifRoom"/>
     <item
+        android:id="@+id/menu_simplenoteedit_info"
+        android:orderInCategory="100"
+        android:title=""
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/menu_simplenoteedit_caption"
         android:orderInCategory="100"
         android:title="标题"

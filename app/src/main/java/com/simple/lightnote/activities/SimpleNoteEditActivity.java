@@ -239,7 +239,11 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             case R.id.menu_simplenoteedit_list:
                 ToastUtils.showToast(SimpleNoteEditActivity.this, "清单");
                 return true;
+            case R.id.menu_simplenoteedit_info:
 
+
+
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
