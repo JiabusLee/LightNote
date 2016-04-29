@@ -10,6 +10,10 @@
         android:layout_height="@dimen/actionBarSize"
         android:background="@color/colorPrimary"
         android:elevation="3dip"></android.support.v7.widget.Toolbar>
+    <com.simple.lightnote.view.ItemView
+        android:id="@+id/itemView_0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <com.simple.lightnote.view.ItemView
         android:id="@+id/itemView_1"

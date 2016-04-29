@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -29,16 +30,16 @@ public class ItemView extends FrameLayout {
     LinearLayout ll;
 
     public ItemView(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public ItemView(Context context, AttributeSet attrs) {
-        this(context, attrs,-1);
+        this(context, attrs, -1);
     }
 
     public ItemView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mContext=context;
+        mContext = context;
         init();
     }
 
@@ -47,21 +48,35 @@ public class ItemView extends FrameLayout {
         ButterKnife.bind(this);
     }
 
-    public void setTitle(@NonNull String text){
+    public void setTitle(@NonNull String text) {
         tv_title.setText(text);
     }
 
-    public void setSubTitle(@NonNull String text){
+    public void setSubTitle(@NonNull String text) {
         tv_subTitle.setText(text);
     }
 
-    public void check(boolean check){
+    public void check(boolean check) {
         cb.setChecked(check);
     }
 
 
-    public void setCheckBoxPosition(){
+    public void setCheckBoxPosition() {
 
+    }
+
+    public ItemView hideSubTitle(boolean flag) {
+        if (flag)
+            tv_subTitle.setVisibility(View.VISIBLE);
+        else tv_subTitle.setVisibility(GONE);
+        return this;
+    }
+
+    public ItemView hideCheckBox(boolean flag) {
+        if (flag)
+            cb.setVisibility(View.VISIBLE);
+        else cb.setVisibility(GONE);
+        return this;
     }
 
 

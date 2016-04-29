@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Evernote SDK Demo</string>
+    <string name="open_drawer">Open drawer</string>
+    <string name="close_drawer">Close drawer</string>
+    <string name="notes">Notes</string>
+    <string name="notebooks">Notebooks</string>
+    <string name="label_logout">Sign out</string>
+    <string name="user_info">User Info</string>
+    <string name="label_login">Login</string>
+    <string name="empty">Empty %s</string>
+    <string name="evernote_not_installed">Evernote is not installed.</string>
+    <string name="share_public_link">Share public link</string>
+    <string name="delete">Delete</string>
+    <string name="raw_content">Raw content</string>
+    <string name="open_in_evernote_client">Open with Evernote app</string>
+    <string name="note_title">Note Title</string>
+    <string name="notebook_title">Notebook Title</string>
+    <string name="note_content">Note Content</string>
+    <string name="create_new_note">Create new note</string>
+    <string name="create_new_notebook">Create new notebook</string>
+    <string name="create">Create</string>
+    <string name="personal">Personal</string>
+    <string name="linked">Linked</string>
+    <string name="attach_image">Attach image</string>
+    <string name="mega_bytes">%.1f MB</string>
+    <string name="kilo_bytes">%.1f KB</string>
+    <string name="upload_limit">Upload limit</string>
+    <string name="email">Email</string>
+    <string name="search">Search</string>
+    <string name="query">Query</string>
+</resources>

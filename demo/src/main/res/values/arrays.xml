@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="notes_context_menu">
+        <item>@string/share_public_link</item>
+        <item>@string/open_in_evernote_client</item>
+        <item>@string/raw_content</item>
+        <item>@string/delete</item>
+    </string-array>
+</resources>

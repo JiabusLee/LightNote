@@ -6,6 +6,7 @@ task wrapper(type: Wrapper) {
 allprojects {
     repositories {
         mavenCentral()
+        jcenter()
     }
 
 }
@@ -28,9 +29,9 @@ ext {
     sourceCompatibility = JavaVersion.VERSION_1_8
 
     android=[
-            compileSdkVersion : 23,
+            compileSdkVersion : 22,
             buildToolsVersion : '23.0.2',
             targetSdkVersion :23,
-            minSdkVersion : 22
+            minSdkVersion : 21
     ]
 }
