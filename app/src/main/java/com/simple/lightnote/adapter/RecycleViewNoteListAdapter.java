@@ -113,29 +113,37 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             });
         }
     }
+
     static int day = 3600 * 24 * 1000;
+
     private String setShowTime(Long lastModifyTime) {
         String showTime = null;
         long l = System.currentTimeMillis();
         long l1 = l - lastModifyTime;
+        String dL = DateUtils.getDateByTimestamp(lastModifyTime, "dd");
+        String dC = DateUtils.getDateByTimestamp(l, "dd");
+        int i = Integer.valueOf(dL) - Integer.valueOf(dC);
 
         if (l1 < 1000 * 60 * 3) {
             showTime = "刚刚";
-        } else if (l1 < 1000 * 60 * 60 * 24) {
-//            String hh = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
+        } else if (l1 < day) {
 
             boolean b = l / day - lastModifyTime / day < day;
 
-
-
-            if (b) {
-                showTime = "今天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
+            if (b && i==0) {
+                showTime = DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             } else {
-                showTime = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
+                showTime = "昨天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             }
+        }else if(i==1){
+//            String hL = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
+//            String hC = DateUtils.getDateByTimestamp(l, "HH");
+//            int i1 = Integer.valueOf(hC) - Integer.valueOf(hL);
+            showTime = "昨天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
         } else {
             showTime = DateUtils.getDateByTimestamp(lastModifyTime, "yyyy/MM/dd");
         }
+
 
         return showTime;
 
@@ -256,6 +264,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         OnClickListener listener;
         MyItemClickListener clickListener;
         MyItemLongClickListener longClickListener;
+
         public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
             super(view);
             this.mAdapter = adapter;
@@ -279,16 +288,16 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
         @Override
         public void onClick(View v) {
-            if(clickListener!=null)clickListener.onClick(v,getAdapterPosition());
+            if (clickListener != null) clickListener.onClick(v, getAdapterPosition());
         }
 
 
         public void setClickListener(MyItemClickListener l) {
-            this.clickListener=l;
+            this.clickListener = l;
         }
 
         public void setOnLongClickListener(MyItemLongClickListener ll) {
-            this.longClickListener=ll;
+            this.longClickListener = ll;
         }
     }
 
