@@ -189,12 +189,12 @@ public class MainActivity extends BaseActivity {
             }
         });
         contentView.addView(lv);
-        if (type == R.id.action_options) {
+      /*  if (type == R.id.action_options) {
             LinearLayout ll = new LinearLayout(this);
             lv.setLayoutParams(layoutParams);
             ll.setOrientation(LinearLayout.HORIZONTAL);
 
-        }
+        }*/
 
         return contentView;
     }

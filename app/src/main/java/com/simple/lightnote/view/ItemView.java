@@ -66,14 +66,14 @@ public class ItemView extends FrameLayout {
     }
 
     public ItemView hideSubTitle(boolean flag) {
-        if (flag)
+        if (!flag)
             tv_subTitle.setVisibility(View.VISIBLE);
         else tv_subTitle.setVisibility(GONE);
         return this;
     }
 
     public ItemView hideCheckBox(boolean flag) {
-        if (flag)
+        if (!flag)
             cb.setVisibility(View.VISIBLE);
         else cb.setVisibility(GONE);
         return this;

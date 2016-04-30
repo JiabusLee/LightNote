@@ -60,6 +60,8 @@
                  <category android:name="android.intent.category.LAUNCHER" />
              </intent-filter>
          </activity>-->
+        <activity android:name="com.evernote.client.android.EvernoteOAuthActivity" />
+        <activity android:name="com.evernote.client.android.login.EvernoteLoginActivity"/>
 
         <activity android:name=".activities.base.FileSelectActivity" />
         <activity

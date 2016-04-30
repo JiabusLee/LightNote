@@ -29,6 +29,7 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="8dp"
             android:text="example"
+            android:gravity="center"
             android:layout_weight="1"
             android:textSize="18sp" />
 
@@ -38,6 +39,8 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="8dp"
             android:text="substring"
+            android:visibility="visible"
+            android:gravity="center"
             android:layout_weight="1"
             android:textSize="14sp" />
     </LinearLayout>
