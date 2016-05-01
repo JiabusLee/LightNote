@@ -23,7 +23,7 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.Note;
-import com.simple.lightnote.util.SharePreferenceUtil;
+import com.simple.lightnote.util.SpUtil;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -85,7 +85,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 //            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
-        int showToolBar = SharePreferenceUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
+        int showToolBar = SpUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
         setToolBarVisible(showToolBar);
     }
 
@@ -226,7 +226,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     setToolBarVisible(0);
                     flag_actionBar = 0;
                 }
-                SharePreferenceUtil.getEditor(SimpleNoteEditActivity.this).putInt(SPConstans.EDIT_TOOL_BAR, flag_actionBar).commit();
+                SpUtil.getEditor(SimpleNoteEditActivity.this).putInt(SPConstans.EDIT_TOOL_BAR, flag_actionBar).commit();
                 //TODO 修改点击和隐藏的状态
                 return true;
 

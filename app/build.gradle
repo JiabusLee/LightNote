@@ -53,5 +53,25 @@ android {
 
     compile 'com.facebook.fresco:fresco:0.9.0+'*/
     }
+    buildTypes {
+        release {
+            applicationIdSuffix ".release"
+            minifyEnabled true
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+        }
+
+        debug{
+            applicationIdSuffix ".debug"
+//            minifyEnabled true
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-project.txt'
+
+        }
+    }
 
 }
