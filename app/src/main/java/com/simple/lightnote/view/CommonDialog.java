@@ -1,7 +1,5 @@
 package com.simple.lightnote.view;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
 
@@ -25,21 +23,21 @@ public class CommonDialog extends Dialog {
     @Override
     public void show() {
         super.show();
-        ObjectAnimator mAnimatorAlpha = ObjectAnimator.ofFloat(getWindow().getDecorView(), "alpha", 8f, 1f);
+      /*  ObjectAnimator mAnimatorAlpha = ObjectAnimator.ofFloat(getWindow().getDecorView(), "alpha", 0.6f, 1f);
 
         AnimatorSet set = new AnimatorSet();
-        mAnimatorAlpha.setDuration(1000);
+//        mAnimatorAlpha.setDuration(200);
 
-        ObjectAnimator mAnimatorScaleX = ObjectAnimator.ofFloat(getWindow().getDecorView(), "scaleX", 0f, 1f);
+        ObjectAnimator mAnimatorScaleX = ObjectAnimator.ofFloat(getWindow().getDecorView(), "scaleX", 0.6f, 1f);
 
-        mAnimatorScaleX.setDuration(500);
+//        mAnimatorScaleX.setDuration(200);
 
-        ObjectAnimator mAnimatorScaleY = ObjectAnimator.ofFloat(getWindow().getDecorView(), "scaleY",  0f, 1f);
-        mAnimatorScaleY.setDuration(500);
+        ObjectAnimator mAnimatorScaleY = ObjectAnimator.ofFloat(getWindow().getDecorView(), "scaleY",  0.6f, 1f);
+//        mAnimatorScaleY.setDuration(200);
 
         set.playTogether(mAnimatorAlpha, mAnimatorScaleX, mAnimatorScaleY);
-        set.setDuration(1000);
-        set.start();
+        set.setDuration(300);
+        set.start();*/
     }
 
     @Override

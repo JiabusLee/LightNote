@@ -9,6 +9,7 @@ import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.login.EvernoteLoginFragment;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
+import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.ItemView;
 
 import butterknife.Bind;
@@ -17,9 +18,12 @@ import butterknife.OnClick;
 
 public class SettingActivity extends BaseActivity implements EvernoteLoginFragment.ResultCallback, View.OnClickListener {
     @Bind(R.id.itemView_0)
-    ItemView item_view_bindEvernote;
+    ItemView item_view_test;
     @Bind(R.id.itemView_1)
-    ItemView item_view;
+    ItemView item_view_bindEvernote;
+    @Bind({R.id.itemView_2})
+    ItemView item_view_backup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,10 +34,9 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     }
 
     private void init() {
-        item_view.check(true);
-        item_view.setTitle("测试正标题");
-        item_view.setSubTitle("副标题");
+        item_view_test.check(true).setTitle("测试正标题").setSubTitle("副标题");
         item_view_bindEvernote.hideCheckBox(true).hideSubTitle(true).setTitle("绑定Evernote");
+        item_view_backup.hideCheckBox(true).hideSubTitle(true).setTitle("备份与恢复");
     }
 
 
@@ -61,7 +64,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     }
 
     @Override
-    @OnClick(R.id.itemView_0)
+    @OnClick({R.id.itemView_1,R.id.itemView_2})
     public void onClick(View v) {
         switch (v.getId()) {
             default:
@@ -69,6 +72,9 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
             case R.id.itemView_0:
                 EvernoteSession.getInstance().authenticate(SettingActivity.this);
                 item_view_bindEvernote.setEnabled(false);
+                break;
+            case R.id.itemView_2:
+                ToastUtils.showSequenceToast(this,"备份");
                 break;
         }
 

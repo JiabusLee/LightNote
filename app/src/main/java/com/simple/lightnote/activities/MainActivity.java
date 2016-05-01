@@ -108,6 +108,8 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
         contentView = View.inflate(this, R.layout.activity_main, null);
         setContentView(contentView);
+//        getWindow().getDecorView().setBackgroundResource(R.drawable.main_list_bg);
+        getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
         initDrawerView();
         initListener();

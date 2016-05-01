@@ -19,10 +19,11 @@ import butterknife.ButterKnife;
  * Created by homelink on 2016/4/28.
  */
 public class ItemView extends FrameLayout {
+
     Context mContext;
-    @Bind(R.id.view_item_tv_subtitle)
-    TextView tv_title;
     @Bind(R.id.view_item_tv_title)
+    TextView tv_title;
+    @Bind(R.id.view_item_tv_subtitle)
     TextView tv_subTitle;
     @Bind(R.id.view_item_cb)
     CheckBox cb;
@@ -48,21 +49,24 @@ public class ItemView extends FrameLayout {
         ButterKnife.bind(this);
     }
 
-    public void setTitle(@NonNull String text) {
+    public ItemView setTitle(@NonNull String text) {
         tv_title.setText(text);
+        return this;
     }
 
-    public void setSubTitle(@NonNull String text) {
+    public ItemView setSubTitle(@NonNull String text) {
         tv_subTitle.setText(text);
+        return this;
     }
 
-    public void check(boolean check) {
+    public ItemView check(boolean check) {
         cb.setChecked(check);
+        return this;
     }
 
 
-    public void setCheckBoxPosition() {
-
+    public ItemView changeCheckBoxPosition() {
+        return null;
     }
 
     public ItemView hideSubTitle(boolean flag) {
