@@ -84,4 +84,7 @@ public class ItemView extends FrameLayout {
     }
 
 
+    public void click() {
+        cb.setChecked(!cb.isChecked());
+    }
 }

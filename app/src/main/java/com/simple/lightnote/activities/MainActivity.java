@@ -39,6 +39,7 @@ import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
+import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.constant.SQLConstants;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
@@ -46,6 +47,7 @@ import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.test.NoteContentGenerator;
+import com.simple.lightnote.util.SpUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -55,8 +57,10 @@ import com.simple.lightnote.view.SwipeMenuRecyclerView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import butterknife.ButterKnife;
+import de.greenrobot.dao.Property;
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
@@ -171,7 +175,7 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    private View getDialogContent(List<String> list, int type) {
+    private View getDialogContent(List<String> list, final int type) {
         LinearLayout contentView = (LinearLayout) View.inflate(this, R.layout.dialog_menu_options, null);
         contentView.findViewById(R.id.dialog_conent);
 
@@ -185,18 +189,34 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                if(type==R.id.action_sort){
+                    switch (position){
+                        case 0:
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
+                            break;
+                        case 1:
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_CREATETIME).apply();
+
+                            break;
+                        case 2:
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
+                            break;
+                    }
+                    getListData();
+                }
                 commonDialog.dismiss();
 
 
             }
         });
         contentView.addView(lv);
-      /*  if (type == R.id.action_options) {
+        if (type == R.id.action_options) {
             LinearLayout ll = new LinearLayout(this);
-            lv.setLayoutParams(layoutParams);
+            ll.setLayoutParams(layoutParams);
             ll.setOrientation(LinearLayout.HORIZONTAL);
 
-        }*/
+//            contentView.addView(ll);
+        }
 
         return contentView;
     }
@@ -362,7 +382,7 @@ public class MainActivity extends BaseActivity {
                                 sum = 2;
                             }
                             for (int i = 0; i < sum; i++) {
-                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + System.currentTimeMillis() + ", " + System.currentTimeMillis() + ",'normal');");
+                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis()- (new Random().nextInt(10000000)+10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
                             }
 
                         }
@@ -380,7 +400,19 @@ public class MainActivity extends BaseActivity {
                 .map(new Func1<NoteDao, List<Note>>() {
                     @Override
                     public List<Note> call(NoteDao noteDao) {
-                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderDesc(NoteDao.Properties.LastModifyTime).list();
+                        String orderRule="desc";
+                        String orderBy = SpUtil.getString(MainActivity.this,SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+                        Property order;
+                        if(orderBy.equals(NoteDao.Properties.CreateTime.columnName)){
+                            order= NoteDao.Properties.CreateTime;
+                            orderRule="asc";
+                        }else if(orderBy.equals(NoteDao.Properties.NoteContent.columnName)){
+                            order= NoteDao.Properties.NoteContent;
+                            orderRule="asc";
+                        }else {
+                            order= NoteDao.Properties.LastModifyTime;
+                        }
+                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order,orderRule).list();
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                         return list;
                     }

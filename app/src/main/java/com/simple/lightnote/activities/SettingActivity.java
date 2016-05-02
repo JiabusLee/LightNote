@@ -23,6 +23,8 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     ItemView item_view_bindEvernote;
     @Bind({R.id.itemView_2})
     ItemView item_view_backup;
+    @Bind({R.id.itemView_3})
+    ItemView item_view_help;
 
 
     @Override
@@ -37,12 +39,17 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
         item_view_test.check(true).setTitle("测试正标题").setSubTitle("副标题");
         item_view_bindEvernote.hideCheckBox(true).hideSubTitle(true).setTitle("绑定Evernote");
         item_view_backup.hideCheckBox(true).hideSubTitle(true).setTitle("备份与恢复");
+        item_view_help.hideCheckBox(true).hideSubTitle(true).setTitle("帮助");
     }
 
 
     @Override
     public void onLoginFinished(boolean successful) {
-
+        if(successful){
+            ToastUtils.showSequenceToast(this,"成功");
+        }else{
+            ToastUtils.showSequenceToast(this,"失败");
+        }
     }
 
     @Override
@@ -64,17 +71,23 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     }
 
     @Override
-    @OnClick({R.id.itemView_1,R.id.itemView_2})
+    @OnClick({R.id.itemView_0,R.id.itemView_1, R.id.itemView_2,R.id.itemView_3})
     public void onClick(View v) {
         switch (v.getId()) {
             default:
                 super.onClick(v);
-            case R.id.itemView_0:
+            case R.id.itemView_1:
                 EvernoteSession.getInstance().authenticate(SettingActivity.this);
                 item_view_bindEvernote.setEnabled(false);
                 break;
             case R.id.itemView_2:
-                ToastUtils.showSequenceToast(this,"备份");
+                ToastUtils.showSequenceToast(this, "备份");
+                break;
+            case R.id.itemView_3:
+                ToastUtils.showSequenceToast(this, "帮助");
+                break;
+            case R.id.itemView_0:
+                item_view_test.click();
                 break;
         }
 
