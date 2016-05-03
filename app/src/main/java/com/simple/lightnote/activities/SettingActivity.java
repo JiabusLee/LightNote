@@ -107,7 +107,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     }
 
     private void dismissDialog() {
-        if(commonDialog!=null&&commonDialog.isShowing())commonDialog.dismiss();
+        if (commonDialog != null && commonDialog.isShowing()) commonDialog.dismiss();
     }
 
 
@@ -117,6 +117,11 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
         TextView tv0 = getTextView("备份");
         TextView tv1 = getTextView("恢复");
         llayout.addView(tv0);
+        View view = new View(this);
+        view.setLayoutParams(new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenMetrics(this)[0] * 0.8), (int) ScreenUtils.dpToPx(this, 0.5f)));
+        view.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+
+        llayout.addView(view);
         llayout.addView(tv1);
         commonDialog.setContentView(llayout);
         commonDialog.show();
@@ -129,6 +134,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenMetrics(this)[0] * 0.8), (int) ScreenUtils.dpToPx(this, 45));
         textView.setLayoutParams(layoutParams);
         textView.setTag(text);
+        textView.setBackgroundResource(R.drawable.oval);
         textView.setOnClickListener(this);
         return textView;
     }
