@@ -155,7 +155,7 @@ public class MainActivity extends BaseActivity {
                 return true;
             case R.id.action_options:
                 commonDialog = new CommonDialog(this);
-                View contentView = getDialogContent(Arrays.asList(new String[]{"标签", "标题", "多行"}), R.id.action_options);
+                View contentView = getDialogContent(Arrays.asList("标签", "标题", "多行"), R.id.action_options);
 
                 //置Dialog的contentView
                 commonDialog.setContentView(contentView);
@@ -163,7 +163,7 @@ public class MainActivity extends BaseActivity {
                 return true;
             case R.id.action_sort:
                 commonDialog = new CommonDialog(this);
-                contentView = getDialogContent(Arrays.asList(new String[]{"最近更新", "创建日期", "标题", "笔记本"}), R.id.action_sort);
+                contentView = getDialogContent(Arrays.asList("最近更新", "创建日期", "标题", "笔记本"), R.id.action_sort);
 
                 //置Dialog的contentView
                 commonDialog.setContentView(contentView);
@@ -176,7 +176,7 @@ public class MainActivity extends BaseActivity {
 
 
     private View getDialogContent(List<String> list, final int type) {
-        LinearLayout contentView = (LinearLayout) View.inflate(this, R.layout.dialog_menu_options, null);
+        LinearLayout contentView = (LinearLayout) View.inflate(this, R.layout.dialog_container, null);
         contentView.findViewById(R.id.dialog_conent);
 
         ListView lv = new ListView(this);

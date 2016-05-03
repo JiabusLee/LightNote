@@ -4,12 +4,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.login.EvernoteLoginFragment;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
+import com.simple.lightnote.utils.ScreenUtils;
 import com.simple.lightnote.utils.ToastUtils;
+import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.ItemView;
 
 import butterknife.Bind;
@@ -25,6 +29,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     ItemView item_view_backup;
     @Bind({R.id.itemView_3})
     ItemView item_view_help;
+    private CommonDialog commonDialog;
 
 
     @Override
@@ -45,10 +50,10 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
 
     @Override
     public void onLoginFinished(boolean successful) {
-        if(successful){
-            ToastUtils.showSequenceToast(this,"成功");
-        }else{
-            ToastUtils.showSequenceToast(this,"失败");
+        if (successful) {
+            ToastUtils.showSequenceToast(this, "成功");
+        } else {
+            ToastUtils.showSequenceToast(this, "失败");
         }
     }
 
@@ -71,16 +76,24 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     }
 
     @Override
-    @OnClick({R.id.itemView_0,R.id.itemView_1, R.id.itemView_2,R.id.itemView_3})
+    @OnClick({R.id.itemView_0, R.id.itemView_1, R.id.itemView_2, R.id.itemView_3})
     public void onClick(View v) {
         switch (v.getId()) {
             default:
-                super.onClick(v);
+                if (v.getTag().equals("备份")) {
+
+                } else if (v.getTag().equals("恢复")) {
+
+                }
+//                commonDialog.dismiss();
+                dismissDialog();
+                break;
             case R.id.itemView_1:
                 EvernoteSession.getInstance().authenticate(SettingActivity.this);
                 item_view_bindEvernote.setEnabled(false);
                 break;
             case R.id.itemView_2:
+                showActionDialog();
                 ToastUtils.showSequenceToast(this, "备份");
                 break;
             case R.id.itemView_3:
@@ -92,4 +105,33 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
         }
 
     }
+
+    private void dismissDialog() {
+        if(commonDialog!=null&&commonDialog.isShowing())commonDialog.dismiss();
+    }
+
+
+    private void showActionDialog() {
+        commonDialog = new CommonDialog(this);
+        LinearLayout llayout = (LinearLayout) View.inflate(this, R.layout.dialog_container, null);
+        TextView tv0 = getTextView("备份");
+        TextView tv1 = getTextView("恢复");
+        llayout.addView(tv0);
+        llayout.addView(tv1);
+        commonDialog.setContentView(llayout);
+        commonDialog.show();
+    }
+
+    private TextView getTextView(String text) {
+
+        TextView textView = (TextView) View.inflate(this, android.R.layout.simple_list_item_1, null);
+        textView.setText(text);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenMetrics(this)[0] * 0.8), (int) ScreenUtils.dpToPx(this, 45));
+        textView.setLayoutParams(layoutParams);
+        textView.setTag(text);
+        textView.setOnClickListener(this);
+        return textView;
+    }
+
+
 }

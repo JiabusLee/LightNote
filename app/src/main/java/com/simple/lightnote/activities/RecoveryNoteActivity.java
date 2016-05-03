@@ -68,10 +68,10 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         super.onCreate(savedInstanceState);
         contentView = View.inflate(this, R.layout.activity_main, null);
         setContentView(contentView);
+        getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
         initListener();
         initData();
-
     }
 
 

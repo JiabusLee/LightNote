@@ -7,7 +7,7 @@ public interface Constans {
     //AppRootDir
     String saveDir = "/lightnote/";
 
-    public interface NoteType {
+    interface NoteType {
         String normal = "normal";
     }
 }

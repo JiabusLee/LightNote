@@ -33,8 +33,6 @@ public class NoteDao extends AbstractDao<Note, Long> {
 
     }
 
-    ;
-
     public NoteDao(DaoConfig config, AbstractDaoSession daoSession) {
         super(config, daoSession);
     }
