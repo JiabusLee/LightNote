@@ -18,6 +18,8 @@ import android.support.v7.graphics.Palette.Builder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,6 +35,10 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.evernote.client.android.EvernoteSession;
+import com.evernote.client.android.asyncclient.EvernoteCallback;
+import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.edam.type.Notebook;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.simple.lightnote.R;
@@ -358,7 +364,32 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        getListData();
+//        getListData();
+        getEverNoteData();
+    }
+
+    private void getEverNoteData() {
+        if (!EvernoteSession.getInstance().isLoggedIn()) {
+            return;
+        }
+
+        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+        noteStoreClient.listNotebooksAsync(new EvernoteCallback<List<Notebook>>() {
+            @Override
+            public void onSuccess(List<Notebook> result) {
+                List<String> namesList = new ArrayList<>(result.size());
+                for (Notebook notebook : result) {
+                    namesList.add(notebook.getName());
+                }
+                String notebookNames = TextUtils.join(", ", namesList);
+                Toast.makeText(getApplicationContext(), notebookNames + " notebooks have been retrieved", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onException(Exception exception) {
+                Log.e(TAG, "Error retrieving notebooks", exception);
+            }
+        });
     }
 
     private void getListData() {
@@ -562,7 +593,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        getListData();
         end = System.currentTimeMillis();
         long l = end - start;
         LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
