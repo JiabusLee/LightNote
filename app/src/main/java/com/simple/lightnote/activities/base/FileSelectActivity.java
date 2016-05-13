@@ -9,6 +9,9 @@ import android.util.Log;
 import com.simple.lightnote.R;
 import com.simple.lightnote.adapter.FileSelectAdapter;
 import com.simple.lightnote.constant.Constans;
+import com.simple.lightnote.db.DaoMaster;
+import com.simple.lightnote.db.DaoSession;
+import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.utils.LogUtils;
 
 import java.io.File;
@@ -26,11 +29,14 @@ import rx.schedulers.Schedulers;
 /**
  * Created by homelink on 2016/3/8.
  */
-public class FileSelectActivity extends BaseActivity{
+public class FileSelectActivity extends BaseActivity {
     private static final String TAG = "FileSelectActivity";
-    private RecyclerView recyclerView;
     List<File> files;
+    private RecyclerView recyclerView;
     private FileSelectAdapter fileSelectAdapter;
+    private DaoMaster daoMaster;
+    private DaoSession daoSession;
+    private NoteDao noteDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +139,7 @@ public class FileSelectActivity extends BaseActivity{
                             } else {
                                 File[] fileList = lightNoteRoot.listFiles();
                                 String[] list = lightNoteRoot.list();
-                                if(list!=null&&list.length>0){
+                                if (list != null && list.length > 0) {
                                     files = Arrays.asList(fileList);
                                 }
                             }
@@ -178,12 +184,12 @@ public class FileSelectActivity extends BaseActivity{
         }).filter(new Func1<String, Boolean>() {
             @Override
             public Boolean call(String s) {
-                return s!=null&&s.contains("b");
+                return s != null && s.contains("b");
             }
         }).subscribe(new Action1<String>() {
             @Override
             public void call(String string) {
-                Log.e(TAG, "call: 符合条件的数据:"+string);
+                Log.e(TAG, "call: 符合条件的数据:" + string);
             }
         });
 
@@ -222,6 +228,10 @@ public class FileSelectActivity extends BaseActivity{
     private RecyclerView.Adapter getGenerateAdapter() {
         fileSelectAdapter = new FileSelectAdapter(files);
         return fileSelectAdapter;
+    }
+
+    private void getListData() {
+
     }
 }
 

@@ -69,15 +69,15 @@ import butterknife.ButterKnife;
 import de.greenrobot.dao.Property;
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
+    View contentView;
     //	private ListView mListView;
     private ArrayList<Note> noteList;
     private RecycleViewNoteListAdapter noteListAdapter;
@@ -86,19 +86,13 @@ public class MainActivity extends BaseActivity {
     private View drawerView;
     private Toolbar mToolbar;
     private SwipeMenuRecyclerView mRecycleView;
-
-
     private SQLiteDatabase db;
-
     private EditText editText;
-
     private DaoMaster daoMaster;
     private DaoSession daoSession;
     private NoteDao noteDao;
-
     private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
-    View contentView;
     private long end;
     private long start;
     private CommonDialog commonDialog;
@@ -112,12 +106,10 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         start = System.currentTimeMillis();
-
 //		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        contentView = View.inflate(this, R.layout.activity_main, null);
-        setContentView(contentView);
 //        getWindow().getDecorView().setBackgroundResource(R.drawable.main_list_bg);
         getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
@@ -195,17 +187,17 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if(type==R.id.action_sort){
-                    switch (position){
+                if (type == R.id.action_sort) {
+                    switch (position) {
                         case 0:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
                             break;
                         case 1:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_CREATETIME).apply();
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
 
                             break;
                         case 2:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY,SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
+                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
                             break;
                     }
                     getListData();
@@ -394,60 +386,57 @@ public class MainActivity extends BaseActivity {
 
     private void getListData() {
         Observable
-                .fromCallable(new Func0<NoteDao>() {
+                .create(new Observable.OnSubscribe<NoteDao>() {
                     @Override
-                    public NoteDao call() {
-                        LogUtils.e(TAG, "call2: " + Thread.currentThread());
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
-                        SQLiteDatabase db = helper.getWritableDatabase();
-                        daoMaster = new DaoMaster(db);
-                        daoSession = daoMaster.newSession();
-                        noteDao = daoSession.getNoteDao();
-                        long count = noteDao.count();
+                    public void call(Subscriber<? super NoteDao> subscriber) {
+                        subscriber.onStart();
 
-                        if (count < 20) {
-                            int sum = 0;
-                            if (count < 10) {
-                                sum = 10;
-                            } else {
-                                sum = 2;
-                            }
-                            for (int i = 0; i < sum; i++) {
-                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis()- (new Random().nextInt(10000000)+10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
-                            }
-
-                        }
-                        return noteDao;
-                    }
-                })
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 })
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(Schedulers.newThread())
                 .map(new Func1<NoteDao, List<Note>>() {
-                    @Override
-                    public List<Note> call(NoteDao noteDao) {
-                        String orderRule="desc";
-                        String orderBy = SpUtil.getString(MainActivity.this,SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
-                        Property order;
-                        if(orderBy.equals(NoteDao.Properties.CreateTime.columnName)){
-                            order= NoteDao.Properties.CreateTime;
-                            orderRule="asc";
-                        }else if(orderBy.equals(NoteDao.Properties.NoteContent.columnName)){
-                            order= NoteDao.Properties.NoteContent;
-                            orderRule="asc";
-                        }else {
-                            order= NoteDao.Properties.LastModifyTime;
-                        }
-                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order,orderRule).list();
-                        LogUtils.e(TAG, "call3: " + Thread.currentThread());
-                        return list;
-                    }
-                })
+                         @Override
+                         public List<Note> call(NoteDao noteDao) {
+                             LogUtils.e(TAG, "call2: " + Thread.currentThread());
+                             DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                             SQLiteDatabase db = helper.getWritableDatabase();
+                             daoMaster = new DaoMaster(db);
+                             daoSession = daoMaster.newSession();
+                             noteDao = daoSession.getNoteDao();
+                             long count = noteDao.count();
+
+                             if (count < 20) {
+                                 int sum = 0;
+                                 if (count < 10) {
+                                     sum = 10;
+                                 } else {
+                                     sum = 2;
+                                 }
+                                 for (int i = 0; i < sum; i++) {
+                                     db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis() - (new Random().nextInt(10000000) + 10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
+                                 }
+                             }
+                             String orderRule = "desc";
+                             String orderBy = SpUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+                             Property order;
+                             if (orderBy.equals(NoteDao.Properties.CreateTime.columnName)) {
+                                 order = NoteDao.Properties.CreateTime;
+                                 orderRule = "asc";
+                             } else if (orderBy.equals(NoteDao.Properties.NoteContent.columnName)) {
+                                 order = NoteDao.Properties.NoteContent;
+                                 orderRule = "asc";
+                             } else {
+                                 order = NoteDao.Properties.LastModifyTime;
+                             }
+                             List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order, orderRule).list();
+                             LogUtils.e(TAG, "call3: " + Thread.currentThread());
+                             return list;
+
+                         }
+                     }
+
+                )
                 .observeOn(Schedulers.newThread())
                 .filter(new Func1<List<Note>, Boolean>() {
                     @Override
