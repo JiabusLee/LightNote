@@ -62,7 +62,7 @@ public class NetProjectActivity extends BaseActivity {
                 Toast.makeText(NetProjectActivity.this,t.getMessage(),Toast.LENGTH_SHORT).show();
             }
         });*/
-        RestClient.api().fulis(20,1).enqueue(new Callback<ReceiveData.FuliResponse>() {
+        RestClient.api().fulis(50,1).enqueue(new Callback<ReceiveData.FuliResponse>() {
             @Override
             public void onResponse(Call<ReceiveData.FuliResponse> call, Response<ReceiveData.FuliResponse> response) {
                 LogUtils.e(TAG,"fulis"+response);
