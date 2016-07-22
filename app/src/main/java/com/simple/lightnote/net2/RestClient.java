@@ -1,6 +1,9 @@
 package com.simple.lightnote.net2;
 
+import com.simple.lightnote.BuildConfig;
+
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -16,7 +19,14 @@ public class RestClient {
 
     private RestClient(){
         OkHttpClient okHttpClient = new OkHttpClient();
-       // okHttpClient.networkInterceptors().add(new AddHeaderInterceptor());
+        if (BuildConfig.DEBUG) {
+            // Log信息拦截器
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            //设置 Debug Log 模式
+            okHttpClient.networkInterceptors().add(loggingInterceptor);
+        }
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL_2)
                 .client(okHttpClient)

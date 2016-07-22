@@ -16,10 +16,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
+        classpath 'com.android.tools.build:gradle:2.1.2'
     }
 }
-
 
 ext {
 
@@ -27,7 +27,7 @@ ext {
     versionName = "1.0.0"
 
     sourceCompatibility = JavaVersion.VERSION_1_8
-
+    targetCompatibility = JavaVersion.VERSION_1_8
     android = [
             compileSdkVersion: 23,
             buildToolsVersion: '23.0.2',
@@ -37,20 +37,23 @@ ext {
     dependencies = [
             "appcompat_v7"   : 'com.android.support:appcompat-v7:23.0.0',
             "design"         : 'com.android.support:design:23.2.0',
-            "recyclerview-v7": 'com.android.support:recyclerview-v7:23.0.1',
-            "rxandroid"      : 'io.reactivex:rxandroid:1.2.0',
-            "rxjava"         : 'io.reactivex:rxjava:1.1.5',
-            "retrofit"       : 'com.squareup.retrofit2:retrofit:2.0.2',
+            "recyclerview_v7": 'com.android.support:recyclerview-v7:23.0.1',
+            "rxandroid"      : 'io.reactivex:rxandroid:1.+',
+            "rxjava"         : 'io.reactivex:rxjava:1.+',
+            "rxbinding"      : 'com.jakewharton.rxbinding:rxbinding:0.4.0',
+            "retrofit"       : 'com.squareup.retrofit2:retrofit:2.+',
             "okhttp"         : 'com.squareup.okhttp3:okhttp:3.2.0',
             "xutils"         : 'org.xutils:xutils:3.3.20',
             "butterknife"    : 'com.jakewharton:butterknife:7.0.1',
             "greendao"       : 'de.greenrobot:greendao:2.1.0',
             "cardview"       : 'com.android.support:cardview-v7:+',
-            "android-sdk"    : 'com.evernote:android-sdk:2.0.0-RC3',
-            "converter-gson" : 'com.squareup.retrofit2:converter-gson:2.0.0',
+            "android_sdk"    : 'com.evernote:android-sdk:2.0.0-RC3',
+            "converter_son"  : 'com.squareup.retrofit2:converter-gson:2.0.0',
             "glide"          : 'com.github.bumptech.glide:glide:3.6.1',
-            "support-v4"     : 'com.android.support:support-v4:22.2.1',
-            "junit4":'junit:junit:4.12'
+            "support_v4"     : 'com.android.support:support-v4:22.2.1',
+            "junit4"         : 'junit:junit:4.12',
+
+
 
     ]
 }

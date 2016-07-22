@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -60,15 +59,17 @@ import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
+import org.xutils.common.util.LogUtil;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import de.greenrobot.dao.Property;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -126,6 +127,14 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        end = System.currentTimeMillis();
+        long l = end - start;
+        LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
+    }
+
     private void initDrawerView() {
         drawerView = findViewById(R.id.drawer_view);
         drawerView.findViewById(R.id.note_select_item_allNote).setOnClickListener(this);
@@ -148,6 +157,7 @@ public class MainActivity extends BaseActivity {
             case R.id.action_search:
                 SearchView searchView = (SearchView) item.getActionView();
                 searchView.setQueryHint("搜索");
+                return true;
             case R.id.action_openFile:
                 startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
                 return true;
@@ -247,15 +257,71 @@ public class MainActivity extends BaseActivity {
                 .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
-                        getListData();
+
                         // 执行刷新操作
-                        new Handler().postDelayed(new Runnable() {
+//                          getListData();
+                       /*new Handler().postDelayed(new Runnable() {
 
                             @Override
                             public void run() {
                                 mSwipeRefreshLayout.setRefreshing(false);
                             }
-                        }, 3000);
+                        }, 3000);*/
+                        Observable
+                                .timer(3, TimeUnit.SECONDS)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Subscriber<Long>() {
+                                    @Override
+                                    public void onCompleted() {
+                                        mSwipeRefreshLayout.setRefreshing(false);
+                                        LogUtils.e(TAG, "onCompleted: ");
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+
+                                    }
+
+                                    @Override
+                                    public void onNext(Long aLong) {
+                                        LogUtils.e(TAG, "onNext: " + "getListData");
+                                        getListData();
+                                    }
+
+                                    @Override
+                                    public void onStart() {
+                                        super.onStart();
+//                                        getListData();
+                                        LogUtils.e(TAG, "onStart: ");
+                                    }
+                                });
+
+                       /* Observable.create(new Observable.OnSubscribe<Object>() {
+                            @Override
+                            public void call(Subscriber<? super Object> subscriber) {
+                                LogUtils.e(TAG, "call: " + "开始刷新啦");
+                                getListData();
+
+                            }
+                        })
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .timer(3, TimeUnit.SECONDS).subscribe(new Subscriber<Long>() {
+                            @Override
+                            public void onCompleted() {
+                                LogUtils.e(TAG, "onCompleted: ");
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                            }
+
+                            @Override
+                            public void onNext(Long aLong) {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                            }
+                        });*/
                     }
                 });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -374,7 +440,12 @@ public class MainActivity extends BaseActivity {
                     namesList.add(notebook.getName());
                 }
                 String notebookNames = TextUtils.join(", ", namesList);
+                LogUtils.e(TAG, "noteBookNames:" + notebookNames);
                 Toast.makeText(getApplicationContext(), notebookNames + " notebooks have been retrieved", Toast.LENGTH_LONG).show();
+
+
+                getNoteList();
+
             }
 
             @Override
@@ -384,13 +455,57 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    private void getNoteList() {
+
+
+        Observable
+                .create(new Observable.OnSubscribe<Notebook>() {
+                    @Override
+                    public void call(Subscriber<? super Notebook> subscriber) {
+
+                        subscriber.onStart();
+                        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+                        try {
+                            List<Notebook> notebooks = noteStoreClient.listNotebooks();
+                            for (Notebook note : notebooks)
+                                subscriber.onNext(note);
+                            subscriber.onCompleted();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            subscriber.onError(e);
+                        }
+
+                    }
+                })
+
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(new Subscriber<Notebook>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Notebook notebook) {
+                        LogUtil.e(notebook.toString());
+                    }
+                });
+
+
+    }
+
     private void getListData() {
         Observable
                 .create(new Observable.OnSubscribe<NoteDao>() {
                     @Override
                     public void call(Subscriber<? super NoteDao> subscriber) {
                         subscriber.onStart();
-
                     }
                 })
                 .subscribeOn(AndroidSchedulers.mainThread())
@@ -437,7 +552,6 @@ public class MainActivity extends BaseActivity {
                      }
 
                 )
-                .observeOn(Schedulers.newThread())
                 .filter(new Func1<List<Note>, Boolean>() {
                     @Override
                     public Boolean call(List<Note> notes) {
@@ -445,7 +559,6 @@ public class MainActivity extends BaseActivity {
                         return !ListUtils.isEmpty(notes);
                     }
                 })
-                .observeOn(Schedulers.io())
                 .doOnNext(new Action1<List<Note>>() {
                     @Override
                     public void call(List<Note> notes) {
@@ -453,9 +566,7 @@ public class MainActivity extends BaseActivity {
                         System.out.println(notes);
                     }
                 })
-
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<Note>>() {
+                .subscribe(new Subscriber<List<Note>>() {
                     @Override
                     public void onCompleted() {
                         System.out.println("over");
@@ -473,6 +584,11 @@ public class MainActivity extends BaseActivity {
                         noteAdapter.notifyDataSetChanged();
                         LogUtils.e(TAG, "call6: " + Thread.currentThread());
                         onCompleted();
+                    }
+
+                    @Override
+                    public void onStart() {
+                        super.onStart();
                     }
                 });
 
@@ -579,11 +695,5 @@ public class MainActivity extends BaseActivity {
         return Color.rgb(red, green, blue);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        end = System.currentTimeMillis();
-        long l = end - start;
-        LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
-    }
+
 }

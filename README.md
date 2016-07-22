@@ -1,17 +1,23 @@
 ###Gradle引用的文件
 
-- Volley
-- LitePal
-- Butternife
-- RxJava/RxAndroid
-- Leakcanary
-- xUtils
 
+- Okhttp
+- Retrofit
+- RxJava
+- Butterknife
+- GreenDao
+-
+
+
+- Dynamic-load-apk
+- Stetho
 - EventBus
 - BottomSheets
 - MaterialDesignLibrary
-- Stetho
-- Okhttp
-- Retrofit
-- Fresco
-- Dynamic-load-apk
+- Leakcanary
+- xUtils
+
+
+
+
+

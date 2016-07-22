@@ -65,7 +65,7 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 	/**
 	 * 为我们的应用程序设置自定义Crash处理
 	 */
-	public void initCrashHanler(Context context) {
+	public void initCrashHandler(Context context) {
 		mContext = context;
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}

@@ -4,6 +4,8 @@ import android.app.Application;
 
 import com.evernote.client.android.EvernoteSession;
 
+import org.xutils.x;
+
 public class LightNoteApplication extends Application{
 	public static final String AppPath="lightnote";
 	private static final String CONSUMER_KEY = "glovve";
@@ -14,6 +16,9 @@ public class LightNoteApplication extends Application{
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		CustomCrashHandler.getInstance().initCrashHandler(getApplicationContext());
+		x.Ext.init(this);
+		x.Ext.setDebug(true);
 
 		/*String consumerKey;
 		if ("Your consumer key".equals(CONSUMER_KEY)) {
@@ -31,7 +36,7 @@ public class LightNoteApplication extends Application{
 			consumerSecret = CONSUMER_SECRET;
 		}
 */
-//		CustomCrashHandler.getInstance().initCrashHanler(getApplicationContext());
+//		CustomCrashHandler.getInstance().initCrashHandler(getApplicationContext());
 	/*	Stetho.initialize(
 				Stetho.newInitializerBuilder(this)
 						.enableDumpapp(
@@ -46,6 +51,7 @@ public class LightNoteApplication extends Application{
 				.build(CONSUMER_KEY, CONSUMER_SECRET)
 				.asSingleton();
 //		registerActivityLifecycleCallbacks(new LoginChecker());
+
 	}
 
 }
