@@ -17,8 +17,6 @@ import android.support.v7.graphics.Palette.Builder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,9 +33,16 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.evernote.client.android.EvernoteSession;
-import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.client.android.asyncclient.EvernoteSearchHelper;
+import com.evernote.edam.error.EDAMNotFoundException;
+import com.evernote.edam.error.EDAMSystemException;
+import com.evernote.edam.error.EDAMUserException;
+import com.evernote.edam.notestore.NoteFilter;
+import com.evernote.edam.notestore.NoteList;
+import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
+import com.evernote.thrift.TException;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.simple.lightnote.R;
@@ -52,14 +57,12 @@ import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
 import com.simple.lightnote.model.Note;
 import com.simple.lightnote.test.NoteContentGenerator;
-import com.simple.lightnote.util.SpUtil;
+import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
-
-import org.xutils.common.util.LogUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,6 +136,7 @@ public class MainActivity extends BaseActivity {
         end = System.currentTimeMillis();
         long l = end - start;
         LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
+        getEverNoteList();
     }
 
     private void initDrawerView() {
@@ -200,17 +204,17 @@ public class MainActivity extends BaseActivity {
                 if (type == R.id.action_sort) {
                     switch (position) {
                         case 0:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
+                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
                             break;
                         case 1:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
+                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
 
                             break;
                         case 2:
-                            SpUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
+                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
                             break;
                     }
-                    getListData();
+                    getDBlist();
                 }
                 commonDialog.dismiss();
 
@@ -259,7 +263,7 @@ public class MainActivity extends BaseActivity {
                     public void onRefresh() {
 
                         // 执行刷新操作
-//                          getListData();
+//                          getDBlist();
                        /*new Handler().postDelayed(new Runnable() {
 
                             @Override
@@ -285,43 +289,18 @@ public class MainActivity extends BaseActivity {
 
                                     @Override
                                     public void onNext(Long aLong) {
-                                        LogUtils.e(TAG, "onNext: " + "getListData");
-                                        getListData();
+                                        LogUtils.e(TAG, "onNext: " + "getEverNoteList");
+                                        getEverNoteList();
+
                                     }
 
                                     @Override
                                     public void onStart() {
                                         super.onStart();
-//                                        getListData();
+//                                        getDBlist();
                                         LogUtils.e(TAG, "onStart: ");
                                     }
                                 });
-
-                       /* Observable.create(new Observable.OnSubscribe<Object>() {
-                            @Override
-                            public void call(Subscriber<? super Object> subscriber) {
-                                LogUtils.e(TAG, "call: " + "开始刷新啦");
-                                getListData();
-
-                            }
-                        })
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .timer(3, TimeUnit.SECONDS).subscribe(new Subscriber<Long>() {
-                            @Override
-                            public void onCompleted() {
-                                LogUtils.e(TAG, "onCompleted: ");
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-
-                            @Override
-                            public void onNext(Long aLong) {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
-                        });*/
                     }
                 });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -338,17 +317,7 @@ public class MainActivity extends BaseActivity {
             public void onScrollUp() {
                 LogUtils.d("ListViewFragment", "onScrollUp()");
             }
-        };/*, new AbsListView.OnScrollListener() {
-              @Override
-              public void onScrollStateChanged(AbsListView view, int scrollState) {
-                  LogUtils.d("ListViewFragment", "onScrollStateChanged()");
-              }
-
-              @Override
-              public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                  LogUtils.d("ListViewFragment", "onScroll()");
-              }
-          }*/
+        };
         fab.attachToRecyclerView(mRecycleView, listener);
         fab.setOnClickListener(this);
 //        fab.setOnLongClickListener();
@@ -418,44 +387,14 @@ public class MainActivity extends BaseActivity {
 
     }
 
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-//        getListData();
-        getEverNoteData();
-    }
-
-    private void getEverNoteData() {
+    /**
+     * 从印象笔记中拉取数据
+     */
+    private void getEverNoteList() {
         if (!EvernoteSession.getInstance().isLoggedIn()) {
+            ToastUtils.showToast(this, "还没有绑定evernote");
             return;
         }
-
-        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
-        noteStoreClient.listNotebooksAsync(new EvernoteCallback<List<Notebook>>() {
-            @Override
-            public void onSuccess(List<Notebook> result) {
-                List<String> namesList = new ArrayList<>(result.size());
-                for (Notebook notebook : result) {
-                    namesList.add(notebook.getName());
-                }
-                String notebookNames = TextUtils.join(", ", namesList);
-                LogUtils.e(TAG, "noteBookNames:" + notebookNames);
-                Toast.makeText(getApplicationContext(), notebookNames + " notebooks have been retrieved", Toast.LENGTH_LONG).show();
-
-
-                getNoteList();
-
-            }
-
-            @Override
-            public void onException(Exception exception) {
-                Log.e(TAG, "Error retrieving notebooks", exception);
-            }
-        });
-    }
-
-    private void getNoteList() {
 
 
         Observable
@@ -465,6 +404,7 @@ public class MainActivity extends BaseActivity {
 
                         subscriber.onStart();
                         EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+
                         try {
                             List<Notebook> notebooks = noteStoreClient.listNotebooks();
                             for (Notebook note : notebooks)
@@ -479,7 +419,7 @@ public class MainActivity extends BaseActivity {
                 })
 
                 .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
+                .observeOn(Schedulers.newThread())
                 .subscribe(new Subscriber<Notebook>() {
                     @Override
                     public void onCompleted() {
@@ -493,65 +433,98 @@ public class MainActivity extends BaseActivity {
 
                     @Override
                     public void onNext(Notebook notebook) {
-                        LogUtil.e(notebook.toString());
+                        LogUtils.e(TAG, notebook.toString());
+                        NoteFilter noteFilter = new NoteFilter();
+                        noteFilter.setNotebookGuid(notebook.getGuid());
+                        noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
+
+                        try {
+                            NoteList notes = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().findNotes(noteFilter, 0, 20);
+                            List<com.evernote.edam.type.Note> notes1 = notes.getNotes();
+                            for (com.evernote.edam.type.Note note : notes1) {
+                                String title = note.getTitle();
+                              /*  Observable.just(note.getGuid())
+                                        .subscribeOn(Schedulers.newThread())
+                                        .map(s -> {
+                                            try {
+                                                return EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().getNoteContent(s);
+                                            } catch (EDAMUserException e) {
+                                                e.printStackTrace();
+                                            } catch (EDAMSystemException e) {
+                                                e.printStackTrace();
+                                            } catch (EDAMNotFoundException e) {
+                                                e.printStackTrace();
+                                            } catch (TException e) {
+                                                e.printStackTrace();
+                                            }
+                                            return null;
+                                        }).subscribe(str -> LogUtils.e(TAG, "onNext:  " + str));
+*/
+                                LogUtils.e(TAG, "onNext:  " + title);
+                            }
+                        } catch (EDAMUserException e) {
+                            e.printStackTrace();
+                        } catch (EDAMSystemException e) {
+                            e.printStackTrace();
+                        } catch (EDAMNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (TException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 });
 
 
     }
 
-    private void getListData() {
-        Observable
-                .create(new Observable.OnSubscribe<NoteDao>() {
+    /**
+     * 获取数据库中的notlist
+     */
+    private void getDBlist() {
+        Observable.
+                create(new Observable.OnSubscribe<List<Note>>() {
                     @Override
-                    public void call(Subscriber<? super NoteDao> subscriber) {
+                    public void call(Subscriber<? super List<Note>> subscriber) {
                         subscriber.onStart();
+                        LogUtils.e(TAG, "call2: " + Thread.currentThread());
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                        SQLiteDatabase db = helper.getWritableDatabase();
+                        daoMaster = new DaoMaster(db);
+                        daoSession = daoMaster.newSession();
+                        noteDao = daoSession.getNoteDao();
+                        long count = noteDao.count();
+
+                        if (count < 20) {
+                            int sum = 0;
+                            if (count < 10) {
+                                sum = 10;
+                            } else {
+                                sum = 2;
+                            }
+                            for (int i = 0; i < sum; i++) {
+                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis() - (new Random().nextInt(10000000) + 10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
+                            }
+                        }
+                        String orderRule = "desc";
+                        String orderBy = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+                        Property order;
+                        if (orderBy.equals(NoteDao.Properties.CreateTime.columnName)) {
+                            order = NoteDao.Properties.CreateTime;
+                            orderRule = "asc";
+                        } else if (orderBy.equals(NoteDao.Properties.NoteContent.columnName)) {
+                            order = NoteDao.Properties.NoteContent;
+                            orderRule = "asc";
+                        } else {
+                            order = NoteDao.Properties.LastModifyTime;
+                        }
+                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order, orderRule).list();
+                        LogUtils.e(TAG, "call3: " + Thread.currentThread());
+                        subscriber.onNext(list);
                     }
                 })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(Schedulers.newThread())
-                .map(new Func1<NoteDao, List<Note>>() {
-                         @Override
-                         public List<Note> call(NoteDao noteDao) {
-                             LogUtils.e(TAG, "call2: " + Thread.currentThread());
-                             DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
-                             SQLiteDatabase db = helper.getWritableDatabase();
-                             daoMaster = new DaoMaster(db);
-                             daoSession = daoMaster.newSession();
-                             noteDao = daoSession.getNoteDao();
-                             long count = noteDao.count();
-
-                             if (count < 20) {
-                                 int sum = 0;
-                                 if (count < 10) {
-                                     sum = 10;
-                                 } else {
-                                     sum = 2;
-                                 }
-                                 for (int i = 0; i < sum; i++) {
-                                     db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis() - (new Random().nextInt(10000000) + 10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
-                                 }
-                             }
-                             String orderRule = "desc";
-                             String orderBy = SpUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
-                             Property order;
-                             if (orderBy.equals(NoteDao.Properties.CreateTime.columnName)) {
-                                 order = NoteDao.Properties.CreateTime;
-                                 orderRule = "asc";
-                             } else if (orderBy.equals(NoteDao.Properties.NoteContent.columnName)) {
-                                 order = NoteDao.Properties.NoteContent;
-                                 orderRule = "asc";
-                             } else {
-                                 order = NoteDao.Properties.LastModifyTime;
-                             }
-                             List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order, orderRule).list();
-                             LogUtils.e(TAG, "call3: " + Thread.currentThread());
-                             return list;
-
-                         }
-                     }
-
-                )
                 .filter(new Func1<List<Note>, Boolean>() {
                     @Override
                     public Boolean call(List<Note> notes) {
@@ -559,6 +532,8 @@ public class MainActivity extends BaseActivity {
                         return !ListUtils.isEmpty(notes);
                     }
                 })
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(Schedulers.newThread())
                 .doOnNext(new Action1<List<Note>>() {
                     @Override
                     public void call(List<Note> notes) {
@@ -569,7 +544,8 @@ public class MainActivity extends BaseActivity {
                 .subscribe(new Subscriber<List<Note>>() {
                     @Override
                     public void onCompleted() {
-                        System.out.println("over");
+
+                        LogUtils.e(TAG, "onCompleted:  ");
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
 
@@ -585,13 +561,7 @@ public class MainActivity extends BaseActivity {
                         LogUtils.e(TAG, "call6: " + Thread.currentThread());
                         onCompleted();
                     }
-
-                    @Override
-                    public void onStart() {
-                        super.onStart();
-                    }
                 });
-
 
     }
 

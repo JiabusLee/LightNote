@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 /**
  * Created by homelink on 2016/4/7.
  */
-public class SpUtil {
+public class SPUtil {
 
     public static final String LIGHT_NOTE = "lightNote";
 
