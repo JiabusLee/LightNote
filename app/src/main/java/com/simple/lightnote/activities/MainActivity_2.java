@@ -2,18 +2,13 @@ package com.simple.lightnote.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.graphics.Palette;
-import android.support.v7.graphics.Palette.Builder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -29,7 +24,9 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.evernote.client.android.EvernoteSession;
@@ -70,56 +67,72 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import de.greenrobot.dao.Property;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity_2 extends BaseActivity {
     private static final String TAG = "MainActivity";
-    View contentView;
+
+
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.listView)
+    SwipeMenuRecyclerView listView;
+    @Bind(R.id.swipeRefreshLayout)
+    SwipeRefreshLayout swipeRefreshLayout;
+    @Bind(R.id.fab)
+    FloatingActionButton fab;
+    @Bind(R.id.note_select_item_allNote)
+    TextView noteSelectItemAllNote;
+    @Bind(R.id.note_select_item_noteBook)
+    TextView noteSelectItemNoteBook;
+    @Bind(R.id.note_select_item_noteLabel)
+    TextView noteSelectItemNoteLabel;
+    @Bind(R.id.note_select_item_recovery)
+    TextView noteSelectItemRecovery;
+    @Bind(R.id.note_select_item_set)
+    TextView noteSelectItemSet;
+    @Bind(R.id.note_select_item)
+    RelativeLayout noteSelectItem;
+    @Bind(R.id.drawer_view)
+    LinearLayout drawerView;
+    @Bind(R.id.drawer)
+    DrawerLayout drawer;
     //	private ListView mListView;
+    View contentView;
+
+
+    private EditText editText;
+
+
     private ArrayList<Note> noteList;
     private RecycleViewNoteListAdapter noteListAdapter;
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private DrawerLayout drawerLayout;
-    private View drawerView;
-    private Toolbar mToolbar;
-    private SwipeMenuRecyclerView mRecycleView;
     private SQLiteDatabase db;
-    private EditText editText;
     private DaoMaster daoMaster;
     private DaoSession daoSession;
     private NoteDao noteDao;
-    private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
     private long end;
     private long start;
     private CommonDialog commonDialog;
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         start = System.currentTimeMillis();
-//		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 //        getWindow().getDecorView().setBackgroundResource(R.drawable.main_list_bg);
-//        getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
-        initDrawerView();
         initListener();
         initData();
 //		colorChange();
@@ -129,9 +142,7 @@ public class MainActivity extends BaseActivity {
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
 //			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
         }
-//    getEverNoteList();
-//        testTimer();
-        testInterval();
+
     }
 
     @Override
@@ -140,17 +151,19 @@ public class MainActivity extends BaseActivity {
         end = System.currentTimeMillis();
         long l = end - start;
         LogUtils.e(TAG, "onResume: 应用的启动时间:" + l);
+        getEverNoteList();
     }
 
-    private void initDrawerView() {
-        drawerView = findViewById(R.id.drawer_view);
-        drawerView.findViewById(R.id.note_select_item_allNote).setOnClickListener(this);
-        drawerView.findViewById(R.id.note_select_item_noteBook).setOnClickListener(this);
-        drawerView.findViewById(R.id.note_select_item_recovery).setOnClickListener(this);
-        drawerView.findViewById(R.id.note_select_item_set).setOnClickListener(this);
-        drawerView.findViewById(R.id.note_select_item_noteLabel).setOnClickListener(this);
+
+    @OnClick({R.id.note_select_item_allNote,
+            R.id.note_select_item_noteBook,
+            R.id.note_select_item_recovery,
+            R.id.note_select_item_set,
+            R.id.note_select_item_noteLabel})
+    public void onDrawableClick(View view) {
 
     }
+
 
     @Override
     public MenuInflater getMenuInflater() {
@@ -166,7 +179,7 @@ public class MainActivity extends BaseActivity {
                 searchView.setQueryHint("搜索");
                 return true;
             case R.id.action_openFile:
-                startActivity(new Intent(MainActivity.this, FileSelectActivity.class));
+                startActivity(new Intent(MainActivity_2.this, FileSelectActivity.class));
                 return true;
             case R.id.action_options:
                 commonDialog = new CommonDialog(this);
@@ -207,17 +220,17 @@ public class MainActivity extends BaseActivity {
                 if (type == R.id.action_sort) {
                     switch (position) {
                         case 0:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
+                            SPUtil.getEditor(MainActivity_2.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
                             break;
                         case 1:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
+                            SPUtil.getEditor(MainActivity_2.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
 
                             break;
                         case 2:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
+                            SPUtil.getEditor(MainActivity_2.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
                             break;
                     }
-                    getDBlist();
+                    getDBList();
                 }
                 commonDialog.dismiss();
 
@@ -239,68 +252,28 @@ public class MainActivity extends BaseActivity {
 
     @SuppressLint("NewApi")
     private void initView() {
-        mRecycleView = (SwipeMenuRecyclerView) findViewById(R.id.listView);
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setTitle("全部内容");
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
-        mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
-        setSupportActionBar(mToolbar);
+        toolbar.setTitle("全部内容");
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
-                this, drawerLayout, mToolbar, R.string.open_string,
+                this, drawer, toolbar, R.string.open_string,
                 R.string.close_string);
         actionBarDrawerToggle.syncState();
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-//        mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
-        mSwipeRefreshLayout.setEnabled(true);
+        drawer.setDrawerListener(actionBarDrawerToggle);
+        swipeRefreshLayout.setEnabled(true);
 
-        mRecycleView.setOpenInterpolator(new BounceInterpolator());
-        mRecycleView.setCloseInterpolator(new BounceInterpolator());
-        mRecycleView.setItemAnimator(new DefaultItemAnimator());
+        listView.setOpenInterpolator(new BounceInterpolator());
+        listView.setCloseInterpolator(new BounceInterpolator());
+        listView.setItemAnimator(new DefaultItemAnimator());
         //TODO 添加分隔线
 //        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
-        mSwipeRefreshLayout
-                .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
 
-                        Observable
-                                .timer(3, TimeUnit.SECONDS)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Subscriber<Long>() {
-                                    @Override
-                                    public void onCompleted() {
-                                        mSwipeRefreshLayout.setRefreshing(false);
-                                        LogUtils.e(TAG, "onCompleted: ");
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable e) {
-
-                                    }
-
-                                    @Override
-                                    public void onNext(Long aLong) {
-                                        LogUtils.e(TAG, "onNext: " + "getEverNoteList");
-                                        getEverNoteList();
-
-                                    }
-
-                                    @Override
-                                    public void onStart() {
-                                        super.onStart();
-//                                        getDBlist();
-                                        LogUtils.e(TAG, "onStart: ");
-                                    }
-                                });
-                    }
-                });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-
-//          fab.attachToListView(mRecycleView, );
+            }
+        });
         ScrollDirectionListener listener = new ScrollDirectionListener() {
             @Override
             public void onScrollDown() {
@@ -312,29 +285,16 @@ public class MainActivity extends BaseActivity {
                 LogUtils.d("ListViewFragment", "onScrollUp()");
             }
         };
-        fab.attachToRecyclerView(mRecycleView, listener);
-        fab.setOnClickListener(this);
-//        fab.setOnLongClickListener();
+        fab.attachToRecyclerView(listView, listener);
     }
 
     private void initData() {
         noteList = new ArrayList<Note>();
-/*        Note note = null;
-        for (int i = 0; i < 50; i++) {
-            note = new Note();
-            String md5Encode = MD5Utils.MD5Encode(String.valueOf(System
-                    .currentTimeMillis()) + i + "note");
-            note.setNoteTitle(md5Encode);
-            note.setNoteMd5(md5Encode);
-            noteList.add(note);
-        }*/
-//		noteListAdapter = new NoteListAdapter(this, noteList);
-
         //设置 RecycleView的显示方式
         noteAdapter = new RecycleViewNoteListAdapter(noteList);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
-        mRecycleView.setLayoutManager(llm);
+        listView.setLayoutManager(llm);
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
             public void onDelete(final Note note) {
@@ -358,7 +318,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         //取消删除操作
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity_2.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
@@ -366,19 +326,14 @@ public class MainActivity extends BaseActivity {
                         note.setNoteState(SQLConstants.noteState_normal);
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
-                        ToastUtils.showToast(MainActivity.this, "取消删除");
+                        ToastUtils.showToast(MainActivity_2.this, "取消删除");
                     }
                 });
                 snackbar.show();
 
             }
         });
-//		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
-//		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
-        mRecycleView.setAdapter(noteAdapter);
-
-//		mListView.setAdapter(noteListAdapter);
-
+        listView.setAdapter(noteAdapter);
     }
 
     /**
@@ -428,12 +383,7 @@ public class MainActivity extends BaseActivity {
                 .subscribe(new Subscriber<Notebook>() {
                     @Override
                     public void onCompleted() {
-
-//                        testInterval();
-
                     }
-
-
 
                     @Override
                     public void onError(Throwable e) {
@@ -454,26 +404,7 @@ public class MainActivity extends BaseActivity {
 
                             for (com.evernote.edam.type.Note note : notes1) {
                                 String title = note.getTitle();
-
-                             /*   Observable.just(note.getGuid())
-                                        .subscribeOn(Schedulers.newThread())
-                                        .map(s -> {
-                                            try {
-                                                return EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().getNoteContent(s);
-                                            } catch (EDAMUserException e) {
-                                                e.printStackTrace();
-                                            } catch (EDAMSystemException e) {
-                                                e.printStackTrace();
-                                            } catch (EDAMNotFoundException e) {
-                                                e.printStackTrace();
-                                            } catch (TException e) {
-                                                e.printStackTrace();
-                                            }
-                                            return null;
-                                        }).subscribe(str -> LogUtils.e(TAG, "onNext: noteContent: " + str));*/
                                 LogUtils.e(TAG, "onNext: title==> " + title);
-//                                LogUtils.e(TAG, "onNext: note===>: " + note);
-//                                getNoteLight(note.getGuid());
                             }
                         } catch (EDAMUserException e) {
                             e.printStackTrace();
@@ -491,64 +422,6 @@ public class MainActivity extends BaseActivity {
                 });
 
 
-    }
-
-    private void testTimer() {
-        System.out.println("wait ---->>>>"+System.currentTimeMillis());
-        Observable.timer(3, TimeUnit.SECONDS)
-                .observeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                //
-                //.just(1).delay(2, TimeUnit.SECONDS)//
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onCompleted() {
-                        System.out.println("A1 [%s] XXX COMPLETE");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        System.out.println("something went wrong in TimingDemoFragment example");
-                    }
-
-                    @Override
-                    public void onNext(Long number) {
-                        System.out.println((String.format("A1 [%s]     NEXT", number)));
-                    }
-                });
-        System.out.println("end ---->>>>"+System.currentTimeMillis());
-    }
-
-    private void testInterval() {
-        Integer intArrays[] = {1, 2, 4, 5, 6, 3, 33, 24, 53, 6, 5464, 75, 7, 5, 6290, 928};
-        Observable.zip(Observable.interval(1,3, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
-            @Override
-            public Integer call(Long aLong, Integer integer) {
-                return integer;
-            }
-        }).subscribe(new Subscriber<Integer>() {
-            @Override
-            public void onCompleted() {
-                LogUtils.e(TAG, "onCompleted " );
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onNext(Integer integer) {
-                LogUtils.e(TAG, "onNext: " + integer);
-
-            }
-
-            @Override
-            public void onStart() {
-                super.onStart();
-                LogUtils.e(TAG, "onStart: ");
-            }
-        });
     }
 
     private void getNoteLight(String guid) {
@@ -582,16 +455,16 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * 获取数据库中的notlist
+     * 加载数据库中的notlist
      */
-    private void getDBlist() {
+    private void getDBList() {
         Observable.
                 create(new Observable.OnSubscribe<List<Note>>() {
                     @Override
                     public void call(Subscriber<? super List<Note>> subscriber) {
                         subscriber.onStart();
                         LogUtils.e(TAG, "call2: " + Thread.currentThread());
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
+                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity_2.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
@@ -610,7 +483,7 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                         String orderRule = "desc";
-                        String orderBy = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+                        String orderBy = SPUtil.getString(MainActivity_2.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
                         Property order;
                         if (orderBy.equals(NoteDao.Properties.CreateTime.columnName)) {
                             order = NoteDao.Properties.CreateTime;
@@ -647,7 +520,7 @@ public class MainActivity extends BaseActivity {
                     public void onCompleted() {
 
                         LogUtils.e(TAG, "onCompleted:  ");
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        swipeRefreshLayout.setRefreshing(false);
                     }
 
                     @Override
@@ -667,7 +540,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initListener() {
-        drawerLayout.requestDisallowInterceptTouchEvent(true);
+        drawer.requestDisallowInterceptTouchEvent(true);
     }
 
     @Override
@@ -677,14 +550,18 @@ public class MainActivity extends BaseActivity {
 
     }
 
-    @Override
+
+
+    @OnClick({R.id.toolbar, R.id.listView, R.id.swipeRefreshLayout, R.id.fab, R.id.note_select_item_allNote,
+            R.id.note_select_item_noteBook, R.id.note_select_item_noteLabel, R.id.note_select_item_recovery,
+            R.id.note_select_item_set, R.id.note_select_item, R.id.drawer_view, R.id.drawer})
     public void onClick(View v) {
         super.onClick(v);
         Intent intent;
-        drawerLayout.closeDrawers();
+        drawer.closeDrawers();
         switch (v.getId()) {
             case R.id.note_select_item_allNote:
-                Toast.makeText(MainActivity.this, "全部笔记", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity_2.this, "全部笔记", Toast.LENGTH_LONG).show();
                 break;
             case R.id.note_select_item_noteBook:
                 break;
@@ -707,64 +584,19 @@ public class MainActivity extends BaseActivity {
                 startActivity(intent);
                 break;
 
-            default:
+            case R.id.toolbar:
+                break;
+            case R.id.listView:
+                break;
+            case R.id.swipeRefreshLayout:
+                break;
+
+            case R.id.note_select_item:
+                break;
+            case R.id.drawer_view:
+                break;
+            case R.id.drawer:
                 break;
         }
     }
-
-
-    /**
-     * 界面颜色的更改
-     */
-    @SuppressLint("NewApi")
-    private void colorChange() {
-        // 用来提取颜色的Bitmap
-        Bitmap drawingCache = mToolbar.getDrawingCache();
-
-        // Palette的部分
-        Builder builder = new Builder(drawingCache);
-
-        builder.generate(new Palette.PaletteAsyncListener() {
-            /**
-             * 提取完之后的回调方法
-             */
-            @Override
-            public void onGenerated(Palette palette) {
-                Palette.Swatch vibrant = palette.getVibrantSwatch();
-                /* 界面颜色UI统一性处理,看起来更Material一些 */
-                // 其中状态栏、游标、底部导航栏的颜色需要加深一下，也可以不加，具体情况在代码之后说明
-                mToolbar.setBackgroundColor(vibrant.getRgb());
-                if (Build.VERSION.SDK_INT >= 21) {
-                    Window window = getWindow();
-                    // 很明显，这两货是新API才有的。
-                    window.setStatusBarColor(colorBurn(vibrant.getRgb()));
-                    window.setNavigationBarColor(colorBurn(vibrant.getRgb()));
-                }
-            }
-        });
-
-    }
-
-    /**
-     * 颜色加深处理
-     *
-     * @param RGBValues RGB的值，由alpha（透明度）、red（红）、green（绿）、blue（蓝）构成，
-     *                  Android中我们一般使用它的16进制，
-     *                  例如："#FFAABBCC",最左边到最右每两个字母就是代表alpha（透明度）、
-     *                  red（红）、green（绿）、blue（蓝）。每种颜色值占一个字节(8位)，值域0~255
-     *                  所以下面使用移位的方法可以得到每种颜色的值，然后每种颜色值减小一下，在合成RGB颜色，颜色就会看起来深一些了
-     * @return
-     */
-    private int colorBurn(int RGBValues) {
-        int alpha = RGBValues >> 24;
-        int red = RGBValues >> 16 & 0xFF;
-        int green = RGBValues >> 8 & 0xFF;
-        int blue = RGBValues & 0xFF;
-        red = (int) Math.floor(red * (1 - 0.1));
-        green = (int) Math.floor(green * (1 - 0.1));
-        blue = (int) Math.floor(blue * (1 - 0.1));
-        return Color.rgb(red, green, blue);
-    }
-
-
 }
