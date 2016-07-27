@@ -12,12 +12,12 @@
 <div id="editor" contentEditable="true" class="markdown-body"></div>
 <script type="text/javascript" src="rich_editor.js"></script>
 <!--<input type="button" value="Say hello" onClick="showAndroidToast('Hello Android!')" /><br/>
-<input type="button" value="Say hello2" onClick="alertData('Hello Android!')" /><br/>
+<input type="button" value="Say hello2" onClick="alert('Hello Android!')" /><br/>
 <input type="button" value="Say hello3" onClick="RE.setHtml('<h4>parseMarkdown</h4>');" /><br/>-->
 <script type="text/javascript">
 
         function parseMarkdown(content){
-        alertData(data);
+        alert(data);
             marked.setOptions({
                 renderer: new marked.Renderer(),
                 gfm: true,

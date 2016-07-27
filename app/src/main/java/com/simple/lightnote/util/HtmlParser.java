@@ -1,6 +1,7 @@
 package com.simple.lightnote.util;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,17 +12,16 @@ import java.util.regex.Pattern;
 public class HtmlParser {
 
     private static final String TAG = "HtmlParser";
-
+    static boolean disOrderline = false;
+    static boolean isOrderLine = false;
     /**
-     * 取出HTml
      *
-     * @return
      */
-    public String getHtmlText() {
-        return null;
-    }
+    String previousType = "";
 
     public static String formatText(String text, String newLineFlag) {
+        //去掉可能存在的错误
+        text =text.replace("\"","'");
         // 换行
         String s = text.replace(newLineFlag, "\r\n");
         String[] split = s.split("\r\n");
@@ -38,19 +38,10 @@ public class HtmlParser {
         return toHtml(str);
     }
 
-    static boolean disOrderline = false;
-    static boolean isOrderLine = false;
-
-    /**
-     *
-     */
-    String previousType = "";
-
-
     private static String toHtml(String str) {
-        StringBuilder sb = new StringBuilder(str);
 
-        if (str != null && str.length() > 0) {
+        if (!TextUtils.isEmpty(str)) {
+            StringBuilder sb = new StringBuilder(str);
             // 标题
             if (str.matches(TagCons.title)) {
                 int temp = 0;
@@ -69,8 +60,8 @@ public class HtmlParser {
                 return sb.delete(0, sb.length()).append("<hr/>").toString();
             } else if (str.matches(TagCons.ref)) {
 
-                return sb.delete(0, 1).insert(0, "<blockquote>\n<p>")
-                        .append("</p>").append("</blockquote>").toString();
+                return sb.delete(0, 1).insert(0, "<blockquote><br/><p>")
+                        .append("</p>").append("<br/></blockquote>").toString();
 
             } else if (str.split("(?<!\\*)\\*\\*(?!\\*)").length > 1) {
 
@@ -92,7 +83,10 @@ public class HtmlParser {
                 }
                 // 判断换行的情况
                 return sb.append(TagCons.newLine).toString();
-            } else if (str.matches(TagCons.href)) return parseHref(str, sb);
+            } else if (str.matches(TagCons.href)){
+
+                return parseHref(str, sb);
+            }
 
             else {
                 return sb.append(TagCons.newLine).toString();
@@ -156,7 +150,6 @@ public class HtmlParser {
 
     }
 
-
     public static String setStrongText(String text, String str) {
         StringBuilder sb = new StringBuilder(text);
         int left = -1;
@@ -205,6 +198,15 @@ public class HtmlParser {
 
         return sb.toString().replace(str, "");
 
+    }
+
+    /**
+     * 取出HTml
+     *
+     * @return
+     */
+    public String getHtmlText() {
+        return null;
     }
 
 }

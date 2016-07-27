@@ -67,6 +67,7 @@ public class FileSelectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     Log.d(TAG, "Element " + getLayoutPosition() + " clicked.");
 //                    ToastUtils.showToast(mContext, "Element " + getLayoutPosition() + " clicked.");
                     Intent intent=new Intent(mContext, NotePreViewActivity.class);
+                    intent.putExtra("sourceType",NotePreViewActivity.Source_file);
                     intent.putExtra("filePath",mList.get(getLayoutPosition()).getAbsolutePath());
                     mContext.startActivity(intent);
                 }

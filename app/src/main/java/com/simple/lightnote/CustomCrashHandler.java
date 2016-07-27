@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -54,10 +55,11 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 		showToast(mContext, "程序异常,即将退出!!!");
 		try {
 			Thread.sleep(2000);
+
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		System.exit(0);
 		// 完美退出程序方法
 //		((ApplicationEx)mContext).exit();
 	}
@@ -95,7 +97,7 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 	 * @return
 	 */
 	private HashMap<String, String> obtainSystemInfo(Context context) {
-		HashMap<String, String> map = new HashMap<String, String>();
+		HashMap<String, String> map = new LinkedHashMap<String, String>();
 		PackageManager mPackageManager = context.getPackageManager();
 		PackageInfo mPackageInfo = null;
 		try {
@@ -104,16 +106,14 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 		} catch (NameNotFoundException e) {
 			e.printStackTrace();
 		}
-
+		map.put("MANUFACTURER", Build.MANUFACTURER);//制造商
 		map.put("versionName", mPackageInfo.versionName);//版本名称
 		map.put("versionCode", "" + mPackageInfo.versionCode);//版本号
-
 		map.put("MODEL", String.valueOf(Build.MODEL));//设备型号
-		map.put("SDK_INT", String.valueOf( Build.VERSION.SDK_INT));//系统版本号
-		map.put("BRADN", Build.BRAND);// 设备的系统版本
+		map.put("SDK_INT", String.valueOf( Build.VERSION.SDK_INT));//系统SDK版本号
+		map.put("---------","---------");
 		map.put("DEVICE", Build.DEVICE);//设备
 		map.put("DISPLAY", Build.DISPLAY);//UI名称
-		map.put("MANUFACTURER", Build.MANUFACTURER);//制造商
 		map.put("PRODUCT", Build.PRODUCT);//型号
 		
 		return map;
@@ -152,6 +152,7 @@ public class CustomCrashHandler implements UncaughtExceptionHandler {
 			String value = entry.getValue();
 			sb.append(key).append(" = ").append(value).append("\n");
 		}
+		sb.append("\n\n");
 
 		String exceptionInfo= sb.append(obtainExceptionInfo(ex)).toString();
 		if(!TextUtils.isEmpty(exceptionInfo)){

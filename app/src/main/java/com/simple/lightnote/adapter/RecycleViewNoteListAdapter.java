@@ -18,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
 import com.simple.lightnote.constant.SQLConstants;
@@ -237,11 +236,13 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 ToastUtils.showToast(mContext, "onClick3");
                 break;
             case R.id.ll_container:
+                //跳转使用NoteID来传递笔记
                 if (postion != RecyclerView.NO_POSITION) {
                     Note note = list.get(postion);
-                    String s = JSON.toJSONString(note);
+//                    String s = JSON.toJSONString(note);
+                    Long id = note.getId();
                     Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
-                    intent.putExtra("clickItem", s);
+                    intent.putExtra("noteId", id);
                     mContext.startActivity(intent);
                 }
 

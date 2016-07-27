@@ -64,6 +64,8 @@ import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
+import org.greenrobot.greendao.Property;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +73,6 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
-import de.greenrobot.dao.Property;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
@@ -129,9 +130,9 @@ public class MainActivity extends BaseActivity {
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
 //			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
         }
-//    getEverNoteList();
+    getEverNoteList();
 //        testTimer();
-        testInterval();
+//        testInterval();
     }
 
     @Override
@@ -497,7 +498,6 @@ public class MainActivity extends BaseActivity {
         System.out.println("wait ---->>>>"+System.currentTimeMillis());
         Observable.timer(3, TimeUnit.SECONDS)
                 .observeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
                 //
                 //.just(1).delay(2, TimeUnit.SECONDS)//
                 .subscribe(new Observer<Long>() {
@@ -573,7 +573,6 @@ public class MainActivity extends BaseActivity {
 
                     }
                 })
-                .observeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(note -> {
                     System.out.println(note);

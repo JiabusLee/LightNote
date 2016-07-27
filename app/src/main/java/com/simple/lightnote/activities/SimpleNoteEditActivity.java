@@ -1,10 +1,11 @@
 package com.simple.lightnote.activities;
 
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,12 +15,11 @@ import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.alibaba.fastjson.JSON;
+import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.constant.SPConstans;
-import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.Note;
@@ -28,11 +28,14 @@ import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 /**
  * 编辑页面
@@ -42,44 +45,125 @@ import rx.functions.Func1;
 public class SimpleNoteEditActivity extends BaseSwipeActivity {
     private static final String TAG = "SimpleNoteEditActivity";
 
-    private LinearLayout ll_acitonBar;
-    private EditText edt_noteContent;
+    @Bind(R.id.toolbar)
+    Toolbar mToolbar;
+    @Bind(R.id.simpleNote_edt_noteContent)
+    EditText edt_noteContent;
+    @Bind(R.id.simpleNote_ll_actionbar)
+    LinearLayout ll_acitonBar;
 
-    private DaoMaster daoMaster;
-    private DaoSession daoSession;
+
     private NoteDao noteDao;
     private String s_noteContent;
     private String md5;
     private Note note;
+    /**
+     * 笔记是否改变
+     */
+    private boolean textChanged;
+    private Long noteId;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-//        ViewGroup docurview = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
-//
-//        docurview.getChildAt(0).setBackgroundColor(getResources().getColor(android.R.color.transparent));
-
-
         setContentView(R.layout.activity_simplenoteedit);
-
+        ButterKnife.bind(this);
+        initDB();
         initView();
+        initListener();
         initData();
 
     }
 
-    private void initData() {
-        String clickItem = getIntent().getStringExtra("clickItem");
-        Log.e(TAG, "initData: " + clickItem);
-        if (clickItem != null) {
-            note = JSON.parseObject(clickItem, Note.class);
-            String noteContent = note.getNoteContent();
-            if (!TextUtils.isEmpty(noteContent)) {
-                edt_noteContent.setText(noteContent);
-                edt_noteContent.setSelection(noteContent.length());
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //TODO 保存文件
+        Observable.create(new Observable.OnSubscribe<Object>() {
+            @Override
+            public void call(Subscriber<? super Object> subscriber) {
+                saveToDB();
             }
+        }).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe(new Subscriber<Object>() {
+            @Override
+            public void onCompleted() {
+                textChanged = false;
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(Object o) {
+
+            }
+        });
+//        saveToDB();
+    }
+
+    private void initListener() {
+        edt_noteContent.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                textChanged = true;
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+
+    private void initDB() {
+        LightNoteApplication application = (LightNoteApplication) getApplication();
+        DaoSession daoSession = application.getDaoSession();
+        noteDao = daoSession.getNoteDao();
+
+    }
+
+    private void initData() {
+        long noteId = getIntent().getLongExtra("noteId", 0);
+        Log.e(TAG, "initData: " + noteId);
+        if (noteId != 0) {
+
+            Observable.create(new Observable.OnSubscribe<Note>() {
+                @Override
+                public void call(Subscriber<? super Note> subscriber) {
+                    note = noteDao.load(noteId);
+                    subscriber.onNext(note);
+                }
+            }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Note>() {
+                @Override
+                public void onCompleted() {
+
+
+                }
+
+                @Override
+                public void onError(Throwable e) {
+
+                }
+
+                @Override
+                public void onNext(Note note) {
+                    String noteContent = note.getNoteContent();
+                    if (!TextUtils.isEmpty(noteContent)) {
+                        edt_noteContent.setText(noteContent);
+                        edt_noteContent.setSelection(noteContent.length());
+                    }
+                }
+            });
+
 
         } else {
 //            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -90,15 +174,10 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     }
 
     private void initView() {
-        ll_acitonBar = (LinearLayout) findViewById(R.id.simpleNote_ll_actionbar);
-        edt_noteContent = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle("编辑");
         mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        edt_noteContent = (EditText) findViewById(R.id.simpleNote_edt_noteContent);
-
     }
 
     @Override
@@ -107,23 +186,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        saveToDB();
-    }
-
-    /**
-     * 保存数据到数据库
-     */
     private void saveToDB() {
-        String trim = edt_noteContent.getText().toString().trim();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        //TODO 保存文件
         s_noteContent = edt_noteContent.getText().toString().trim();
         md5 = MD5Utils.MD5Encode(s_noteContent);
         if (note != null) {
@@ -156,8 +219,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             }
 
         }
-
-
     }
 
     private void insertAndUpdate() {
@@ -173,14 +234,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 .doOnSubscribe(new Action0() {
                     @Override
                     public void call() {
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(SimpleNoteEditActivity.this, "lightnote", null);
-                        SQLiteDatabase db = helper.getWritableDatabase();
-                        daoMaster = new DaoMaster(db);
-                        daoSession = daoMaster.newSession();
-                        noteDao = daoSession.getNoteDao();
-                        Long id = note.getId();
-                        if (id == null) {
-                            noteDao.insert(note);
+                        noteId = note.getId();
+                        if (noteId == null) {
+                            noteId=noteDao.insert(note);
                         } else {
                             noteDao.update(note);
                         }
@@ -193,6 +249,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     @Override
                     public void onCompleted() {
                         LogUtils.d(TAG, "completed");
+                        textChanged=false;
                     }
 
                     @Override
@@ -240,9 +297,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 ToastUtils.showToast(SimpleNoteEditActivity.this, "清单");
                 return true;
             case R.id.menu_simplenoteedit_info:
-
-
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -267,7 +321,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     }
 
     public void onToolBarClick(View v) {
-        String trim = edt_noteContent.getText().toString();
+        String trim = edt_noteContent.getText().toString().trim();
 
         switch (v.getId()) {
             case R.id.edit_toolbar_item_1:
@@ -300,11 +354,13 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
                 break;
             case R.id.edit_toolbar_item_save:
-                String trim1 = edt_noteContent.getText().toString().trim();
-                if (!TextUtils.isEmpty(trim1)) {
+                if(textChanged){
+                    saveToDB();
+                }
+                if (!TextUtils.isEmpty(trim)) {
                     Intent intent = new Intent(this, NotePreViewActivity.class);
-                    intent.putExtra("sourceType", 1);
-                    intent.putExtra("filePath", trim1);
+                    intent.putExtra("sourceType", NotePreViewActivity.Source_id);
+                    intent.putExtra("noteId",noteId);
                     startActivity(intent);
                 } else {
 
@@ -313,6 +369,5 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 break;
         }
     }
-
 
 }

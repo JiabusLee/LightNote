@@ -1,16 +1,18 @@
 package com.simple.lightnote.db;
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import com.simple.lightnote.model.Note;
 
-import de.greenrobot.dao.AbstractDao;
-import de.greenrobot.dao.AbstractDaoSession;
-import de.greenrobot.dao.Property;
-import de.greenrobot.dao.internal.DaoConfig;
+import org.greenrobot.greendao.AbstractDao;
+import org.greenrobot.greendao.AbstractDaoSession;
+import org.greenrobot.greendao.Property;
+import org.greenrobot.greendao.database.Database;
+import org.greenrobot.greendao.database.DatabaseStatement;
+import org.greenrobot.greendao.internal.DaoConfig;
+
 
 /**
  * Created by homelink on 2016/3/29.
@@ -44,7 +46,7 @@ public class NoteDao extends AbstractDao<Note, Long> {
     /**
      * Creates the underlying database table.
      */
-    public static void createTable(SQLiteDatabase db, boolean ifNotExists) {
+    public static void createTable(Database db, boolean ifNotExists) {
         String constraint = ifNotExists ? "IF NOT EXISTS " : "";
 
 
@@ -96,6 +98,11 @@ public class NoteDao extends AbstractDao<Note, Long> {
     }
 
     @Override
+    protected void bindValues(DatabaseStatement stmt, Note entity) {
+
+    }
+
+    @Override
     protected void bindValues(SQLiteStatement stmt, Note entity) {
         stmt.clearBindings();
         Long id = entity.getId();
@@ -130,7 +137,7 @@ public class NoteDao extends AbstractDao<Note, Long> {
     /**
      * Drops the underlying database table.
      */
-    public static void dropTable(SQLiteDatabase db, boolean ifExists) {
+    public static void dropTable(Database db, boolean ifExists) {
         String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"NOTE\"";
         db.execSQL(sql);
     }

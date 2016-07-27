@@ -33,6 +33,7 @@ RE.callback = function() {
 
 RE.setHtml = function(contents) {
     RE.editor.innerHTML = decodeURIComponent(contents.replace(/\+/g, '%20'));
+    console.log("输入的html===>  "+RE.editor.innerHTML);
 }
 
 RE.getHtml = function() {
