@@ -40,6 +40,7 @@ import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.NoteFilter;
 import com.evernote.edam.notestore.NoteList;
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
@@ -55,7 +56,6 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
@@ -336,7 +336,7 @@ public class MainActivity extends BaseActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
-        noteAdapter.setActionListener(new DefaultActionListener() {
+        noteAdapter.setActionListener(new DefaultActionListener(){
             @Override
             public void onDelete(final Note note) {
                 Snackbar snackbar = Snackbar.make(contentView,
@@ -364,7 +364,6 @@ public class MainActivity extends BaseActivity {
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        note.setNoteState(SQLConstants.noteState_normal);
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(MainActivity.this, "取消删除");

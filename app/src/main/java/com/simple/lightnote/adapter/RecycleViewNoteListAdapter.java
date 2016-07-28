@@ -18,16 +18,15 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
-import com.simple.lightnote.constant.SQLConstants;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.ActionListener;
 import com.simple.lightnote.interfaces.MyItemClickListener;
 import com.simple.lightnote.interfaces.MyItemLongClickListener;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -79,24 +78,24 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
             Note note = list.get(position);
-            String noteTitle = note.getNoteTitle();
+            String noteTitle = note.getTitle();
             if (!TextUtils.isEmpty(noteTitle)) {
                 ((RecyclerViewHolder) holder).tv_title.setVisibility(View.VISIBLE);
-                ((RecyclerViewHolder) holder).tv_title.setText(note.getId() + "  " + note.getNoteContent());
+                ((RecyclerViewHolder) holder).tv_title.setText(note.getGuid() + "  " + note.getContent());
             } else {
                 ((RecyclerViewHolder) holder).tv_title.setVisibility(View.GONE);
             }
 
 
             StringBuilder sb = new StringBuilder();
-            Long lastModifyTime = note.getLastModifyTime();
+            Long lastModifyTime = note.getUpdated();
             if (lastModifyTime != null) {
 
                 String dateByTimestamp = setShowTime(lastModifyTime);
 //                String dateByTimestamp = DateUtils.getDateByTimestamp(lastModifyTime, "MM/dd HH:mm");
                 sb.append("<font color='#228B22'>").append(dateByTimestamp).append("</font>  ");
             }
-            sb.append(note.getNoteContent());
+            sb.append(note.getContent());
             ((RecyclerViewHolder) holder).tv_content.setText(Html.fromHtml(sb.toString()));
 
 
@@ -166,10 +165,11 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
                 DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(mContext, "lightnote", null);
                 SQLiteDatabase db = helper.getWritableDatabase();
+
                 daoMaster = new DaoMaster(db);
                 daoSession = daoMaster.newSession();
                 noteDao = daoSession.getNoteDao();
-                note.setNoteState(SQLConstants.noteState_deleted);
+
                 noteDao.update(note);
 //                noteDao.deleteByKey(note.getId());
                 return null;
@@ -240,9 +240,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 if (postion != RecyclerView.NO_POSITION) {
                     Note note = list.get(postion);
 //                    String s = JSON.toJSONString(note);
-                    Long id = note.getId();
+                    String guid = note.getGuid();
                     Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
-                    intent.putExtra("noteId", id);
+                    intent.putExtra("noteId", guid);
                     mContext.startActivity(intent);
                 }
 

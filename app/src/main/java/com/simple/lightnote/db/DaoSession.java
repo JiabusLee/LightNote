@@ -1,7 +1,5 @@
 package com.simple.lightnote.db;
 
-import com.simple.lightnote.model.Note;
-
 import org.greenrobot.greendao.AbstractDao;
 import org.greenrobot.greendao.AbstractDaoSession;
 import org.greenrobot.greendao.database.Database;

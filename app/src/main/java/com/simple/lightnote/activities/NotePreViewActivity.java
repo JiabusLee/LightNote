@@ -22,7 +22,6 @@ import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.util.HtmlParser;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.view.MarkDownView;

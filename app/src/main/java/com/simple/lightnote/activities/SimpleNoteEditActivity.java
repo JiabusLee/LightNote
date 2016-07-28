@@ -15,14 +15,15 @@ import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.evernote.client.android.EvernoteSession;
+import com.evernote.client.android.asyncclient.EvernoteCallback;
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
-import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
@@ -61,7 +62,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
      * 笔记是否改变
      */
     private boolean textChanged;
-    private Long noteId;
+    private String noteId;
 
 
     @Override
@@ -102,7 +103,24 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
             }
         });
-//        saveToDB();
+        Observable.create(new Observable.OnSubscribe<Object>() {
+            @Override
+            public void call(Subscriber<? super Object> subscriber) {
+                com.evernote.edam.type.Note note = new com.evernote.edam.type.Note();
+                note.setContent(edt_noteContent.getText().toString().trim());
+                EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().createNoteAsync(note, new EvernoteCallback<com.evernote.edam.type.Note>() {
+                    @Override
+                    public void onSuccess(com.evernote.edam.type.Note result) {
+
+                    }
+
+                    @Override
+                    public void onException(Exception exception) {
+
+                    }
+                });
+            }
+        });
     }
 
     private void initListener() {
@@ -156,7 +174,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
                 @Override
                 public void onNext(Note note) {
-                    String noteContent = note.getNoteContent();
+                    String noteContent = note.getContent();
                     if (!TextUtils.isEmpty(noteContent)) {
                         edt_noteContent.setText(noteContent);
                         edt_noteContent.setSelection(noteContent.length());
@@ -191,13 +209,11 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         md5 = MD5Utils.MD5Encode(s_noteContent);
         if (note != null) {
             //更新
-            if (!note.getNoteContent().trim().equals(s_noteContent)) {
-                note.setNoteType(Constans.NoteType.normal);
-                note.setNoteMd5(md5);
-                note.setNoteTitle(note.getNoteTitle());
-                note.setCreateTime(note.getCreateTime());
-                note.setLastModifyTime(System.currentTimeMillis());
-                note.setNoteContent(s_noteContent);
+            if (!note.getContent().trim().equals(s_noteContent)) {
+                note.setTitle(note.getTitle());
+                note.setCreated(note.getCreated());
+                note.setUpdated(System.currentTimeMillis());
+                note.setContent(s_noteContent);
                 LogUtils.e(TAG, "更新");
                 LogUtils.e(TAG, note);
                 insertAndUpdate();
@@ -206,13 +222,10 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             //新建
             if (!TextUtils.isEmpty(s_noteContent)) {
                 note = new Note();
-                note.setLastModifyTime(System.currentTimeMillis());
-                note.setCreateTime(System.currentTimeMillis());
-                note.setLastModifyTime(System.currentTimeMillis());
-                note.setNoteType(Constans.NoteType.normal);
-                note.setNoteMd5(md5);
-                note.setNoteTitle(note.getNoteTitle());
-                note.setNoteContent(s_noteContent);
+                note.setCreated(System.currentTimeMillis());
+                note.setUpdated(System.currentTimeMillis());
+                note.setTitle(note.getTitle());
+                note.setContent(s_noteContent);
                 LogUtils.e(TAG, "新建");
                 LogUtils.e(TAG, note);
                 insertAndUpdate();
@@ -234,9 +247,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 .doOnSubscribe(new Action0() {
                     @Override
                     public void call() {
-                        noteId = note.getId();
+                        noteId = note.getGuid();
                         if (noteId == null) {
-                            noteId=noteDao.insert(note);
+                            long insert = noteDao.insert(note);
                         } else {
                             noteDao.update(note);
                         }
@@ -249,7 +262,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     @Override
                     public void onCompleted() {
                         LogUtils.d(TAG, "completed");
-                        textChanged=false;
+                        textChanged = false;
                     }
 
                     @Override
@@ -354,13 +367,13 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
                 break;
             case R.id.edit_toolbar_item_save:
-                if(textChanged){
+                if (textChanged) {
                     saveToDB();
                 }
                 if (!TextUtils.isEmpty(trim)) {
                     Intent intent = new Intent(this, NotePreViewActivity.class);
                     intent.putExtra("sourceType", NotePreViewActivity.Source_id);
-                    intent.putExtra("noteId",noteId);
+                    intent.putExtra("noteId", noteId);
                     startActivity(intent);
                 } else {
 

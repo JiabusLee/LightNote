@@ -27,7 +27,6 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;

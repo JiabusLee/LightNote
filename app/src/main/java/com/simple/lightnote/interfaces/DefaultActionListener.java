@@ -1,6 +1,6 @@
 package com.simple.lightnote.interfaces;
 
-import com.simple.lightnote.model.Note;
+import com.evernote.edam.type.Note;
 
 public  class DefaultActionListener implements ActionListener {
     @Override

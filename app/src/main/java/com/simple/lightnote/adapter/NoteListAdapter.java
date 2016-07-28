@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.alibaba.fastjson.JSON;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
-import com.simple.lightnote.model.Note;
 import com.simple.lightnote.utils.ScreenUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
