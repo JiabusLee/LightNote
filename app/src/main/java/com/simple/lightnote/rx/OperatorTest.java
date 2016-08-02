@@ -66,7 +66,7 @@ public class OperatorTest {
         }
     };
 
-    //    @org.junit.Test
+    //    @org.junit.TestUploadImage
     public void test() {
         Observable
                 .just(1, "aaaa", "bbbb", 3, true, "sssbb", 'c', "AAA", "GGLLL")

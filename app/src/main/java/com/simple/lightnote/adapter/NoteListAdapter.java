@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
 import com.simple.lightnote.utils.ScreenUtils;
@@ -98,7 +99,7 @@ public class NoteListAdapter extends BaseAdapter implements OnTouchListener,OnCl
 		
 		
 		Note note = noteList.get(position);
-		holder.tv_introduce.setText(note.getNoteTitle());
+		holder.tv_introduce.setText(note.getTitle());
 		convertView.setOnLongClickListener(longClickListener);
 		convertView.setOnClickListener(clickListener);
 		convertView.setOnTouchListener(this);

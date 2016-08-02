@@ -74,12 +74,10 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity {
@@ -130,9 +128,7 @@ public class MainActivity extends BaseActivity {
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
 //			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
         }
-    getEverNoteList();
-//        testTimer();
-//        testInterval();
+        getEverNoteList();
     }
 
     @Override
@@ -336,7 +332,7 @@ public class MainActivity extends BaseActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
-        noteAdapter.setActionListener(new DefaultActionListener(){
+        noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
             public void onDelete(final Note note) {
                 Snackbar snackbar = Snackbar.make(contentView,
@@ -425,137 +421,87 @@ public class MainActivity extends BaseActivity {
 
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.newThread())
-                .subscribe(new Subscriber<Notebook>() {
-                    @Override
-                    public void onCompleted() {
+                .subscribe(new Action1<Notebook>() {
+                               @Override
+                               public void call(Notebook notebook) {
+                                   {
+                                       LogUtils.e(TAG, notebook.toString());
+                                       NoteFilter noteFilter = new NoteFilter();
+                                       noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
 
-//                        testInterval();
+                                       try {
+                                           EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient()
+                                                   .findNotesAsync(noteFilter, 0, 20, new EvernoteCallback<NoteList>() {
+                                                       @Override
+                                                       public void onSuccess(NoteList result) {
+                                                           List<com.evernote.edam.type.Note> notes1 = result.getNotes();
 
-                    }
-
-
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onNext(Notebook notebook) {
-                        LogUtils.e(TAG, notebook.toString());
-                        NoteFilter noteFilter = new NoteFilter();
-//                        noteFilter.setNotebookGuid(notebook.getGuid());
-                        noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
-
-                        try {
-                            NoteList notes = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().findNotes(noteFilter, 0, 20);
-                            List<com.evernote.edam.type.Note> notes1 = notes.getNotes();
+                                                           noteAdapter.setList(notes1);
+                                                           noteAdapter.notifyDataSetChanged();
 
 
-                            for (com.evernote.edam.type.Note note : notes1) {
-                                String title = note.getTitle();
+                                                           for (com.evernote.edam.type.Note note : notes1) {
+                                                               String title = note.getTitle();
+                                                               LogUtils.e(TAG, "onNext: title==> " + title);
+//                                                               LogUtils.e(TAG, "onNext: note===>: " + note);
+                                                               getNote(note.getGuid());
+                                                           }
+                                                       }
 
-                             /*   Observable.just(note.getGuid())
-                                        .subscribeOn(Schedulers.newThread())
-                                        .map(s -> {
-                                            try {
-                                                return EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().getNoteContent(s);
-                                            } catch (EDAMUserException e) {
-                                                e.printStackTrace();
-                                            } catch (EDAMSystemException e) {
-                                                e.printStackTrace();
-                                            } catch (EDAMNotFoundException e) {
-                                                e.printStackTrace();
-                                            } catch (TException e) {
-                                                e.printStackTrace();
-                                            }
-                                            return null;
-                                        }).subscribe(str -> LogUtils.e(TAG, "onNext: noteContent: " + str));*/
-                                LogUtils.e(TAG, "onNext: title==> " + title);
-//                                LogUtils.e(TAG, "onNext: note===>: " + note);
-//                                getNoteLight(note.getGuid());
-                            }
-                        } catch (EDAMUserException e) {
-                            e.printStackTrace();
-                        } catch (EDAMSystemException e) {
-                            e.printStackTrace();
-                        } catch (EDAMNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (TException e) {
-                            e.printStackTrace();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                                                       @Override
+                                                       public void onException(Exception exception) {
 
-                    }
-                });
+                                                       }
+                                                   });
+
+                                       } catch (Exception e) {
+                                           e.printStackTrace();
+                                       }
+
+                                   }
+                               }
+                           }
+
+                );
 
 
     }
 
-    private void testTimer() {
-        System.out.println("wait ---->>>>"+System.currentTimeMillis());
-        Observable.timer(3, TimeUnit.SECONDS)
-                .observeOn(Schedulers.io())
-                //
-                //.just(1).delay(2, TimeUnit.SECONDS)//
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onCompleted() {
-                        System.out.println("A1 [%s] XXX COMPLETE");
+    /**
+     * 获取指定笔记的id
+     *
+     * @param guid
+     */
+    public void getNoteContent(String guid) {
+        Observable.just(guid)
+                .subscribeOn(Schedulers.newThread())
+                .map(s -> {
+                    try {
+                        return EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient().getNoteContent(s);
+                    } catch (EDAMUserException e) {
+                        e.printStackTrace();
+                    } catch (EDAMSystemException e) {
+                        e.printStackTrace();
+                    } catch (EDAMNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (TException e) {
+                        e.printStackTrace();
                     }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        System.out.println("something went wrong in TimingDemoFragment example");
-                    }
-
-                    @Override
-                    public void onNext(Long number) {
-                        System.out.println((String.format("A1 [%s]     NEXT", number)));
-                    }
-                });
-        System.out.println("end ---->>>>"+System.currentTimeMillis());
+                    return null;
+                }).subscribe(str -> LogUtils.e(TAG, "onNext: noteContent: " + str));
     }
 
-    private void testInterval() {
-        Integer intArrays[] = {1, 2, 4, 5, 6, 3, 33, 24, 53, 6, 5464, 75, 7, 5, 6290, 928};
-        Observable.zip(Observable.interval(1,3, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
-            @Override
-            public Integer call(Long aLong, Integer integer) {
-                return integer;
-            }
-        }).subscribe(new Subscriber<Integer>() {
-            @Override
-            public void onCompleted() {
-                LogUtils.e(TAG, "onCompleted " );
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onNext(Integer integer) {
-                LogUtils.e(TAG, "onNext: " + integer);
-
-            }
-
-            @Override
-            public void onStart() {
-                super.onStart();
-                LogUtils.e(TAG, "onStart: ");
-            }
-        });
-    }
-
-    private void getNoteLight(String guid) {
+    /**
+     * 获取笔记
+     *
+     * @param guid
+     */
+    private void getNote(String guid) {
         Observable.interval(5, TimeUnit.SECONDS)
                 .create(new Observable.OnSubscribe<com.evernote.edam.type.Note>() {
                     @Override
                     public void call(Subscriber<? super com.evernote.edam.type.Note> subscriber) {
-                        LogUtils.e(TAG, "call: " + "getNoteLight------->");
+                        LogUtils.e(TAG, "call: " + "getNote------->");
                         EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
                         try {
                             com.evernote.edam.type.Note note = noteStoreClient.getNote(guid, true, false, false, false);
@@ -575,7 +521,7 @@ public class MainActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(note -> {
                     System.out.println(note);
-                    LogUtils.e(TAG, "getNoteLight: " + note);
+                    LogUtils.e(TAG, "getNote: " + note);
                 });
     }
 

@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.SearchView;
 
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
@@ -168,7 +169,6 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
-                        note.setNoteState(SQLConstants.noteState_normal);
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(RecoveryNoteActivity.this, "取消删除");

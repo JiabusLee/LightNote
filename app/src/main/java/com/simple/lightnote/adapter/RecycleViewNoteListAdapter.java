@@ -81,7 +81,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             String noteTitle = note.getTitle();
             if (!TextUtils.isEmpty(noteTitle)) {
                 ((RecyclerViewHolder) holder).tv_title.setVisibility(View.VISIBLE);
-                ((RecyclerViewHolder) holder).tv_title.setText(note.getGuid() + "  " + note.getContent());
+                ((RecyclerViewHolder) holder).tv_title.setText(note.getTitle());
             } else {
                 ((RecyclerViewHolder) holder).tv_title.setVisibility(View.GONE);
             }

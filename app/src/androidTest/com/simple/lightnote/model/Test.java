@@ -24,6 +24,6 @@ public class Test {
 		String str = DESEncrypt.decrypt(sb.toString());
 		System.out.println("解密的数据:"+str);
 
-		// new Test().test();
+		// new TestUploadImage().test();
 	}
 }

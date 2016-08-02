@@ -2,9 +2,9 @@ package com.simple.lightnote.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
-import android.util.Log;
 
 import com.evernote.edam.type.Note;
+import com.evernote.edam.type.NoteAttributes;
 
 import org.greenrobot.greendao.AbstractDao;
 import org.greenrobot.greendao.AbstractDaoSession;
@@ -17,23 +17,9 @@ import org.greenrobot.greendao.internal.DaoConfig;
 /**
  * Created by homelink on 2016/3/29.
  */
-public class NoteDao extends AbstractDao<Note, Long> {
-    private static final String TAG = "NoteDao";
+public class NoteDao extends AbstractDao<Note, String> {
     public static final String TABLENAME = "note";
-
-    public static class Properties {
-        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
-        public final static Property NoteTitle = new Property(1, String.class, "noteTitle", false, "noteTitle");
-        public final static Property NoteContent = new Property(2, String.class, "noteContent", false, "noteContent");
-        public final static Property NoteMd5 = new Property(3, String.class, "noteMd5", false, "noteMd5");
-        public final static Property CreateTime = new Property(4, Long.class, "createTime", false, "createTime");
-        public final static Property LastModifyTime = new Property(5, Long.class, "lastModifyTime", false, "lastModifyTime");
-        public final static Property NoteType = new Property(6, String.class, "noteType", false, "noteType");
-        public final static Property NoteState = new Property(7, Integer.class, "noteState", false, "noteState");
-        public final static Property NoteLabel = new Property(8, String.class, "noteLabel", false, "noteLabel");
-        public final static Property NoteBook = new Property(9, String.class, "book", false, "book");
-
-    }
+    private static final String TAG = "NoteDao";
 
     public NoteDao(DaoConfig config, AbstractDaoSession daoSession) {
         super(config, daoSession);
@@ -64,6 +50,14 @@ public class NoteDao extends AbstractDao<Note, Long> {
         ); // 3: date
     }
 
+    /**
+     * Drops the underlying database table.
+     */
+    public static void dropTable(Database db, boolean ifExists) {
+        String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"NOTE\"";
+        db.execSQL(sql);
+    }
+
     @Override
     public Note readEntity(Cursor cursor, int offset) {
         Note entity = new Note();
@@ -71,36 +65,29 @@ public class NoteDao extends AbstractDao<Note, Long> {
         String string = cursor.getString(guid);
         entity.setGuid(string);
         int title = cursor.getColumnIndex("title");
-        String title1 = cursor.getColumnName(title);
+        String title1 = cursor.getString(title);
         entity.setTitle(title1);
 
-            
+        int content = cursor.getColumnIndex("content");
+        String content1 = cursor.getString(content);
+        entity.setContent(content1);
 
-        entity.setTitle();
-            cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
-            cursor.getString(offset + 1), // title
-            cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // contnet
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // md5
-            cursor.isNull(offset + 4) ? null : cursor.getLong(offset + 4),//createTime
-            cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5),//lastModifyTime
-            cursor.getString(offset + 6),//noteType
-            cursor.getInt(offset + 7),//noteState
-            cursor.getString(offset + 8),//label
-            cursor.getString(offset + 9)//book
+
+        int created = cursor.getColumnIndex("created");
+        long created1 = cursor.getLong(created);
+        entity.setCreated(created1);
+
+        int updated = cursor.getColumnIndex("updated");
+        long updated1 = cursor.getLong(updated);
+        entity.setCreated(updated1);
 
         return entity;
     }
 
     @Override
-    protected Long readKey(Cursor cursor, int offset) {
-        boolean b = cursor.moveToPosition(offset);
-        if (b) {
-            return Long.valueOf(readEntity(cursor, offset).getAttributes().getCreatorId());
-        }
+    protected String readKey(Cursor cursor, int offset) {
         return null;
-
     }
-
 
 
     @Override
@@ -116,7 +103,11 @@ public class NoteDao extends AbstractDao<Note, Long> {
     @Override
     protected void bindValues(SQLiteStatement stmt, Note entity) {
         stmt.clearBindings();
-        Long id = entity.getId();
+        NoteAttributes attributes = entity.getAttributes();
+        int creatorId = attributes.getCreatorId();
+        // TODO: 2016/7/28 绑定Value
+        /*if()
+        Long id = (Long) attributes;
         if (id != null) {
             stmt.bindLong(1, id);
         }
@@ -141,20 +132,12 @@ public class NoteDao extends AbstractDao<Note, Long> {
         }
         stmt.bindString(7, entity.getNoteType());
         stmt.bindLong(8, entity.getNoteState());
+*/
 
-
-    }
-
-    /**
-     * Drops the underlying database table.
-     */
-    public static void dropTable(Database db, boolean ifExists) {
-        String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"NOTE\"";
-        db.execSQL(sql);
     }
 
     @Override
-    protected Long updateKeyAfterInsert(Note entity, long rowId) {
+    protected String updateKeyAfterInsert(Note entity, long rowId) {
         return null;
     }
 
@@ -162,19 +145,14 @@ public class NoteDao extends AbstractDao<Note, Long> {
     public void update(Note entity) {
         if (entity.getTitle() == null)
             entity.setTitle("");
-        System.out.println("update :"+entity);
+        System.out.println("update :" + entity);
         super.update(entity);
     }
 
     @Override
-    protected Long getKey(Note entity) {
-        Log.e(TAG, "getKey: " + "项:" + entity);
-        return Long.valueOf(entity.getId());
+    protected String getKey(Note entity) {
+        return entity.getGuid();
     }
-
-
-
-
 
     @Override
     protected boolean isEntityUpdateable() {
@@ -183,7 +161,7 @@ public class NoteDao extends AbstractDao<Note, Long> {
 
     @Override
     public long insert(Note entity) {
-        if (entity.getTitle()== null) {
+        if (entity.getTitle() == null) {
             entity.setTitle("");
         }
         return super.insert(entity);
@@ -194,9 +172,18 @@ public class NoteDao extends AbstractDao<Note, Long> {
         super.delete(entity);
     }
 
+    public static class Properties {
+        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
+        public final static Property NoteTitle = new Property(1, String.class, "noteTitle", false, "noteTitle");
+        public final static Property NoteContent = new Property(2, String.class, "noteContent", false, "noteContent");
+        public final static Property NoteMd5 = new Property(3, String.class, "noteMd5", false, "noteMd5");
+        public final static Property CreateTime = new Property(4, Long.class, "createTime", false, "createTime");
+        public final static Property LastModifyTime = new Property(5, Long.class, "lastModifyTime", false, "lastModifyTime");
+        public final static Property NoteType = new Property(6, String.class, "noteType", false, "noteType");
+        public final static Property NoteState = new Property(7, Integer.class, "noteState", false, "noteState");
+        public final static Property NoteLabel = new Property(8, String.class, "noteLabel", false, "noteLabel");
+        public final static Property NoteBook = new Property(9, String.class, "book", false, "book");
 
-    public void deleteByKey(Integer key) {
-        super.deleteByKey(Long.valueOf(key));
     }
 
 }

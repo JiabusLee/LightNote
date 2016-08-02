@@ -75,7 +75,19 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         initView();
         initListener();
         initData();
+        loadData();
 
+    }
+
+    /***
+     * 从数据库与网络加载数据
+     */
+    private void loadData() {
+        Observable<Note> databases = Observable.empty();
+        Observable<Note> network = Observable.empty();
+        Observable<Note> source = Observable
+                .concat(databases, network)
+                .first();
     }
 
     @Override
@@ -150,14 +162,14 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     }
 
     private void initData() {
-        long noteId = getIntent().getLongExtra("noteId", 0);
-        Log.e(TAG, "initData: " + noteId);
-        if (noteId != 0) {
+        String noteId = getIntent().getStringExtra("noteId");
+        Log.e(TAG, "initData: " + this.noteId);
+        if (!TextUtils.isEmpty(noteId)) {
 
             Observable.create(new Observable.OnSubscribe<Note>() {
                 @Override
                 public void call(Subscriber<? super Note> subscriber) {
-                    note = noteDao.load(noteId);
+                    Note note = noteDao.load(noteId);
                     subscriber.onNext(note);
                 }
             }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Note>() {

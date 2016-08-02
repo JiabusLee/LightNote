@@ -7,9 +7,9 @@ import rx.Observable;
 /**
  * Created by homelink on 2016/7/18.
  */
-public class Test {
+public class TestUploadImage {
     String [] str={"url1", "url2", "url3"};
-//    @org.junit.Test
+//    @org.junit.TestUploadImage
     public void test() {
 
         Observable.from(str).subscribe(url-> System.out.println(url));

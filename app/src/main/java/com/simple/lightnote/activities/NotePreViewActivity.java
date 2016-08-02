@@ -16,6 +16,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
@@ -104,8 +105,9 @@ public class NotePreViewActivity extends BaseActivity {
     private void getNote(Long id) {
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
+
         Note note = noteDao.load(id);
-        fileContents = note.getNoteContent();
+        fileContents = note.getContent();
 
     }
 
