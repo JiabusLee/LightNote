@@ -86,7 +86,7 @@ public class NotePreViewActivity extends BaseActivity {
                 loadMarkDown(fileContents);
                 break;
             case Source_id:
-                long noteId = getIntent().getLongExtra("noteId", -1);
+                String noteId = getIntent().getStringExtra("noteId");
                 getNote(noteId);
                 loadMarkDown(fileContents);
                 break;
@@ -102,7 +102,7 @@ public class NotePreViewActivity extends BaseActivity {
      *
      * @param id
      */
-    private void getNote(Long id) {
+    private void getNote(String id) {
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
 

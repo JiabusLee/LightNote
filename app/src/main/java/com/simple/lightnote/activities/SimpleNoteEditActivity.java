@@ -33,8 +33,10 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import rx.Observable;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -88,6 +90,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         Observable<Note> source = Observable
                 .concat(databases, network)
                 .first();
+        Subscription subscribe = source.subscribe(new Action1<Note>() {
+            @Override
+            public void call(Note note) {
+                // TODO: 2016/8/2 显示到屏幕
+            }
+        });
     }
 
     @Override
@@ -172,31 +180,16 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     Note note = noteDao.load(noteId);
                     subscriber.onNext(note);
                 }
-            }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Note>() {
-                @Override
-                public void onCompleted() {
-
-
-                }
-
-                @Override
-                public void onError(Throwable e) {
-
-                }
-
-                @Override
-                public void onNext(Note note) {
-                    String noteContent = note.getContent();
-                    if (!TextUtils.isEmpty(noteContent)) {
-                        edt_noteContent.setText(noteContent);
-                        edt_noteContent.setSelection(noteContent.length());
-                    }
+            }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note1 -> {
+                String noteContent = note.getContent();
+                if (!TextUtils.isEmpty(noteContent)) {
+                    edt_noteContent.setText(noteContent);
+                    edt_noteContent.setSelection(noteContent.length());
                 }
             });
 
 
         } else {
-//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
         int showToolBar = SPUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
@@ -308,8 +301,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     setToolBarVisible(0);
                     flag_actionBar = 0;
                 }
-                SPUtil.getEditor(SimpleNoteEditActivity.this).putInt(SPConstans.EDIT_TOOL_BAR, flag_actionBar).commit();
-                //TODO 修改点击和隐藏的状态
+                SPUtil.getEditor(SimpleNoteEditActivity.this).putInt(SPConstans.EDIT_TOOL_BAR, flag_actionBar).apply();
                 return true;
 
             case R.id.menu_simplenoteedit_caption:

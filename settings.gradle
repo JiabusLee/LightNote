@@ -1,2 +1,3 @@
-include  ":app"
-//,":library", ":demo"
+//include  ":app"
+include ":demo" ,":library"
+

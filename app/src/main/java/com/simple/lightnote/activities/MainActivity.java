@@ -444,6 +444,7 @@ public class MainActivity extends BaseActivity {
                                                                String title = note.getTitle();
                                                                LogUtils.e(TAG, "onNext: title==> " + title);
 //                                                               LogUtils.e(TAG, "onNext: note===>: " + note);
+
                                                                getNote(note.getGuid());
                                                            }
                                                        }

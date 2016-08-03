@@ -14,7 +14,6 @@ android {
         versionName rootProject.ext.versionName
         versionCode rootProject.ext.versionCode
 
-
         buildConfigField "String", "EVERNOTE_CONSUMER_KEY", (project.hasProperty('EVERNOTE_CONSUMER_KEY') ? "\"$EVERNOTE_CONSUMER_KEY\"" : "\"Your consumer key\"")
         buildConfigField "String", "EVERNOTE_CONSUMER_SECRET", (project.hasProperty('EVERNOTE_CONSUMER_SECRET') ? "\"$EVERNOTE_CONSUMER_SECRET\"" : "\"Your consumer secret\"")
         buildConfigField "String", "EVERNOTE_DEVELOPER_KEY", (project.hasProperty('EVERNOTE_DEVELOPER_KEY') ? "\"$EVERNOTE_DEVELOPER_KEY\"" : "null")
@@ -36,7 +35,8 @@ android {
 
 dependencies {
     compile project(':library')
+    compile 'com.evernote:android-intent:1.0.1'
     compile 'com.android.support:recyclerview-v7:22.2.1'
     compile 'com.android.support:design:22.2.1'
-    compile 'com.evernote:android-intent:1.0.1'
+
 }
