@@ -66,7 +66,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_notelist_3, parent, false);
-        recyclerViewHolder = new RecyclerViewHolder(view, this, mContext);
+        recyclerViewHolder = new RecyclerViewHolder(view, mContext);
 //        recyclerViewHolder.setClickListener(this);
 //        recyclerViewHolder.setOnLongClickListener(this);
         recyclerViewHolder.setClickListener(this);
@@ -255,7 +255,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
 
     public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
-        RecyclerView.Adapter<ViewHolder> mAdapter;
+
         Context mContext;
         RelativeLayout ll_container;
         LinearLayout ll_action;
@@ -266,9 +266,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         MyItemClickListener clickListener;
         MyItemLongClickListener longClickListener;
 
-        public RecyclerViewHolder(View view, final RecyclerView.Adapter<ViewHolder> adapter, Context context) {
+        public RecyclerViewHolder(View view, Context context) {
             super(view);
-            this.mAdapter = adapter;
+
             this.mContext = context;
             tv_content = (TextView) view.findViewById(R.id.item_content);
             tv_title = (TextView) view.findViewById(R.id.item_title);

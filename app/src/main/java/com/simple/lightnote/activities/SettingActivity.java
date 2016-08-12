@@ -11,6 +11,7 @@ import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.login.EvernoteLoginFragment;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
+import com.simple.lightnote.utils.DensityUtils;
 import com.simple.lightnote.utils.ScreenUtils;
 import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
@@ -118,7 +119,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
         TextView tv1 = getTextView("恢复");
         llayout.addView(tv0);
         View view = new View(this);
-        view.setLayoutParams(new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenMetrics(this)[0] * 0.8), (int) ScreenUtils.dpToPx(this, 0.5f)));
+        view.setLayoutParams(new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenWidth(this) * 0.8), (int) ScreenUtils.getScreenHeight(this)));
         view.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
 
         llayout.addView(view);
@@ -131,7 +132,7 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
 
         TextView textView = (TextView) View.inflate(this, android.R.layout.simple_list_item_1, null);
         textView.setText(text);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenMetrics(this)[0] * 0.8), (int) ScreenUtils.dpToPx(this, 45));
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams((int) (ScreenUtils.getScreenWidth(this) * 0.8), (int) DensityUtils.dip2px(this, 45));
         textView.setLayoutParams(layoutParams);
         textView.setTag(text);
         textView.setBackgroundResource(R.drawable.oval);

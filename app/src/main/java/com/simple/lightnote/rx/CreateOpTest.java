@@ -2,8 +2,6 @@ package com.simple.lightnote.rx;
 
 import android.util.Log;
 
-import com.simple.lightnote.utils.LogUtils;
-
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
@@ -45,9 +43,9 @@ public class CreateOpTest {
                 new Observable.OnSubscribe<String>() {
                     @Override
                     public void call(Subscriber<? super String> sub) {
-                        sub.onStart();
+//                        sub.onStart();
                         sub.onNext("start observable");
-                        sub.onCompleted();
+//                        sub.onCompleted();
                     }
                 }
         );
@@ -55,14 +53,16 @@ public class CreateOpTest {
         Subscriber<String> mySubscriber = new Subscriber<String>() {
             @Override
             public void onNext(String s) {
-                System.out.println(s);
-                LogUtils.e(TAG, "onNext:" + s);
+//                System.out.println(s);
+//                LogUtils.e(TAG, "onNext:" + s);
+                System.out.println("onNext"+s);
             }
 
 
             @Override
             public void onCompleted() {
-                Log.e(TAG, "onCompleted: ");
+//                Log.e(TAG, "onCompleted: ");
+                System.out.println("onCompleted");
             }
 
             @Override
@@ -72,7 +72,8 @@ public class CreateOpTest {
             @Override
             public void onStart() {
 
-                Log.e(TAG, "onStart: ");
+//                Log.e(TAG, "onStart: ");
+                System.out.println("onStart:");
             }
 
         };

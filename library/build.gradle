@@ -3,11 +3,10 @@ apply from: '../build-config/gradle-quality.gradle'
 
 dependencies {
     compile rootProject.ext.dependencies.support_v4
-
     compile rootProject.ext.dependencies.evernote_sdk
-
     compile rootProject.ext.dependencies.okhttp
-    testCompile rootProject.ext.dependencies.junit4
+
+    testCompile rootProject.ext.dependencies.junit
 
 
     compile 'org.scribe:scribe:1.3.7'
