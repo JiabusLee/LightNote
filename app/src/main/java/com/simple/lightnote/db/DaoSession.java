@@ -1,6 +1,6 @@
 package com.simple.lightnote.db;
 
-import com.evernote.edam.type.Note;
+import com.simple.lightnote.model.SimpleNote;
 
 import org.greenrobot.greendao.AbstractDao;
 import org.greenrobot.greendao.AbstractDaoSession;
@@ -32,7 +32,7 @@ public class DaoSession extends AbstractDaoSession {
 
         noteDao = new NoteDao(minimalEntityDaoConfig, this);
 
-        registerDao(Note.class, noteDao);
+        registerDao(SimpleNote.class, noteDao);
     }
 
     public void clear() {

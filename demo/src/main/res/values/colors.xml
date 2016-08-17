@@ -11,4 +11,10 @@
     <color name="grey_background_selected">#ffe5e5e5</color>
     <color name="grey_background">#eeeeee</color>
 
+    <!-- system-->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="item_msg_press">#DDDDDD</color>
+    <color name="white">#FFFFFF</color>
 </resources>

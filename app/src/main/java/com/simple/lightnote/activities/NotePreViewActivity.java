@@ -16,13 +16,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
+import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.HtmlParser;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.view.MarkDownView;
@@ -86,7 +86,7 @@ public class NotePreViewActivity extends BaseActivity {
                 loadMarkDown(fileContents);
                 break;
             case Source_id:
-                String noteId = getIntent().getStringExtra("noteId");
+                int noteId = getIntent().getIntExtra("noteId",-1);
                 getNote(noteId);
                 loadMarkDown(fileContents);
                 break;
@@ -102,11 +102,11 @@ public class NotePreViewActivity extends BaseActivity {
      *
      * @param id
      */
-    private void getNote(String id) {
+    private void getNote(int id) {
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
 
-        Note note = noteDao.load(id);
+        SimpleNote note = noteDao.load(id);
         fileContents = note.getContent();
 
     }

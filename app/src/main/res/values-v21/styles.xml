@@ -9,19 +9,16 @@
         <item name="android:colorPrimary">@color/blue_500</item>
         <item name="android:colorPrimaryDark">@color/blue_700</item>
 
-        
-        
-        
-        
+
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
-        
-        
+
+
     </style>
-    
-    
-      <style name="MainActivityTheme" parent="android:Theme.Material">
+
+
+    <style name="MainActivityTheme" parent="android:Theme.Material">
         <item name="android:colorPrimary">@color/blue_500</item>
         <item name="android:colorPrimaryDark">@color/blue_700</item>
         <item name="android:colorAccent">@color/blue_500</item>
@@ -34,5 +31,10 @@
         <item name="android:colorPrimaryDark">@color/blue_700</item>
         <item name="android:colorAccent">@color/blue_500</item>
     </style>
+
+    <style name="MaterialDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:tint">@color/colorPrimary</item>
+    </style>
+
 
 </resources>

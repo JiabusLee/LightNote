@@ -1,25 +1,25 @@
 package com.simple.lightnote.interfaces;
 
-import com.evernote.edam.type.Note;
+import com.simple.lightnote.model.SimpleNote;
 
 public  class DefaultActionListener implements ActionListener {
     @Override
-    public void onDelete(Note note) {
+    public void onDelete(SimpleNote note) {
 
     }
 
     @Override
-    public void onRecovery(Note note) {
+    public void onRecovery(SimpleNote note) {
 
     }
 
     @Override
-    public void onAdd(Note note) {
+    public void onAdd(SimpleNote note) {
 
     }
 
     @Override
-    public void onModify(Note note) {
+    public void onModify(SimpleNote note) {
 
     }
 

@@ -1,11 +1,11 @@
 package com.simple.lightnote.interfaces;
 
-import com.evernote.edam.type.Note;
+import com.simple.lightnote.model.SimpleNote;
 
 public interface ActionListener {
-    void onDelete(Note note);
-    void onRecovery(Note note);
-    void onAdd(Note note);
-    void onModify(Note note);
+    void onDelete(SimpleNote note);
+    void onRecovery(SimpleNote note);
+    void onAdd(SimpleNote note);
+    void onModify(SimpleNote note);
     void onSelect();
 }

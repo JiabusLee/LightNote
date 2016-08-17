@@ -1,6 +1,7 @@
 package com.simple.lightnote.activities;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,6 +18,7 @@ import android.support.v7.graphics.Palette.Builder;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -46,16 +48,17 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
+import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
 import com.simple.lightnote.constant.SPConstans;
-import com.simple.lightnote.constant.SQLConstants;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
+import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.test.NoteContentGenerator;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
@@ -80,11 +83,13 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+//import com.evernote.edam.type.Note;
+
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
     View contentView;
     //	private ListView mListView;
-    private ArrayList<Note> noteList;
+    private ArrayList<SimpleNote> noteList;
     private RecycleViewNoteListAdapter noteListAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DrawerLayout drawerLayout;
@@ -101,6 +106,7 @@ public class MainActivity extends BaseActivity {
     private long end;
     private long start;
     private CommonDialog commonDialog;
+    private ProgressDialog dialog;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -315,10 +321,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initData() {
-        noteList = new ArrayList<Note>();
-/*        Note note = null;
+        noteList = new ArrayList<SimpleNote>();
+/*        SimpleNote note = null;
         for (int i = 0; i < 50; i++) {
-            note = new Note();
+            note = new SimpleNote();
             String md5Encode = MD5Utils.MD5Encode(String.valueOf(System
                     .currentTimeMillis()) + i + "note");
             note.setNoteTitle(md5Encode);
@@ -334,7 +340,7 @@ public class MainActivity extends BaseActivity {
         mRecycleView.setLayoutManager(llm);
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
-            public void onDelete(final Note note) {
+            public void onDelete(final SimpleNote note) {
                 Snackbar snackbar = Snackbar.make(contentView,
                         "删除内容", Snackbar.LENGTH_LONG);
                 snackbar.setCallback(new Snackbar.Callback() {
@@ -434,13 +440,17 @@ public class MainActivity extends BaseActivity {
                                                    .findNotesAsync(noteFilter, 0, 20, new EvernoteCallback<NoteList>() {
                                                        @Override
                                                        public void onSuccess(NoteList result) {
-                                                           List<com.evernote.edam.type.Note> notes1 = result.getNotes();
+                                                           List<com.evernote.edam.type.Note> notes = result.getNotes();
 
-                                                           noteAdapter.setList(notes1);
+                                                           List<SimpleNote> simpleNotes = generateSimpleList(notes);
+
+                                                           // TODO: 2016/8/17 generate SimpleNote
+                                                           getContent(simpleNotes);
+                                                           noteAdapter.setList(simpleNotes);
                                                            noteAdapter.notifyDataSetChanged();
 
 
-                                                           for (com.evernote.edam.type.Note note : notes1) {
+                                                           for (com.evernote.edam.type.Note note : notes) {
                                                                String title = note.getTitle();
                                                                LogUtils.e(TAG, "onNext: title==> " + title);
 //                                                               LogUtils.e(TAG, "onNext: note===>: " + note);
@@ -468,6 +478,72 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    private List<SimpleNote> generateSimpleList(List<Note> notes) {
+        if (!ListUtils.isEmpty(notes)) {
+
+            List<SimpleNote> noteList = new ArrayList<>();
+            SimpleNote simpleNote;
+            for (Note note : notes) {
+                simpleNote = new SimpleNote();
+                simpleNote.setContent(note.getContent());
+                simpleNote.setActive(note.isSetActive());
+                simpleNote.setGuid(note.getGuid());
+                simpleNote.setContentHash(new String(note.getContentHash()));
+                simpleNote.setUpdated(note.getCreated());
+                simpleNote.setCreated(note.getCreated());
+                simpleNote.setDeleted(note.getDeleted());
+                simpleNote.setNotebookGuid(note.getNotebookGuid());
+                simpleNote.setTitle(note.getTitle());
+                simpleNote.setTagNames(note.getTagNames());
+                simpleNote.setContentLength(note.getContentLength());
+                simpleNote.setTagGuids(note.getTagGuids());
+                noteList.add(simpleNote);
+            }
+            return noteList;
+        }
+        return null;
+
+    }
+
+
+    public void getContent(List<SimpleNote> notes) {
+        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+
+        Observable.from(notes)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(Schedulers.io())
+                .map(note -> {
+                    String noteContent = null;
+                    try {
+                        noteContent = noteStoreClient.getNoteContent(note.getGuid());
+                    } catch (EDAMUserException e) {
+                        e.printStackTrace();
+                    } catch (EDAMSystemException e) {
+                        e.printStackTrace();
+                    } catch (EDAMNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (TException e) {
+                        e.printStackTrace();
+                    }
+                    note.setContent(noteContent);
+                    return note;
+                })
+                .map(new Func1<SimpleNote, Object>() {
+                    @Override
+                    public Object call(SimpleNote note) {
+                        LightNoteApplication application = (LightNoteApplication) getApplication();
+                        boolean success = true;
+                        application.getDaoSession().getNoteDao().update(note);
+                        return success;
+                    }
+
+                })
+                .subscribe(__ -> {
+                    LogUtils.e(TAG, "getContent: over");
+                });
+    }
+
+
     /**
      * 获取指定笔记的id
      *
@@ -489,7 +565,32 @@ public class MainActivity extends BaseActivity {
                         e.printStackTrace();
                     }
                     return null;
-                }).subscribe(str -> LogUtils.e(TAG, "onNext: noteContent: " + str));
+                })
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.e(TAG, "onCompleted: over");
+                        if (dialog != null && dialog.isShowing()) dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+
+                    }
+
+                    @Override
+                    public void onStart() {
+                        super.onStart();
+                        dialog = new ProgressDialog(MainActivity.this);
+                        dialog.setProgressStyle(R.style.MaterialDialog);
+                        dialog.show();
+                    }
+                });
     }
 
     /**
@@ -531,9 +632,9 @@ public class MainActivity extends BaseActivity {
      */
     private void getDBlist() {
         Observable.
-                create(new Observable.OnSubscribe<List<Note>>() {
+                create(new Observable.OnSubscribe<List<SimpleNote>>() {
                     @Override
-                    public void call(Subscriber<? super List<Note>> subscriber) {
+                    public void call(Subscriber<? super List<SimpleNote>> subscriber) {
                         subscriber.onStart();
                         LogUtils.e(TAG, "call2: " + Thread.currentThread());
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
@@ -557,37 +658,37 @@ public class MainActivity extends BaseActivity {
                         String orderRule = "desc";
                         String orderBy = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
                         Property order;
-                        if (orderBy.equals(NoteDao.Properties.CreateTime.columnName)) {
-                            order = NoteDao.Properties.CreateTime;
+                        if (orderBy.equals(NoteDao.Properties.createTime.columnName)) {
+                            order = NoteDao.Properties.createTime;
                             orderRule = "asc";
-                        } else if (orderBy.equals(NoteDao.Properties.NoteContent.columnName)) {
-                            order = NoteDao.Properties.NoteContent;
+                        } else if (orderBy.equals(NoteDao.Properties.content.columnName)) {
+                            order = NoteDao.Properties.content;
                             orderRule = "asc";
                         } else {
-                            order = NoteDao.Properties.LastModifyTime;
+                            order = NoteDao.Properties.updateTime;
                         }
-                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(SQLConstants.noteState_normal)).orderCustom(order, orderRule).list();
+                        List<SimpleNote> list = noteDao.queryBuilder().orderCustom(order, orderRule).list();
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                         subscriber.onNext(list);
                     }
                 })
-                .filter(new Func1<List<Note>, Boolean>() {
+                .filter(new Func1<List<SimpleNote>, Boolean>() {
                     @Override
-                    public Boolean call(List<Note> notes) {
+                    public Boolean call(List<SimpleNote> notes) {
                         LogUtils.e(TAG, "call4: " + Thread.currentThread());
                         return !ListUtils.isEmpty(notes);
                     }
                 })
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(Schedulers.newThread())
-                .doOnNext(new Action1<List<Note>>() {
+                .doOnNext(new Action1<List<SimpleNote>>() {
                     @Override
-                    public void call(List<Note> notes) {
+                    public void call(List<SimpleNote> notes) {
                         LogUtils.e(TAG, "call5: " + Thread.currentThread());
                         System.out.println(notes);
                     }
                 })
-                .subscribe(new Subscriber<List<Note>>() {
+                .subscribe(new Subscriber<List<SimpleNote>>() {
                     @Override
                     public void onCompleted() {
 
@@ -601,7 +702,7 @@ public class MainActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onNext(List<Note> o) {
+                    public void onNext(List<SimpleNote> o) {
                         noteAdapter.setList(o);
                         noteAdapter.notifyDataSetChanged();
                         LogUtils.e(TAG, "call6: " + Thread.currentThread());

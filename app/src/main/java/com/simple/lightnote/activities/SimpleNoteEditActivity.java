@@ -24,6 +24,7 @@ import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
+import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
@@ -59,7 +60,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     private NoteDao noteDao;
     private String s_noteContent;
     private String md5;
-    private Note note;
+    private SimpleNote note;
     /**
      * 笔记是否改变
      */
@@ -170,14 +171,14 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     }
 
     private void initData() {
-        String noteId = getIntent().getStringExtra("noteId");
+        int noteId = getIntent().getIntExtra("noteId",-1);
         Log.e(TAG, "initData: " + this.noteId);
-        if (!TextUtils.isEmpty(noteId)) {
+        if (noteId!=-1) {
 
-            Observable.create(new Observable.OnSubscribe<Note>() {
+            Observable.create(new Observable.OnSubscribe<SimpleNote>() {
                 @Override
-                public void call(Subscriber<? super Note> subscriber) {
-                    Note note = noteDao.load(noteId);
+                public void call(Subscriber<? super SimpleNote> subscriber) {
+                    SimpleNote note = noteDao.load(noteId);
                     subscriber.onNext(note);
                 }
             }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note1 -> {
@@ -226,7 +227,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         } else {
             //新建
             if (!TextUtils.isEmpty(s_noteContent)) {
-                note = new Note();
+                note = new SimpleNote();
                 note.setCreated(System.currentTimeMillis());
                 note.setUpdated(System.currentTimeMillis());
                 note.setTitle(note.getTitle());
@@ -243,9 +244,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         ToastUtils.showToast(SimpleNoteEditActivity.this, "正在保存");
         Observable
                 .just(note)
-                .filter(new Func1<Note, Boolean>() {
+                .filter(new Func1<SimpleNote, Boolean>() {
                     @Override
-                    public Boolean call(Note note) {
+                    public Boolean call(SimpleNote note) {
                         return note != null;
                     }
                 })
@@ -263,7 +264,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Note>() {
+                .subscribe(new Subscriber<SimpleNote>() {
                     @Override
                     public void onCompleted() {
                         LogUtils.d(TAG, "completed");
@@ -276,7 +277,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                     }
 
                     @Override
-                    public void onNext(Note note) {
+                    public void onNext(SimpleNote note) {
                         onCompleted();
                     }
                 });

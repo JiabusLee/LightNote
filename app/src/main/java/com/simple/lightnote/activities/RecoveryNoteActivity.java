@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.SearchView;
 
-import com.evernote.edam.type.Note;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
@@ -28,6 +27,7 @@ import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
+import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -46,7 +46,7 @@ import rx.schedulers.Schedulers;
 
 public class RecoveryNoteActivity extends BaseSwipeActivity {
     private static final String TAG = "RecoveryNoteActivity";
-    private ArrayList<Note> noteList;
+    private ArrayList<SimpleNote> noteList;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DrawerLayout drawerLayout;
     private Toolbar mToolbar;
@@ -134,7 +134,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
     }
 
     private void initData() {
-        noteList = new ArrayList<Note>();
+        noteList = new ArrayList<SimpleNote>();
 
         //设置 RecycleView的显示方式
         noteAdapter = new RecycleViewNoteListAdapter(noteList);
@@ -143,7 +143,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         mRecycleView.setLayoutManager(llm);
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
-            public void onDelete(final Note note) {
+            public void onDelete(final SimpleNote note) {
                 Snackbar snackbar = Snackbar.make(contentView,
                         "删除内容", Snackbar.LENGTH_LONG);
                 snackbar.setCallback(new Snackbar.Callback() {
@@ -184,16 +184,16 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
 
     private void getListData() {
         Observable.just(SQLConstants.noteState_deleted)
-                .map(new Func1<Integer, List<Note>>() {
+                .map(new Func1<Integer, List<SimpleNote>>() {
                     @Override
-                    public List<Note> call(Integer noteState) {
+                    public List<SimpleNote> call(Integer noteState) {
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(RecoveryNoteActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
                         Log.e(TAG, "call: " + noteDao.queryBuilder().list().toString());
-                        List<Note> list = noteDao.queryBuilder().where(NoteDao.Properties.NoteState.eq(noteState)).orderDesc(NoteDao.Properties.LastModifyTime).list();
+                        List<SimpleNote> list = noteDao.queryBuilder().orderDesc(NoteDao.Properties.updateTime).list();
                         System.out.println(list);
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                         return list;
@@ -202,24 +202,24 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
 
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(Schedulers.io())
-                .filter(new Func1<List<Note>, Boolean>() {
+                .filter(new Func1<List<SimpleNote>, Boolean>() {
                     @Override
-                    public Boolean call(List<Note> notes) {
+                    public Boolean call(List<SimpleNote> notes) {
                         LogUtils.e(TAG, "call4: " + Thread.currentThread());
                         return !ListUtils.isEmpty(notes);
                     }
                 })
                 .observeOn(Schedulers.io())
-                .doOnNext(new Action1<List<Note>>() {
+                .doOnNext(new Action1<List<SimpleNote>>() {
                     @Override
-                    public void call(List<Note> notes) {
+                    public void call(List<SimpleNote> notes) {
                         LogUtils.e(TAG, "call5: " + Thread.currentThread());
                         System.out.println(notes);
                     }
                 })
 
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<Note>>() {
+                .subscribe(new Observer<List<SimpleNote>>() {
                     @Override
                     public void onCompleted() {
                         System.out.println("over");
@@ -232,7 +232,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
                     }
 
                     @Override
-                    public void onNext(List<Note> o) {
+                    public void onNext(List<SimpleNote> o) {
                         noteAdapter.setList(o);
                         noteAdapter.notifyDataSetChanged();
                         LogUtils.e(TAG, "call6: " + Thread.currentThread());

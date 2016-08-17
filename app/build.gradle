@@ -52,6 +52,7 @@ android {
         compile rootProject.ext.dependencies.butterknife
         compile rootProject.ext.dependencies.greendao
         compile rootProject.ext.dependencies.glide
+        compile rootProject.ext.dependencies.junit
 
 /*
 

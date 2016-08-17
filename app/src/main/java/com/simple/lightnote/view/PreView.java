@@ -12,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 /**
- * Note PreView
+ * SimpleNote PreView
  */
 public class PreView extends WebView {
 

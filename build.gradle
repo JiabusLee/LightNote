@@ -1,6 +1,6 @@
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
-    distributionUrl = 'https://services.gradle.org/distributions/gradle-2.8-all.zip'
+    gradleVersion = '2.12'
+    distributionUrl = 'https://services.gradle.org/distributions/gradle-2.12-all.zip'
 }
 
 allprojects {
@@ -17,7 +17,7 @@ buildscript {
     }
     dependencies {
         classpath 'me.tatarka:gradle-retrolambda:3.2.5'
-        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.android.tools.build:gradle:2.1.3'
     }
 }
 

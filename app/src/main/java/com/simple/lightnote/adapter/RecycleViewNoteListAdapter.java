@@ -18,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.evernote.edam.type.Note;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
 import com.simple.lightnote.db.DaoMaster;
@@ -27,6 +26,7 @@ import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.ActionListener;
 import com.simple.lightnote.interfaces.MyItemClickListener;
 import com.simple.lightnote.interfaces.MyItemLongClickListener;
+import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.ToastUtils;
@@ -46,11 +46,11 @@ import rx.schedulers.Schedulers;
 public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MyItemClickListener {
     private Cursor cursor;
     Context mContext;
-    private List<Note> list;
+    private List<SimpleNote> list;
     private RecyclerViewHolder recyclerViewHolder;
     ActionListener actionListener;
 
-    public RecycleViewNoteListAdapter(ArrayList<Note> note) {
+    public RecycleViewNoteListAdapter(ArrayList<SimpleNote> note) {
         this.list = note;
     }
 
@@ -58,7 +58,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         this.cursor = cursor;
     }
 
-    public void setList(List<Note> note) {
+    public void setList(List<SimpleNote> note) {
         this.list = note;
     }
 
@@ -77,7 +77,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (!ListUtils.isEmpty(list)) {
-            Note note = list.get(position);
+            SimpleNote note = list.get(position);
             String noteTitle = note.getTitle();
             if (!TextUtils.isEmpty(noteTitle)) {
                 ((RecyclerViewHolder) holder).tv_title.setVisibility(View.VISIBLE);
@@ -103,7 +103,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 @Override
                 public boolean onLongClick(View v) {
                     ToastUtils.showSequenceToast(mContext, "onDelete position:" + position);
-                    Note note1 = list.remove(position);
+                    SimpleNote note1 = list.remove(position);
                     removeEntity(note1);
                     notifyItemRemove(position);
                     return false;
@@ -152,12 +152,12 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
      *
      * @param note1
      */
-    private void removeEntity(final Note note1) {
+    private void removeEntity(final SimpleNote note1) {
 
 
-        Observable.just(note1).map(new Func1<Note, Void>() {
+        Observable.just(note1).map(new Func1<SimpleNote, Void>() {
             @Override
-            public Void call(Note note) {
+            public Void call(SimpleNote note) {
 
                 DaoMaster daoMaster;
                 DaoSession daoSession;
@@ -238,7 +238,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             case R.id.ll_container:
                 //跳转使用NoteID来传递笔记
                 if (postion != RecyclerView.NO_POSITION) {
-                    Note note = list.get(postion);
+                    SimpleNote note = list.get(postion);
 //                    String s = JSON.toJSONString(note);
                     String guid = note.getGuid();
                     Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
