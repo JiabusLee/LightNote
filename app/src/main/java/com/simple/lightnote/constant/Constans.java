@@ -10,4 +10,7 @@ public interface Constans {
     interface NoteType {
         String normal = "normal";
     }
+
+    public static final String DEFAULT_NOTEBOOK_GUID="default_notebook_Guid";
+
 }

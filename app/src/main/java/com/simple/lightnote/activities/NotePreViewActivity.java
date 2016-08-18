@@ -102,7 +102,7 @@ public class NotePreViewActivity extends BaseActivity {
      *
      * @param id
      */
-    private void getNote(int id) {
+    private void getNote(long id) {
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
 

@@ -53,6 +53,7 @@ import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
+import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
@@ -107,6 +108,8 @@ public class MainActivity extends BaseActivity {
     private long start;
     private CommonDialog commonDialog;
     private ProgressDialog dialog;
+    private EvernoteNoteStoreClient noteStoreClient;
+    private String bookGuid;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -121,6 +124,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
 //        getWindow().getDecorView().setBackgroundResource(R.drawable.main_list_bg);
 //        getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
@@ -134,7 +138,7 @@ public class MainActivity extends BaseActivity {
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
 //			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
         }
-        getEverNoteList();
+        getEvernteBook();
     }
 
     @Override
@@ -287,7 +291,7 @@ public class MainActivity extends BaseActivity {
                                     @Override
                                     public void onNext(Long aLong) {
                                         LogUtils.e(TAG, "onNext: " + "getEverNoteList");
-                                        getEverNoteList();
+                                        getEvernteBook();
 
                                     }
 
@@ -386,96 +390,124 @@ public class MainActivity extends BaseActivity {
     /**
      * 从印象笔记中拉取数据
      */
-    private void getEverNoteList() {
+    private void getEvernteBook() {
         if (!EvernoteSession.getInstance().isLoggedIn()) {
             ToastUtils.showToast(this, "还没有绑定evernote");
             return;
         }
+        noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+        bookGuid = SPUtil.getString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, null);
 
-
-        Observable
-                .create(new Observable.OnSubscribe<Notebook>() {
-                    @Override
-                    public void call(Subscriber<? super Notebook> subscriber) {
-
-                        subscriber.onStart();
-                        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
-
+        if (bookGuid != null) {
+            getNoteList(bookGuid);
+        } else {
+            Observable
+                    .create((subscriber) -> {
                         try {
-//                            List<Notebook> notebooks = noteStoreClient.listNotebooks();
-                            noteStoreClient.listNotebooksAsync(new EvernoteCallback<List<Notebook>>() {
-                                @Override
-                                public void onSuccess(List<Notebook> result) {
-                                    for (Notebook note : result)
-                                        subscriber.onNext(note);
-                                    subscriber.onCompleted();
-                                }
-
-                                @Override
-                                public void onException(Exception exception) {
-                                    subscriber.unsubscribe();
-                                }
-                            });
-
+                            Notebook defaultNotebook = noteStoreClient.getDefaultNotebook();
+                            bookGuid = defaultNotebook.getGuid();
+                            SPUtil.saveString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, bookGuid);
+                            subscriber.onNext(bookGuid);
                         } catch (Exception e) {
                             e.printStackTrace();
                             subscriber.onError(e);
                         }
+                    })
+
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.newThread())
+                    .subscribe(bookGuid -> getNoteList((String) bookGuid));
+
+        }
+
+
+    }
+
+    private void getNoteList(String bookGuid) {
+        {
+            NoteFilter noteFilter = new NoteFilter();
+            noteFilter.setNotebookGuid(bookGuid);
+            noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
+
+            try {
+
+                noteStoreClient.findNotesAsync(noteFilter, 0, 20, new EvernoteCallback<NoteList>() {
+                    @Override
+                    public void onSuccess(NoteList result) {
+                        List<com.evernote.edam.type.Note> notes = result.getNotes();
+
+
+                        Observable
+                                .from(notes)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(Schedulers.io())
+                                .map(new Func1<Note, Boolean>() {
+                                    @Override
+                                    public Boolean call(Note note) {
+                                        String title = note.getTitle();
+                                        LogUtils.e(TAG, "onNext: title==> " + title);
+                                        noteStoreClient.getNoteContentAsync(note.getGuid(), new EvernoteCallback<String>() {
+                                            @Override
+                                            public void onSuccess(String result) {
+                                                note.setContent(result);
+                                            }
+
+                                            @Override
+                                            public void onException(Exception exception) {
+
+                                            }
+                                        });
+                                        return true;
+                                    }
+                                })
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Subscriber<Boolean>() {
+                                    @Override
+                                    public void onCompleted() {
+                                        List<SimpleNote> simpleNotes = generateSimpleList(notes);
+                                        saveNote2DB(simpleNotes);
+                                        // TODO: 2016/8/17 generate SimpleNote
+//                                                           getContent(simpleNotes);
+                                        noteAdapter.setList(simpleNotes);
+                                        noteAdapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+
+                                    }
+
+                                    @Override
+                                    public void onNext(Boolean aBoolean) {
+
+                                    }
+                                });
+
 
                     }
-                })
-
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.newThread())
-                .subscribe(new Action1<Notebook>() {
-                               @Override
-                               public void call(Notebook notebook) {
-                                   {
-                                       LogUtils.e(TAG, notebook.toString());
-                                       NoteFilter noteFilter = new NoteFilter();
-                                       noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
-
-                                       try {
-                                           EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient()
-                                                   .findNotesAsync(noteFilter, 0, 20, new EvernoteCallback<NoteList>() {
-                                                       @Override
-                                                       public void onSuccess(NoteList result) {
-                                                           List<com.evernote.edam.type.Note> notes = result.getNotes();
-
-                                                           List<SimpleNote> simpleNotes = generateSimpleList(notes);
-
-                                                           // TODO: 2016/8/17 generate SimpleNote
-                                                           getContent(simpleNotes);
-                                                           noteAdapter.setList(simpleNotes);
-                                                           noteAdapter.notifyDataSetChanged();
 
 
-                                                           for (com.evernote.edam.type.Note note : notes) {
-                                                               String title = note.getTitle();
-                                                               LogUtils.e(TAG, "onNext: title==> " + title);
-//                                                               LogUtils.e(TAG, "onNext: note===>: " + note);
+                    @Override
+                    public void onException(Exception exception) {
 
-                                                               getNote(note.getGuid());
-                                                           }
-                                                       }
+                    }
+                });
 
-                                                       @Override
-                                                       public void onException(Exception exception) {
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-                                                       }
-                                                   });
+        }
+    }
 
-                                       } catch (Exception e) {
-                                           e.printStackTrace();
-                                       }
-
-                                   }
-                               }
-                           }
-
-                );
-
-
+    /**
+     * 将得到的数据到数据库
+     *
+     * @param simpleNotes
+     */
+    private void saveNote2DB(List<SimpleNote> simpleNotes) {
+        LightNoteApplication app = (LightNoteApplication) getApplication();
+        app.getDaoSession().getNoteDao().insertAll(simpleNotes);
     }
 
     private List<SimpleNote> generateSimpleList(List<Note> notes) {
@@ -484,19 +516,7 @@ public class MainActivity extends BaseActivity {
             List<SimpleNote> noteList = new ArrayList<>();
             SimpleNote simpleNote;
             for (Note note : notes) {
-                simpleNote = new SimpleNote();
-                simpleNote.setContent(note.getContent());
-                simpleNote.setActive(note.isSetActive());
-                simpleNote.setGuid(note.getGuid());
-                simpleNote.setContentHash(new String(note.getContentHash()));
-                simpleNote.setUpdated(note.getCreated());
-                simpleNote.setCreated(note.getCreated());
-                simpleNote.setDeleted(note.getDeleted());
-                simpleNote.setNotebookGuid(note.getNotebookGuid());
-                simpleNote.setTitle(note.getTitle());
-                simpleNote.setTagNames(note.getTagNames());
-                simpleNote.setContentLength(note.getContentLength());
-                simpleNote.setTagGuids(note.getTagGuids());
+                simpleNote = SimpleNote.toSimpleNote(note);
                 noteList.add(simpleNote);
             }
             return noteList;
@@ -507,7 +527,7 @@ public class MainActivity extends BaseActivity {
 
 
     public void getContent(List<SimpleNote> notes) {
-        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+
 
         Observable.from(notes)
                 .subscribeOn(AndroidSchedulers.mainThread())
@@ -599,24 +619,14 @@ public class MainActivity extends BaseActivity {
      * @param guid
      */
     private void getNote(String guid) {
-        Observable.interval(5, TimeUnit.SECONDS)
+        Observable
+                .interval(5, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.newThread())
                 .create(new Observable.OnSubscribe<com.evernote.edam.type.Note>() {
                     @Override
                     public void call(Subscriber<? super com.evernote.edam.type.Note> subscriber) {
                         LogUtils.e(TAG, "call: " + "getNote------->");
-                        EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
-                        try {
-                            com.evernote.edam.type.Note note = noteStoreClient.getNote(guid, true, false, false, false);
-                            subscriber.onNext(note);
-                        } catch (EDAMUserException e) {
-                            e.printStackTrace();
-                        } catch (EDAMSystemException e) {
-                            e.printStackTrace();
-                        } catch (TException e) {
-                            e.printStackTrace();
-                        } catch (EDAMNotFoundException e) {
-                            e.printStackTrace();
-                        }
 
                     }
                 })

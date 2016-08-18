@@ -17,7 +17,6 @@ import android.widget.LinearLayout;
 
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteCallback;
-import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
@@ -26,9 +25,12 @@ import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
+import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
+
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -78,7 +80,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         initView();
         initListener();
         initData();
-        loadData();
+//        loadData();
 
     }
 
@@ -86,15 +88,16 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
      * 从数据库与网络加载数据
      */
     private void loadData() {
-        Observable<Note> databases = Observable.empty();
-        Observable<Note> network = Observable.empty();
-        Observable<Note> source = Observable
+        // TODO: 2016/8/18 从多个数据源获取数据
+        Observable<SimpleNote> databases = Observable.empty();
+        Observable<SimpleNote> network = Observable.empty();
+        Observable<SimpleNote> source = Observable
                 .concat(databases, network)
                 .first();
-        Subscription subscribe = source.subscribe(new Action1<Note>() {
+        Subscription subscribe = source.subscribe(new Action1<SimpleNote>() {
             @Override
-            public void call(Note note) {
-                // TODO: 2016/8/2 显示到屏幕
+            public void call(SimpleNote note) {
+
             }
         });
     }
@@ -171,15 +174,18 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     }
 
     private void initData() {
-        int noteId = getIntent().getIntExtra("noteId",-1);
+        String guid = getIntent().getStringExtra("noteId");
         Log.e(TAG, "initData: " + this.noteId);
-        if (noteId!=-1) {
+        if (!TextUtils.isEmpty(guid)) {
 
             Observable.create(new Observable.OnSubscribe<SimpleNote>() {
                 @Override
                 public void call(Subscriber<? super SimpleNote> subscriber) {
-                    SimpleNote note = noteDao.load(noteId);
-                    subscriber.onNext(note);
+                    List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).build().list();
+                    if (!ListUtils.isEmpty(list)) {
+                        SimpleNote note = list.get(0);
+                        subscriber.onNext(note);
+                    }
                 }
             }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note1 -> {
                 String noteContent = note.getContent();

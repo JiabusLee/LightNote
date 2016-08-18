@@ -2,6 +2,7 @@ package com.simple.lightnote.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
+import android.util.Log;
 
 import com.evernote.edam.type.Note;
 import com.simple.lightnote.model.SimpleNote;
@@ -13,33 +14,25 @@ import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.database.DatabaseStatement;
 import org.greenrobot.greendao.internal.DaoConfig;
 
+import java.util.List;
+
+import rx.Observable;
+import rx.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/3/29.
  */
-public class NoteDao extends AbstractDao<SimpleNote, Integer> {
+public class NoteDao extends AbstractDao<SimpleNote, Long> {
     public static final String TABLENAME = "note";
     private static final String TAG = "NoteDao";
 
-    public static class Properties {
-        public final static Property Id = new Property(0, Integer.class, "id", true, "_id");
+    public NoteDao(DaoConfig config, AbstractDaoSession daoSession) {
+        super(config, daoSession);
+    }
 
-        public final static Property title = new Property(1, String.class, "title", false, "title");
-        public final static Property content = new Property(2, String.class, "content", false, "content");
-        public final static Property contentHash = new Property(3, String.class, "contentHash", false, "contentHash");
-        public final static Property active = new Property(4, Integer.class, "active", false, "active");
-
-        public final static Property createTime = new Property(5, Long.class, "created", false, "created");
-        public final static Property updateTime = new Property(6, Long.class, "updated", false, "updated");
-        public final static Property deleteTime = new Property(7, Long.class, "deleted", false, "deleted");
-
-
-        public final static Property guid = new Property(8, String.class, "guid", false, "guid");
-        public final static Property tagGuids = new Property(9, String.class, "tagGuids", false, "tagGuids");
-        public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagnames");
-
-        public final static Property notebookGuid = new Property(11, String.class, "notebookGuid", false, "notebookGuid");
-
+    public NoteDao(DaoConfig config) {
+        super(config);
     }
 
     /**
@@ -50,25 +43,18 @@ public class NoteDao extends AbstractDao<SimpleNote, Integer> {
         db.execSQL("CREATE TABLE note (\n" +
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
                 "\ttitle VARCHAR(100),\n" +
-                "\tguid VARCHAR(40) NOT NULL,\n" +
+                "\tguid VARCHAR(40),\n" +
                 "\ttagnames VARCHAR(40),\n" +
                 "\ttagGuids VARCHAR(40),\n" +
-                "\tcontent VARCHAR(1000) NOT NULL,\n" +
-                "\tcreated Long NOT NULL,\n" +
-                "\tupdated Long NOT NULL,\n" +
+                "\tcontent VARCHAR(1000),\n" +
+                "\tcreated Long,\n" +
+                "\tupdated Long ,\n" +
                 "\tdeleted Long,\n" +
-                "\tactive INTEGER NULL DEFAULT 0,\n" +
-                "\tnotebookGuid Varchar(40) not null,\n" +
-
-                "\tcontentHash VARCHAR(40) NOT NULL);"
+                "\tstatus INTEGER default 0,\n" +
+                "\tactive INTEGER DEFAULT 0,\n" +
+                "\tnotebookGuid VARCHAR(40),\n" +
+                "\tcontentHash VARCHAR(40) );"
         );
-    }
-    public NoteDao(DaoConfig config, AbstractDaoSession daoSession) {
-        super(config, daoSession);
-    }
-
-    public NoteDao(DaoConfig config) {
-        super(config);
     }
 
     /**
@@ -106,10 +92,9 @@ public class NoteDao extends AbstractDao<SimpleNote, Integer> {
     }
 
     @Override
-    protected Integer readKey(Cursor cursor, int offset) {
+    protected Long readKey(Cursor cursor, int offset) {
         return null;
     }
-
 
     @Override
     protected void readEntity(Cursor cursor, SimpleNote entity, int offset) {
@@ -130,7 +115,6 @@ public class NoteDao extends AbstractDao<SimpleNote, Integer> {
     public void update(SimpleNote entity) {
 
 
-
         super.update(entity);
     }
 
@@ -138,14 +122,13 @@ public class NoteDao extends AbstractDao<SimpleNote, Integer> {
         update(new SimpleNote());
     }
 
-
     @Override
-    protected Integer updateKeyAfterInsert(SimpleNote entity, long rowId) {
+    protected Long updateKeyAfterInsert(SimpleNote entity, long rowId) {
         return null;
     }
 
     @Override
-    protected Integer getKey(SimpleNote entity) {
+    protected Long getKey(SimpleNote entity) {
         return entity.get_id();
     }
 
@@ -156,15 +139,46 @@ public class NoteDao extends AbstractDao<SimpleNote, Integer> {
 
     @Override
     public long insert(SimpleNote entity) {
-        if (entity.getTitle() == null) {
-            entity.setTitle("");
-        }
         return super.insert(entity);
+    }
+
+
+    public void insertAll(List<SimpleNote> lists) {
+        Observable.from(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(note -> {
+            Log.e(TAG, "insertAll: " + note);
+            return insert(note);
+        }).subscribe(__ -> Log.e(TAG, "insertAll: save success"));
+/*
+        for (SimpleNote note:lists)
+            insert(note);
+*/
     }
 
     @Override
     public void delete(SimpleNote entity) {
         super.delete(entity);
+    }
+
+    public static class Properties {
+        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
+
+        public final static Property title = new Property(1, String.class, "title", false, "title");
+        public final static Property content = new Property(2, String.class, "content", false, "content");
+        public final static Property contentHash = new Property(3, String.class, "contentHash", false, "contentHash");
+        public final static Property active = new Property(4, Integer.class, "active", false, "active");
+
+        public final static Property createTime = new Property(5, Long.class, "created", false, "created");
+        public final static Property updateTime = new Property(6, Long.class, "updated", false, "updated");
+        public final static Property deleteTime = new Property(7, Long.class, "deleted", false, "deleted");
+
+
+        public final static Property guid = new Property(8, String.class, "guid", false, "guid");
+        public final static Property tagGuids = new Property(9, String.class, "tagGuids", false, "tagGuids");
+        public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagnames");
+
+        public final static Property notebookGuid = new Property(11, String.class, "notebookGuid", false, "notebookGuid");
+        public final static Property status = new Property(12, Integer.class, "status", false, "status");
+
     }
 
 

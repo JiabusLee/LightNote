@@ -1,4 +1,3 @@
-
 package com.simple.lightnote.adapter;
 
 import android.content.Context;
@@ -44,11 +43,12 @@ import rx.schedulers.Schedulers;
  * 列表ListView的Adapter
  */
 public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MyItemClickListener {
-    private Cursor cursor;
+    static int day = 3600 * 24 * 1000;
     Context mContext;
+    ActionListener actionListener;
+    private Cursor cursor;
     private List<SimpleNote> list;
     private RecyclerViewHolder recyclerViewHolder;
-    ActionListener actionListener;
 
     public RecycleViewNoteListAdapter(ArrayList<SimpleNote> note) {
         this.list = note;
@@ -112,8 +112,6 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         }
     }
 
-    static int day = 3600 * 24 * 1000;
-
     private String setShowTime(Long lastModifyTime) {
         String showTime = null;
         long l = System.currentTimeMillis();
@@ -128,16 +126,16 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
             boolean b = l / day - lastModifyTime / day < day;
 
-            if (b && i==0) {
+            if (b && i == 0) {
                 showTime = DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             } else {
-                showTime = "昨天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
+                showTime = "昨天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             }
-        }else if(i==1){
+        } else if (i == 1) {
 //            String hL = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
 //            String hC = DateUtils.getDateByTimestamp(l, "HH");
 //            int i1 = Integer.valueOf(hC) - Integer.valueOf(hL);
-            showTime = "昨天 "+DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
+            showTime = "昨天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
         } else {
             showTime = DateUtils.getDateByTimestamp(lastModifyTime, "yyyy/MM/dd");
         }
@@ -253,6 +251,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
 
     }
 
+    public void setActionListener(ActionListener listener) {
+        this.actionListener = listener;
+    }
 
     public static class RecyclerViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
 
@@ -300,10 +301,6 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         public void setOnLongClickListener(MyItemLongClickListener ll) {
             this.longClickListener = ll;
         }
-    }
-
-    public void setActionListener(ActionListener listener) {
-        this.actionListener = listener;
     }
 
 }

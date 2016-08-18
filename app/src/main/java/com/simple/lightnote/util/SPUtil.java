@@ -10,19 +10,22 @@ public class SPUtil {
 
     public static final String LIGHT_NOTE = "lightNote";
 
-    public static SharedPreferences getInstance(Context context){
+    public static SharedPreferences getInstance(Context context) {
         return context.getSharedPreferences(LIGHT_NOTE, Context.MODE_PRIVATE);
     }
 
-    public static SharedPreferences.Editor getEditor(Context context){
+    public static SharedPreferences.Editor getEditor(Context context) {
         return getInstance(context).edit();
     }
 
 
-    public static  String getString(Context context,String key,String defaultValue){
-        return getInstance(context).getString(key,defaultValue);
+    public static String getString(Context context, String key, String defaultValue) {
+        return getInstance(context).getString(key, defaultValue);
     }
 
+    public static void saveString(Context context, String key, String value) {
+        getInstance(context).edit().putString(key, value).apply();
+    }
 
 
 }
