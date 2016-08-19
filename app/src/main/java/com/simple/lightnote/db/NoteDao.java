@@ -44,7 +44,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
                 "\ttitle VARCHAR(100),\n" +
                 "\tguid VARCHAR(40),\n" +
-                "\ttagnames VARCHAR(40),\n" +
+                "\ttagNames VARCHAR(40),\n" +
                 "\ttagGuids VARCHAR(40),\n" +
                 "\tcontent VARCHAR(1000),\n" +
                 "\tcreated Long,\n" +
@@ -124,7 +124,8 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
 
     @Override
     protected Long updateKeyAfterInsert(SimpleNote entity, long rowId) {
-        return null;
+        entity.set_id(rowId);
+        return rowId;
     }
 
     @Override
@@ -147,12 +148,13 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         Observable.from(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(note -> {
             Log.e(TAG, "insertAll: " + note);
             return insert(note);
-        }).subscribe(__ -> Log.e(TAG, "insertAll: save success"));
+        }).subscribe(l -> Log.e(TAG, "insertAll: save success" + l));
 /*
         for (SimpleNote note:lists)
             insert(note);
 */
     }
+
 
     @Override
     public void delete(SimpleNote entity) {
@@ -160,7 +162,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     }
 
     public static class Properties {
-        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
+        public final static Property Id = new Property(0, Long.class, "_id", true, "_id");
 
         public final static Property title = new Property(1, String.class, "title", false, "title");
         public final static Property content = new Property(2, String.class, "content", false, "content");
@@ -174,7 +176,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
 
         public final static Property guid = new Property(8, String.class, "guid", false, "guid");
         public final static Property tagGuids = new Property(9, String.class, "tagGuids", false, "tagGuids");
-        public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagnames");
+        public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagNames");
 
         public final static Property notebookGuid = new Property(11, String.class, "notebookGuid", false, "notebookGuid");
         public final static Property status = new Property(12, Integer.class, "status", false, "status");

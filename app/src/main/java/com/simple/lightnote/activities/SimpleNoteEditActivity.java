@@ -182,6 +182,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 @Override
                 public void call(Subscriber<? super SimpleNote> subscriber) {
                     List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).build().list();
+                    LogUtils.e(TAG, "call:  " +"从数据库取的list size: "+list.size()+"list content :"+list);
                     if (!ListUtils.isEmpty(list)) {
                         SimpleNote note = list.get(0);
                         subscriber.onNext(note);

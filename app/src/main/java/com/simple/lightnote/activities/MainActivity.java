@@ -55,7 +55,6 @@ import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.constant.SPConstans;
-import com.simple.lightnote.db.DaoMaster;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
@@ -69,6 +68,8 @@ import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
 import org.greenrobot.greendao.Property;
+import org.greenrobot.greendao.query.LazyList;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,8 +100,8 @@ public class MainActivity extends BaseActivity {
     private SwipeMenuRecyclerView mRecycleView;
     private SQLiteDatabase db;
     private EditText editText;
-    private DaoMaster daoMaster;
-    private DaoSession daoSession;
+    //    private DaoMaster daoMaster;
+//    private DaoSession daoSession;
     private NoteDao noteDao;
     private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
@@ -110,6 +111,8 @@ public class MainActivity extends BaseActivity {
     private ProgressDialog dialog;
     private EvernoteNoteStoreClient noteStoreClient;
     private String bookGuid;
+    private LightNoteApplication app;
+    private DaoSession daoSession;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -138,7 +141,14 @@ public class MainActivity extends BaseActivity {
 //			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
 //			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
         }
+        app = (LightNoteApplication) getApplication();
+        initDB();
         getEvernteBook();
+    }
+
+    private void initDB() {
+        daoSession = app.getDaoSession();
+        noteDao = daoSession.getNoteDao();
     }
 
     @Override
@@ -224,7 +234,6 @@ public class MainActivity extends BaseActivity {
                             SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
                             break;
                     }
-                    getDBlist();
                 }
                 commonDialog.dismiss();
 
@@ -365,11 +374,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         //取消删除操作
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
-                        SQLiteDatabase db = helper.getWritableDatabase();
-                        daoMaster = new DaoMaster(db);
-                        daoSession = daoMaster.newSession();
-                        noteDao = daoSession.getNoteDao();
+
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(MainActivity.this, "取消删除");
@@ -392,34 +397,40 @@ public class MainActivity extends BaseActivity {
      */
     private void getEvernteBook() {
         if (!EvernoteSession.getInstance().isLoggedIn()) {
-            ToastUtils.showToast(this, "还没有绑定evernote");
-            return;
-        }
-        noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
-        bookGuid = SPUtil.getString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, null);
-
-        if (bookGuid != null) {
-            getNoteList(bookGuid);
+//            ToastUtils.showToast(this, "还没有绑定evernote");
+//            return;
+            List<SimpleNote> list = noteDao.queryBuilder().build().list();
+            if (!ListUtils.isEmpty(list)) {
+                noteAdapter.setList(list);
+                noteAdapter.notifyDataSetChanged();
+            }
         } else {
-            Observable
-                    .create((subscriber) -> {
-                        try {
-                            Notebook defaultNotebook = noteStoreClient.getDefaultNotebook();
-                            bookGuid = defaultNotebook.getGuid();
-                            SPUtil.saveString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, bookGuid);
-                            subscriber.onNext(bookGuid);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            subscriber.onError(e);
-                        }
-                    })
+            noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+            bookGuid = SPUtil.getString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, null);
 
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(Schedulers.newThread())
-                    .subscribe(bookGuid -> getNoteList((String) bookGuid));
+            if (bookGuid != null) {
+                getNoteList(bookGuid);
+            } else {
+                Observable
+                        .create((subscriber) -> {
+                            try {
+                                Notebook defaultNotebook = noteStoreClient.getDefaultNotebook();
+                                bookGuid = defaultNotebook.getGuid();
+                                SPUtil.saveString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, bookGuid);
+                                subscriber.onNext(bookGuid);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                subscriber.onError(e);
+                            }
+                        })
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.newThread())
+                        .subscribe(bookGuid -> getNoteList((String) bookGuid));
+
+            }
+
 
         }
-
 
     }
 
@@ -435,8 +446,6 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onSuccess(NoteList result) {
                         List<com.evernote.edam.type.Note> notes = result.getNotes();
-
-
                         Observable
                                 .from(notes)
                                 .subscribeOn(Schedulers.io())
@@ -446,17 +455,12 @@ public class MainActivity extends BaseActivity {
                                     public Boolean call(Note note) {
                                         String title = note.getTitle();
                                         LogUtils.e(TAG, "onNext: title==> " + title);
-                                        noteStoreClient.getNoteContentAsync(note.getGuid(), new EvernoteCallback<String>() {
-                                            @Override
-                                            public void onSuccess(String result) {
-                                                note.setContent(result);
-                                            }
-
-                                            @Override
-                                            public void onException(Exception exception) {
-
-                                            }
-                                        });
+                                        try {
+                                            noteStoreClient.getNoteContent(note.getGuid());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            return false;
+                                        }
                                         return true;
                                     }
                                 })
@@ -466,11 +470,11 @@ public class MainActivity extends BaseActivity {
                                     public void onCompleted() {
                                         List<SimpleNote> simpleNotes = generateSimpleList(notes);
                                         saveNote2DB(simpleNotes);
-                                        // TODO: 2016/8/17 generate SimpleNote
-//                                                           getContent(simpleNotes);
                                         noteAdapter.setList(simpleNotes);
                                         noteAdapter.notifyDataSetChanged();
+                                        selectSaveContent();
                                     }
+
 
                                     @Override
                                     public void onError(Throwable e) {
@@ -498,6 +502,20 @@ public class MainActivity extends BaseActivity {
             }
 
         }
+    }
+
+    @Test
+    private void selectSaveContent() {
+        Observable.create(new Observable.OnSubscribe<Object>() {
+            @Override
+            public void call(Subscriber<? super Object> subscriber) {
+                LazyList<SimpleNote> simpleNotes = noteDao.queryBuilder().build().listLazy();
+                simpleNotes.size();
+                LogUtils.e(TAG, "call:  " +"after save db size : "+simpleNotes.size());
+                for (SimpleNote simpleNote:simpleNotes)
+                    LogUtils.e(TAG, "call:  " +"simpleNote: "+simpleNote);
+            }
+        }).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe();
     }
 
     /**
@@ -637,90 +655,6 @@ public class MainActivity extends BaseActivity {
                 });
     }
 
-    /**
-     * 获取数据库中的notlist
-     */
-    private void getDBlist() {
-        Observable.
-                create(new Observable.OnSubscribe<List<SimpleNote>>() {
-                    @Override
-                    public void call(Subscriber<? super List<SimpleNote>> subscriber) {
-                        subscriber.onStart();
-                        LogUtils.e(TAG, "call2: " + Thread.currentThread());
-                        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(MainActivity.this, "lightnote", null);
-                        SQLiteDatabase db = helper.getWritableDatabase();
-                        daoMaster = new DaoMaster(db);
-                        daoSession = daoMaster.newSession();
-                        noteDao = daoSession.getNoteDao();
-                        long count = noteDao.count();
-
-                        if (count < 20) {
-                            int sum = 0;
-                            if (count < 10) {
-                                sum = 10;
-                            } else {
-                                sum = 2;
-                            }
-                            for (int i = 0; i < sum; i++) {
-                                db.execSQL("insert into note(noteTitle,noteContent,noteMd5,createTime,lastModifyTime,noteType) values (null,'" + NoteContentGenerator.getRandomIndex() + "','8385c78768d7952a42f29a267a6c0827', " + (System.currentTimeMillis() - (new Random().nextInt(10000000) + 10000000)) + ", " + System.currentTimeMillis() + ",'normal');");
-                            }
-                        }
-                        String orderRule = "desc";
-                        String orderBy = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
-                        Property order;
-                        if (orderBy.equals(NoteDao.Properties.createTime.columnName)) {
-                            order = NoteDao.Properties.createTime;
-                            orderRule = "asc";
-                        } else if (orderBy.equals(NoteDao.Properties.content.columnName)) {
-                            order = NoteDao.Properties.content;
-                            orderRule = "asc";
-                        } else {
-                            order = NoteDao.Properties.updateTime;
-                        }
-                        List<SimpleNote> list = noteDao.queryBuilder().orderCustom(order, orderRule).list();
-                        LogUtils.e(TAG, "call3: " + Thread.currentThread());
-                        subscriber.onNext(list);
-                    }
-                })
-                .filter(new Func1<List<SimpleNote>, Boolean>() {
-                    @Override
-                    public Boolean call(List<SimpleNote> notes) {
-                        LogUtils.e(TAG, "call4: " + Thread.currentThread());
-                        return !ListUtils.isEmpty(notes);
-                    }
-                })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(Schedulers.newThread())
-                .doOnNext(new Action1<List<SimpleNote>>() {
-                    @Override
-                    public void call(List<SimpleNote> notes) {
-                        LogUtils.e(TAG, "call5: " + Thread.currentThread());
-                        System.out.println(notes);
-                    }
-                })
-                .subscribe(new Subscriber<List<SimpleNote>>() {
-                    @Override
-                    public void onCompleted() {
-
-                        LogUtils.e(TAG, "onCompleted:  ");
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onNext(List<SimpleNote> o) {
-                        noteAdapter.setList(o);
-                        noteAdapter.notifyDataSetChanged();
-                        LogUtils.e(TAG, "call6: " + Thread.currentThread());
-                        onCompleted();
-                    }
-                });
-
-    }
 
     private void initListener() {
         drawerLayout.requestDisallowInterceptTouchEvent(true);

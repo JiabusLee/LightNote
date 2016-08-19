@@ -336,7 +336,7 @@ public class Evernote {
             int status = simpleNote.getStatus();
             if (SimpleNote.st_delete == status) {
                 if (deleteNote(simpleNote.toDeleteNote())) {
-                    simpleNote.setActive(false);
+                    simpleNote.setActive(SimpleNote.ac_die);
                     dao.update(simpleNote);
                 }
             } else if (simpleNote.st_update == status) {

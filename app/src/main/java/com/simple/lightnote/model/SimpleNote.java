@@ -15,7 +15,11 @@ public class SimpleNote {
     public static final int st_update = 2;//要同步
     public static final int st_doing = 3;//正在同步
 
-    private long _id;
+    public static final int ac_live = 0;
+    public static final int ac_die = 1;
+
+
+    private Long _id;
     private String guid;
     private String title;
     private String content;
@@ -24,7 +28,7 @@ public class SimpleNote {
     private long created;
     private long updated;
     private long deleted;
-    private boolean active;
+    private int active = ac_live;
 
     private String notebookGuid;
 
@@ -43,8 +47,9 @@ public class SimpleNote {
     public static SimpleNote toSimpleNote(Note note) {
         SimpleNote simpleNote;
         simpleNote = new SimpleNote();
+        simpleNote.set_id(null);
         simpleNote.setContent(note.getContent());
-        simpleNote.setActive(note.isSetActive());
+        simpleNote.setActive(note.isSetActive() ? ac_live : ac_die);
         simpleNote.setGuid(note.getGuid());
         simpleNote.setContentHash(EvernoteUtil.bytesToHex(note.getContentHash()));
         simpleNote.setUpdated(note.getUpdated());
@@ -81,7 +86,7 @@ public class SimpleNote {
         return _id;
     }
 
-    public void set_id(long _id) {
+    public void set_id(Long _id) {
         this._id = _id;
     }
 
@@ -149,11 +154,11 @@ public class SimpleNote {
         this.deleted = deleted;
     }
 
-    public boolean isActive() {
+    public int getActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(int active) {
         this.active = active;
     }
 
