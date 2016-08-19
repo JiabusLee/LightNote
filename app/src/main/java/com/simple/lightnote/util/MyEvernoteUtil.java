@@ -30,7 +30,10 @@ public class MyEvernoteUtil {
     public static void updateLocalNote(String guid, long _id, NoteDao dao) {
         try {
             Note note = noteStoreClient.getNote(guid, true, false, false, false);
-            dao.update(SimpleNote.toSimpleNote(note));
+            SimpleNote simpleNote = new SimpleNote();
+            simpleNote.set_id(_id);
+            SimpleNote simple = SimpleNote.simple(note, simpleNote);
+            dao.update(simple);
         } catch (TTransportException e) {
             e.printStackTrace();
         } catch (EDAMUserException e) {

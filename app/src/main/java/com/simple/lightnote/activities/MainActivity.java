@@ -59,7 +59,7 @@ import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.DefaultActionListener;
 import com.simple.lightnote.model.SimpleNote;
-import com.simple.lightnote.test.NoteContentGenerator;
+import com.simple.lightnote.util.MyEvernoteUtil;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
@@ -67,14 +67,12 @@ import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.SwipeMenuRecyclerView;
 
-import org.greenrobot.greendao.Property;
 import org.greenrobot.greendao.query.LazyList;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
@@ -457,6 +455,7 @@ public class MainActivity extends BaseActivity {
                                         LogUtils.e(TAG, "onNext: title==> " + title);
                                         try {
                                             noteStoreClient.getNoteContent(note.getGuid());
+
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             return false;
@@ -464,27 +463,27 @@ public class MainActivity extends BaseActivity {
                                         return true;
                                     }
                                 })
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Subscriber<Boolean>() {
+                                .observeOn(Schedulers.io())
+                                .map(new Func1<Boolean, List<SimpleNote>>() {
                                     @Override
-                                    public void onCompleted() {
+                                    public List<SimpleNote> call(Boolean aBoolean) {
                                         List<SimpleNote> simpleNotes = generateSimpleList(notes);
                                         saveNote2DB(simpleNotes);
-                                        noteAdapter.setList(simpleNotes);
-                                        noteAdapter.notifyDataSetChanged();
-                                        selectSaveContent();
+                                        return simpleNotes;
                                     }
-
-
+                                })
+                                .doOnNext(new Action1<List<SimpleNote>>() {
                                     @Override
-                                    public void onError(Throwable e) {
-
+                                    public void call(List<SimpleNote> simpleNotes) {
+                                        LogUtils.e(TAG, "call: doOnNext"  );
                                     }
-
-                                    @Override
-                                    public void onNext(Boolean aBoolean) {
-
-                                    }
+                                })
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(simpleNotes -> {
+                                    LogUtils.e(TAG, "onSuccess: " + "subscribe");
+                                    noteAdapter.setList(simpleNotes);
+                                    noteAdapter.notifyDataSetChanged();
+                                    selectSaveContent();
                                 });
 
 
@@ -511,9 +510,9 @@ public class MainActivity extends BaseActivity {
             public void call(Subscriber<? super Object> subscriber) {
                 LazyList<SimpleNote> simpleNotes = noteDao.queryBuilder().build().listLazy();
                 simpleNotes.size();
-                LogUtils.e(TAG, "call:  " +"after save db size : "+simpleNotes.size());
-                for (SimpleNote simpleNote:simpleNotes)
-                    LogUtils.e(TAG, "call:  " +"simpleNote: "+simpleNote);
+                LogUtils.e(TAG, "call:  " + "after save db size : " + simpleNotes.size());
+                for (SimpleNote simpleNote : simpleNotes)
+                    LogUtils.e(TAG, "call:  " + "simpleNote: " + simpleNote);
             }
         }).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe();
     }
@@ -524,8 +523,34 @@ public class MainActivity extends BaseActivity {
      * @param simpleNotes
      */
     private void saveNote2DB(List<SimpleNote> simpleNotes) {
-        LightNoteApplication app = (LightNoteApplication) getApplication();
-        app.getDaoSession().getNoteDao().insertAll(simpleNotes);
+
+        for(SimpleNote note:simpleNotes){
+            LazyList<SimpleNote> notes = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(note.getGuid())).listLazy();
+            if(!ListUtils.isEmpty(notes)){
+                SimpleNote simpleNote = simpleNotes.get(0);
+                if(note.getUpdated()!=simpleNote.getUpdated()){
+                    MyEvernoteUtil.updateLocalNote(simpleNote.getGuid(),simpleNote.get_id(),noteDao);
+                }
+            }else{
+                noteDao.insert(note);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        app.getDaoSession().getNoteDao().insertAll(simpleNotes);
     }
 
     private List<SimpleNote> generateSimpleList(List<Note> notes) {

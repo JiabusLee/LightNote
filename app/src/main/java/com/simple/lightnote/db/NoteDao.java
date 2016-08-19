@@ -2,9 +2,9 @@ package com.simple.lightnote.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.evernote.edam.type.Note;
 import com.simple.lightnote.model.SimpleNote;
 
 import org.greenrobot.greendao.AbstractDao;
@@ -42,18 +42,19 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         String constraint = ifNotExists ? "IF NOT EXISTS " : "";
         db.execSQL("CREATE TABLE note (\n" +
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
+                "\tnid VARCHAR(100) ,\n" +
                 "\ttitle VARCHAR(100),\n" +
-                "\tguid VARCHAR(40),\n" +
-                "\ttagNames VARCHAR(40),\n" +
-                "\ttagGuids VARCHAR(40),\n" +
+                "\tguid VARCHAR(100),\n" +
+                "\ttagNames VARCHAR(100),\n" +
+                "\ttagGuids VARCHAR(100),\n" +
                 "\tcontent VARCHAR(1000),\n" +
                 "\tcreated Long,\n" +
                 "\tupdated Long ,\n" +
                 "\tdeleted Long,\n" +
                 "\tstatus INTEGER default 0,\n" +
                 "\tactive INTEGER DEFAULT 0,\n" +
-                "\tnotebookGuid VARCHAR(40),\n" +
-                "\tcontentHash VARCHAR(40) );"
+                "\tnotebookGuid VARCHAR(50),\n" +
+                "\tcontentHash VARCHAR(50) );"
         );
     }
 
@@ -93,7 +94,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
 
     @Override
     protected Long readKey(Cursor cursor, int offset) {
-        return null;
+        return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
     }
 
     @Override
@@ -103,24 +104,36 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
 
     @Override
     protected void bindValues(DatabaseStatement stmt, SimpleNote entity) {
+//        stmt.bindLong(1, entity.get_id());
+        stmt.bindString(2, entity.getTitle());
+        String content = entity.getContent();
+        if (!TextUtils.isEmpty(content)) {
+            stmt.bindString(3, content);
+        }
+
+        stmt.bindLong(5, entity.getCreated());
+        stmt.bindLong(6, entity.getUpdated());
+        stmt.bindLong(7, entity.getDeleted());
+        stmt.bindString(8, entity.getGuid());
 
     }
 
     @Override
     protected void bindValues(SQLiteStatement stmt, SimpleNote entity) {
+//        stmt.bindLong(1, entity.get_id());
+        stmt.bindString(2, entity.getTitle());
+        String content = entity.getContent();
+        if (!TextUtils.isEmpty(content)) {
+            stmt.bindString(3, content);
+        }
+
+        stmt.bindLong(5, entity.getCreated());
+        stmt.bindLong(6, entity.getUpdated());
+        stmt.bindLong(7, entity.getDeleted());
+        stmt.bindString(8, entity.getGuid());
 
     }
 
-    @Override
-    public void update(SimpleNote entity) {
-
-
-        super.update(entity);
-    }
-
-    public void update(Note entity) {
-        update(new SimpleNote());
-    }
 
     @Override
     protected Long updateKeyAfterInsert(SimpleNote entity, long rowId) {
@@ -128,9 +141,12 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         return rowId;
     }
 
+    @Deprecated
     @Override
     protected Long getKey(SimpleNote entity) {
-        return entity.get_id();
+        if (entity != null)
+            return entity.get_id();
+        else return null;
     }
 
     @Override
@@ -143,7 +159,6 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         return super.insert(entity);
     }
 
-
     public void insertAll(List<SimpleNote> lists) {
         Observable.from(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(note -> {
             Log.e(TAG, "insertAll: " + note);
@@ -154,7 +169,6 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
             insert(note);
 */
     }
-
 
     @Override
     public void delete(SimpleNote entity) {
@@ -180,7 +194,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
 
         public final static Property notebookGuid = new Property(11, String.class, "notebookGuid", false, "notebookGuid");
         public final static Property status = new Property(12, Integer.class, "status", false, "status");
-
+        public final static Property nid = new Property(13, String.class, "nid", false, "nid");
     }
 
 

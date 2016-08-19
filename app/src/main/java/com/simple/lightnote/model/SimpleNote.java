@@ -19,7 +19,8 @@ public class SimpleNote {
     public static final int ac_die = 1;
 
 
-    private Long _id;
+    private long _id;
+    private String nid;
     private String guid;
     private String title;
     private String content;
@@ -47,10 +48,14 @@ public class SimpleNote {
     public static SimpleNote toSimpleNote(Note note) {
         SimpleNote simpleNote;
         simpleNote = new SimpleNote();
-        simpleNote.set_id(null);
+        return simple(note, simpleNote);
+    }
+
+    public static SimpleNote simple(Note note, SimpleNote simpleNote) {
         simpleNote.setContent(note.getContent());
         simpleNote.setActive(note.isSetActive() ? ac_live : ac_die);
         simpleNote.setGuid(note.getGuid());
+        simpleNote.setNid(note.getGuid());
         simpleNote.setContentHash(EvernoteUtil.bytesToHex(note.getContentHash()));
         simpleNote.setUpdated(note.getUpdated());
         simpleNote.setCreated(note.getCreated());
@@ -86,7 +91,7 @@ public class SimpleNote {
         return _id;
     }
 
-    public void set_id(Long _id) {
+    public void set_id(long _id) {
         this._id = _id;
     }
 
@@ -211,6 +216,14 @@ public class SimpleNote {
         Note note = new Note();
         note.setGuid(this.getGuid());
         return note;
+    }
+
+    public String getNid() {
+        return nid;
+    }
+
+    public void setNid(String nid) {
+        this.nid = nid;
     }
 }
 
