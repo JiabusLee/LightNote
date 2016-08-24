@@ -93,10 +93,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
      */
     private void loadData() {
         // TODO: 2016/8/18 从多个数据源获取数据
-        Observable<SimpleNote> databases = Observable.empty();
-        Observable<SimpleNote> network = Observable.empty();
+        Observable<SimpleNote> memorys = Observable.empty();
+        Observable<SimpleNote> databases = Observable.empty();//取得数据后保存到memorys
+        Observable<SimpleNote> network = Observable.empty();//得取数据后保存到memorys和databases
+
         Observable<SimpleNote> source = Observable
-                .concat(databases, network)
+                .concat(memorys, databases, network)
                 .first();
         Subscription subscribe = source.subscribe(new Action1<SimpleNote>() {
             @Override
@@ -211,10 +213,10 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         });
                     }
                 }
-            }).observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note -> {
+            }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note -> {
                 String noteContent = note.getContent();
                 if (!TextUtils.isEmpty(noteContent)) {
-                    if (note != null){
+                    if (note != null) {
                         edt_noteContent.setText(noteContent);
                         edt_noteContent.setSelection(noteContent.length());
                     }
@@ -231,6 +233,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
     /**
      * 保存从网络取到的NoteContent
+     *
      * @param noteContent
      */
     private void saveContent2DB(String noteContent) {

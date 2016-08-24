@@ -2,10 +2,10 @@ package com.simple.lightnote.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.simple.lightnote.model.SimpleNote;
+import com.simple.lightnote.utils.LogUtils;
 
 import org.greenrobot.greendao.AbstractDao;
 import org.greenrobot.greendao.AbstractDaoSession;
@@ -44,7 +44,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
                 "\tnid VARCHAR(100) ,\n" +
                 "\ttitle VARCHAR(100),\n" +
-                "\tguid VARCHAR(100),\n" +
+                "\t_guid VARCHAR(100),\n" +
                 "\ttagNames VARCHAR(100),\n" +
                 "\ttagGuids VARCHAR(100),\n" +
                 "\tcontent VARCHAR(1000),\n" +
@@ -66,71 +66,127 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         db.execSQL(sql);
     }
 
-    @Override
-    public SimpleNote readEntity(Cursor cursor, int offset) {
-        SimpleNote entity = new SimpleNote();
-        int guid = cursor.getColumnIndex("guid");
-        String string = cursor.getString(guid);
-        entity.setGuid(string);
-        int title = cursor.getColumnIndex("title");
-        String title1 = cursor.getString(title);
-        entity.setTitle(title1);
 
-        int content = cursor.getColumnIndex("content");
-        String content1 = cursor.getString(content);
-        entity.setContent(content1);
-
-
-        int created = cursor.getColumnIndex("created");
-        long created1 = cursor.getLong(created);
-        entity.setCreated(created1);
-
-        int updated = cursor.getColumnIndex("updated");
-        long updated1 = cursor.getLong(updated);
-        entity.setCreated(updated1);
-
-        return entity;
-    }
 
     @Override
     protected Long readKey(Cursor cursor, int offset) {
+        LogUtils.e(TAG, "readKey: " + cursor);
         return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
     }
 
-    @Override
-    protected void readEntity(Cursor cursor, SimpleNote entity, int offset) {
-        entity = readEntity(cursor, offset);
-    }
+
 
     @Override
     protected void bindValues(DatabaseStatement stmt, SimpleNote entity) {
-//        stmt.bindLong(1, entity.get_id());
-        stmt.bindString(2, entity.getTitle());
-        String content = entity.getContent();
-        if (!TextUtils.isEmpty(content)) {
-            stmt.bindString(3, content);
-        }
+        LogUtils.e(TAG, "bindValues: " + entity);
+        stmt.clearBindings();
 
-        stmt.bindLong(5, entity.getCreated());
-        stmt.bindLong(6, entity.getUpdated());
-        stmt.bindLong(7, entity.getDeleted());
-        stmt.bindString(8, entity.getGuid());
+        Long id = entity.get_id();
+        if (id != null) stmt.bindLong(1, id);
+
+        String guid = entity.getGuid();
+        if (guid != null) stmt.bindString(2, guid);
+
+        String content = entity.getContent();
+        if (content != null) stmt.bindString(3, content);
+
+        String title = entity.getTitle();
+        if (title != null) stmt.bindString(4, title);
+
+        String contentHash = entity.getContentHash();
+        if (contentHash != null) stmt.bindString(5, contentHash);
+
+        Long created = entity.getCreated();
+        if (created != null) stmt.bindLong(6, created);
+
+        Long updated = entity.getUpdated();
+        if (updated != null) stmt.bindLong(7, updated);
+
+        Long deleted = entity.getDeleted();
+        if (deleted != null) stmt.bindLong(8, deleted);
+
+        String nid = entity.getNid();
+        if (nid != null) stmt.bindString(9, nid);
+
+        String notebookGuid = entity.getNotebookGuid();
+        if (notebookGuid != null) stmt.bindString(10, notebookGuid);
+
+
+
+    }
+
+
+    @Override
+    protected void readEntity(Cursor cursor, SimpleNote entity, int offset) {
+
+        entity.set_id(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setContent(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setTitle(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setContentHash(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+
+        entity.setCreated(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
+        entity.setUpdated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
+        entity.setDeleted(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+
+        entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
+        entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+
 
     }
 
     @Override
-    protected void bindValues(SQLiteStatement stmt, SimpleNote entity) {
-//        stmt.bindLong(1, entity.get_id());
-        stmt.bindString(2, entity.getTitle());
-        String content = entity.getContent();
-        if (!TextUtils.isEmpty(content)) {
-            stmt.bindString(3, content);
-        }
+    public SimpleNote readEntity(Cursor cursor, int offset) {
+        SimpleNote entity = new SimpleNote();
+        entity.set_id(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+        entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
+        entity.setContent(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setTitle(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setContentHash(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
 
-        stmt.bindLong(5, entity.getCreated());
-        stmt.bindLong(6, entity.getUpdated());
-        stmt.bindLong(7, entity.getDeleted());
-        stmt.bindString(8, entity.getGuid());
+        entity.setCreated(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
+        entity.setUpdated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
+        entity.setDeleted(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+
+        entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
+        entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+
+        return entity;
+    }
+    @Override
+    protected void bindValues(SQLiteStatement stmt, SimpleNote entity) {
+
+        stmt.clearBindings();
+
+        Long id = entity.get_id();
+        if (id != null) stmt.bindLong(1, id);
+
+        String guid = entity.getGuid();
+        if (guid != null) stmt.bindString(2, guid);
+
+        String content = entity.getContent();
+        if (content != null) stmt.bindString(3, content);
+
+        String title = entity.getTitle();
+        if (title != null) stmt.bindString(4, title);
+
+        String contentHash = entity.getContentHash();
+        if (contentHash != null) stmt.bindString(5, contentHash);
+
+        Long created = entity.getCreated();
+        if (created != null) stmt.bindLong(6, created);
+
+        Long updated = entity.getUpdated();
+        if (updated != null) stmt.bindLong(7, updated);
+
+        Long deleted = entity.getDeleted();
+        if (deleted != null) stmt.bindLong(8, deleted);
+
+        String nid = entity.getNid();
+        if (nid != null) stmt.bindString(9, nid);
+
+        String notebookGuid = entity.getNotebookGuid();
+        if (notebookGuid != null) stmt.bindString(10, notebookGuid);
 
     }
 
@@ -141,7 +197,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         return rowId;
     }
 
-    @Deprecated
+
     @Override
     protected Long getKey(SimpleNote entity) {
         if (entity != null)
@@ -154,9 +210,17 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         return true;
     }
 
+
     @Override
     public long insert(SimpleNote entity) {
-        return super.insert(entity);
+        if (entity != null) {
+
+            long count = queryBuilder().where(Properties.guid.eq(entity.getGuid())).count();
+            if (count == 0) {
+                super.insert(entity);
+            }
+        }
+        return 0;
     }
 
     public void insertAll(List<SimpleNote> lists) {
@@ -164,16 +228,8 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
             Log.e(TAG, "insertAll: " + note);
             return insert(note);
         }).subscribe(l -> Log.e(TAG, "insertAll: save success" + l));
-/*
-        for (SimpleNote note:lists)
-            insert(note);
-*/
     }
 
-    @Override
-    public void delete(SimpleNote entity) {
-        super.delete(entity);
-    }
 
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "_id", true, "_id");
@@ -188,7 +244,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         public final static Property deleteTime = new Property(7, Long.class, "deleted", false, "deleted");
 
 
-        public final static Property guid = new Property(8, String.class, "guid", false, "guid");
+        public final static Property guid = new Property(8, String.class, "guid", false, "_guid");
         public final static Property tagGuids = new Property(9, String.class, "tagGuids", false, "tagGuids");
         public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagNames");
 

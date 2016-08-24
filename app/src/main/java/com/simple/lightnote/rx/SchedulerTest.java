@@ -37,6 +37,20 @@ public class SchedulerTest {
         }).subscribe(System.out::println);
 
 
+        Observable.zip(Observable.interval(1000, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
+            @Override
+            public Integer call(Long aLong, Integer integer) {
+                return integer;
+            }
+        }).subscribe(System.out::println);
+
+
+
+
+
+
+
+
         Observable.from(intArrays).flatMap(new Func1<Integer, Observable<?>>() {
             @Override
             public Observable<?> call(Integer integer) {

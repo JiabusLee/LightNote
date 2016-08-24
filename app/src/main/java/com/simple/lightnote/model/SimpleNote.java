@@ -12,8 +12,8 @@ public class SimpleNote {
 
     public static final int st_noting = 0;//没有修改
     public static final int st_delete = 1;//要删除
-    public static final int st_update = 2;//要同步
-    public static final int st_doing = 3;//正在同步
+    public static final int st_sync = 2;//要同步
+    public static final int st_syncing_up = 3;//正在同步
 
     public static final int ac_live = 0;
     public static final int ac_die = 1;
@@ -135,12 +135,12 @@ public class SimpleNote {
         this.contentLength = contentLength;
     }
 
-    public long getCreated() {
-        return created;
+    public long getDeleted() {
+        return deleted;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
+    public void setDeleted(long deleted) {
+        this.deleted = deleted;
     }
 
     public long getUpdated() {
@@ -151,12 +151,12 @@ public class SimpleNote {
         this.updated = updated;
     }
 
-    public long getDeleted() {
-        return deleted;
+    public long getCreated() {
+        return created;
     }
 
-    public void setDeleted(long deleted) {
-        this.deleted = deleted;
+    public void setCreated(long created) {
+        this.created = created;
     }
 
     public int getActive() {
@@ -224,6 +224,14 @@ public class SimpleNote {
 
     public void setNid(String nid) {
         this.nid = nid;
+    }
+
+    public boolean isNeedSyncUp() {
+        if (status == st_sync) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
