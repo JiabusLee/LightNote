@@ -19,7 +19,7 @@ public class SimpleNote {
     public static final int ac_die = 1;
 
 
-    private long _id;
+    private Long _id;
     private String nid;
     private String guid;
     private String title;
@@ -65,6 +65,7 @@ public class SimpleNote {
         simpleNote.setTagNames(note.getTagNames());
         simpleNote.setContentLength(note.getContentLength());
         simpleNote.setTagGuids(note.getTagGuids());
+        simpleNote.setStatus(st_noting);
         return simpleNote;
     }
 
@@ -87,7 +88,7 @@ public class SimpleNote {
                 '}';
     }
 
-    public long get_id() {
+    public Long get_id() {
         return _id;
     }
 

@@ -24,6 +24,7 @@ import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.HtmlParser;
+import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.view.MarkDownView;
 
@@ -34,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -86,7 +88,7 @@ public class NotePreViewActivity extends BaseActivity {
                 loadMarkDown(fileContents);
                 break;
             case Source_id:
-                int noteId = getIntent().getIntExtra("noteId",-1);
+                String noteId = getIntent().getStringExtra("noteId");
                 getNote(noteId);
                 loadMarkDown(fileContents);
                 break;
@@ -100,15 +102,21 @@ public class NotePreViewActivity extends BaseActivity {
     /**
      * 从数据据中加载数据
      *
-     * @param id
+     * @param guid
      */
-    private void getNote(long id) {
+    private void getNote(String guid) {
+
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
+        if (!TextUtils.isEmpty(guid)) {
 
-        SimpleNote note = noteDao.load(id);
-        fileContents = note.getContent();
+            List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).list();
+            if (!ListUtils.isEmpty(list)) {
+                SimpleNote simpleNote = list.get(0);
+                fileContents = simpleNote.getContent();
+            }
 
+        }
     }
 
     /**

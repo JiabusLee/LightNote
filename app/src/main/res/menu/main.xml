@@ -1,33 +1,39 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.simple.lightnote.MainActivity" >
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.simple.lightnote.MainActivity">
 
     <item
         android:id="@+id/action_search"
         android:orderInCategory="80"
         android:title="搜索"
         app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_options"
         android:orderInCategory="100"
         android:title="查看选项"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_openFile"
         android:orderInCategory="100"
         android:title="打开文件"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_sort"
         android:orderInCategory="100"
         android:title="排序"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_sync"
+        android:orderInCategory="100"
+        android:title="同步"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/action_help"
         android:orderInCategory="100"
         android:title="帮助"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
 </menu>

@@ -37,13 +37,6 @@ import android.widget.Toast;
 
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
-import com.evernote.edam.notestore.NoteCollectionCounts;
-import com.evernote.edam.notestore.NoteFilter;
-import com.evernote.edam.notestore.NoteMetadata;
-import com.evernote.edam.notestore.NotesMetadataList;
-import com.evernote.edam.notestore.NotesMetadataResultSpec;
-import com.evernote.edam.type.NoteSortOrder;
-import com.evernote.edam.type.Notebook;
 import com.melnykov.fab.FloatingActionButton;
 import com.melnykov.fab.ScrollDirectionListener;
 import com.simple.lightnote.LightNoteApplication;
@@ -51,7 +44,6 @@ import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
 import com.simple.lightnote.adapter.RecycleViewNoteListAdapter;
-import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.EvernoteHelper;
@@ -68,13 +60,10 @@ import com.simple.lightnote.view.SwipeMenuRecyclerView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -121,30 +110,19 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-
-//        getWindow().getDecorView().setBackgroundResource(R.drawable.main_list_bg);
-//        getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
         initDrawerView();
-        initListener();
-        initData();
-//		colorChange();
-        if (Build.VERSION.SDK_INT >= 21) {
-            Window window = getWindow();
-            // 很明显，这两货是新API才有的。
-//			window.setStatusBarColor(colorBurn(R.color.colorPrimary));
-//			window.setNavigationBarColor(colorBurn(R.color.colorPrimary));
-        }
-        app = (LightNoteApplication) getApplication();
         initDB();
-        getEvernteBook();
+        initData();
+        initListener();
+        setAdapter();
+        getNoteList();
     }
 
     private void initDB() {
+        app = (LightNoteApplication) getApplication();
         daoSession = app.getDaoSession();
         noteDao = daoSession.getNoteDao();
-        helper = new EvernoteHelper(this, noteDao);
     }
 
     @Override
@@ -192,10 +170,16 @@ public class MainActivity extends BaseActivity {
             case R.id.action_sort:
                 commonDialog = new CommonDialog(this);
                 contentView = getDialogContent(Arrays.asList("最近更新", "创建日期", "标题", "笔记本"), R.id.action_sort);
-
                 //置Dialog的contentView
                 commonDialog.setContentView(contentView);
                 commonDialog.show();
+                return true;
+            case R.id.action_sync:
+                if (EvernoteSession.getInstance().isLoggedIn()) {
+                    helper.sync(true, true, null);
+                } else {
+                    ToastUtils.showSequenceToast(this, "还没有绑定Evernote");
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -218,18 +202,22 @@ public class MainActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 if (type == R.id.action_sort) {
+                    String temp = "";
                     switch (position) {
                         case 0:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_LASTMODIFYTIME).apply();
+                            temp = SPConstans.ORDER_SORTBY_LASTMODIFYTIME;
+
                             break;
                         case 1:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_CREATETIME).apply();
+                            temp = SPConstans.ORDER_SORTBY_CREATETIME;
 
                             break;
                         case 2:
-                            SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_NOTECONTENT).apply();
+                            temp = SPConstans.ORDER_SORTBY_NOTECONTENT;
                             break;
                     }
+
+                    SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, temp).apply();
                 }
                 commonDialog.dismiss();
 
@@ -272,43 +260,7 @@ public class MainActivity extends BaseActivity {
         //TODO 添加分隔线
 //        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
-        mSwipeRefreshLayout
-                .setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
 
-                        Observable
-                                .timer(3, TimeUnit.SECONDS)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Subscriber<Long>() {
-                                    @Override
-                                    public void onCompleted() {
-                                        mSwipeRefreshLayout.setRefreshing(false);
-                                        LogUtils.e(TAG, "onCompleted: ");
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable e) {
-
-                                    }
-
-                                    @Override
-                                    public void onNext(Long aLong) {
-                                        LogUtils.e(TAG, "onNext: " + "getEverNoteList");
-                                        getEvernteBook();
-
-                                    }
-
-                                    @Override
-                                    public void onStart() {
-                                        super.onStart();
-//                                        getDBlist();
-                                        LogUtils.e(TAG, "onStart: ");
-                                    }
-                                });
-                    }
-                });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
 
@@ -330,6 +282,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initData() {
+        if (EvernoteSession.getInstance().isLoggedIn()) helper = new EvernoteHelper(this, noteDao);
         noteList = new ArrayList<SimpleNote>();
 
         //设置 RecycleView的显示方式
@@ -337,6 +290,33 @@ public class MainActivity extends BaseActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
+
+//		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
+//		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
+        mRecycleView.setAdapter(noteAdapter);
+
+//		mListView.setAdapter(noteListAdapter);
+
+    }
+
+
+    private void getNoteList() {
+        try {
+            if (EvernoteSession.getInstance().isLoggedIn()) {
+                if (helper == null) helper = new EvernoteHelper(MainActivity.this, noteDao);
+                helper.sync(true, true, new SyncHandler());
+            } else {
+                LogUtils.e(TAG, "getNoteList: " + "还没有登录");
+                ToastUtils.showSequenceToast(this, "还没有登录");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initListener() {
+        drawerLayout.requestDisallowInterceptTouchEvent(true);
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
             public void onDelete(final SimpleNote note) {
@@ -360,7 +340,6 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         //取消删除操作
-
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(MainActivity.this, "取消删除");
@@ -370,85 +349,29 @@ public class MainActivity extends BaseActivity {
 
             }
         });
-//		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
-//		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
-        mRecycleView.setAdapter(noteAdapter);
-
-//		mListView.setAdapter(noteListAdapter);
-
+        mSwipeRefreshLayout
+                .setOnRefreshListener(() -> {
+                    Observable
+                            .timer(3, TimeUnit.SECONDS)
+                            .subscribeOn(AndroidSchedulers.mainThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(__ -> setAdapter())
+                            .observeOn(Schedulers.newThread())
+                            .doOnNext(__ -> getNoteList())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(__ -> {
+                                mSwipeRefreshLayout.setRefreshing(false);
+                                LogUtils.e(TAG, "onCompleted: ");
+                            });
+                });
     }
 
-    /**
-     * 从印象笔记中拉取数据
-     */
-    private void getEvernteBook() {
-        if (!EvernoteSession.getInstance().isLoggedIn()) {
-//            ToastUtils.showToast(this, "还没有绑定evernote");
-//            return;
-            List<SimpleNote> list = noteDao.queryBuilder().build().list();
-            if (!ListUtils.isEmpty(list)) {
-                noteAdapter.setList(list);
-                noteAdapter.notifyDataSetChanged();
-            }
-        } else {
-            noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
-            bookGuid = SPUtil.getString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, null);
-
-            if (bookGuid != null) {
-                getNoteList(bookGuid);
-            } else {
-                Observable
-                        .create((subscriber) -> {
-                            try {
-                                Notebook defaultNotebook = noteStoreClient.getDefaultNotebook();
-                                bookGuid = defaultNotebook.getGuid();
-                                SPUtil.saveString(MainActivity.this, Constans.DEFAULT_NOTEBOOK_GUID, bookGuid);
-                                subscriber.onNext(bookGuid);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                subscriber.onError(e);
-                            }
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(Schedulers.newThread())
-                        .subscribe(bookGuid -> getNoteList((String) bookGuid));
-
-            }
-
-
+    private void setAdapter() {
+        List<SimpleNote> list = noteDao.queryBuilder().build().list();
+        if (!ListUtils.isEmpty(list)) {
+            noteAdapter.setList(list);
+            noteAdapter.notifyDataSetChanged();
         }
-
-    }
-
-    private void getNoteList(String bookGuid) {
-        {
-            NoteFilter noteFilter = new NoteFilter();
-            noteFilter.setNotebookGuid(bookGuid);
-            noteFilter.setOrder(NoteSortOrder.UPDATED.getValue());
-            ExecutorService es = Executors.newFixedThreadPool(10);
-            try {
-                NoteCollectionCounts noteCounts = noteStoreClient.findNoteCounts(noteFilter, false);
-                Integer noteCount = noteCounts.getNotebookCounts().get(bookGuid);
-
-                NotesMetadataResultSpec notesMetadataResultSpec = new NotesMetadataResultSpec();
-                notesMetadataResultSpec.setIncludeUpdated(true);
-                NotesMetadataList notesMetadata = noteStoreClient.findNotesMetadata(noteFilter, 0, noteCount, notesMetadataResultSpec);
-
-                List<NoteMetadata> notes = notesMetadata.getNotes();
-
-                // TODO: 2016/8/24 sync note
-                helper.sync(true, true, new SyncHandler());
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
-    private void initListener() {
-        drawerLayout.requestDisallowInterceptTouchEvent(true);
     }
 
     @Override
@@ -546,6 +469,7 @@ public class MainActivity extends BaseActivity {
         blue = (int) Math.floor(blue * (1 - 0.1));
         return Color.rgb(red, green, blue);
     }
+
     @SuppressLint("HandlerLeak")
     class SyncHandler extends Handler {
         @Override

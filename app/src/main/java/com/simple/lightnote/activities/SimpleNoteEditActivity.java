@@ -18,17 +18,18 @@ import android.widget.LinearLayout;
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.constant.SPConstans;
 import com.simple.lightnote.db.DaoSession;
+import com.simple.lightnote.db.EvernoteHelper;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
-import com.simple.lightnote.utils.MD5Utils;
 import com.simple.lightnote.utils.ToastUtils;
 
 import java.util.List;
@@ -39,9 +40,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -61,29 +60,27 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
 
     private NoteDao noteDao;
-    private String s_noteContent;
-    private String md5;
     private SimpleNote note;
+    private EvernoteNoteStoreClient noteStoreClient;
+    private EvernoteHelper helper;
     /**
      * 笔记是否改变
      */
     private boolean textChanged;
-    private String noteId;
-    private EvernoteNoteStoreClient noteStoreClient;
+    //    private String noteId;
     private String guid;
+    private String s_noteContent;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_simplenoteedit);
         ButterKnife.bind(this);
-        initDB();
         initView();
-        initListener();
-        noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
         initData();
+        initListener();
+        loadData();
 //        loadData();
 
     }
@@ -91,7 +88,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     /***
      * 从数据库与网络加载数据
      */
-    private void loadData() {
+    private void loadDataFromMutiSource() {
         // TODO: 2016/8/18 从多个数据源获取数据
         Observable<SimpleNote> memorys = Observable.empty();
         Observable<SimpleNote> databases = Observable.empty();//取得数据后保存到memorys
@@ -111,7 +108,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        //TODO 保存文件
         Observable.create(new Observable.OnSubscribe<Object>() {
             @Override
             public void call(Subscriber<? super Object> subscriber) {
@@ -172,85 +168,67 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         });
     }
 
-    private void initDB() {
+    private void initData() {
         LightNoteApplication application = (LightNoteApplication) getApplication();
         DaoSession daoSession = application.getDaoSession();
         noteDao = daoSession.getNoteDao();
 
-    }
+        noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
 
-    private void initData() {
-        guid = getIntent().getStringExtra("noteId");
-        Log.e(TAG, "initData: " + this.noteId);
-        if (!TextUtils.isEmpty(guid)) {
-
-            Observable.create(new Observable.OnSubscribe<SimpleNote>() {
-                @Override
-                public void call(Subscriber<? super SimpleNote> subscriber) {
-                    List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).build().list();
-                    LogUtils.e(TAG, "call:  " + "从数据库取的list size: " + list.size() + "list content :" + list);
-                    if (!ListUtils.isEmpty(list)) {
-                        note = list.get(0);
-                        subscriber.onNext(note);
-                    } else {
-
-                        noteStoreClient.getNoteContentAsync(guid, new EvernoteCallback<String>() {
-                            @Override
-                            public void onSuccess(String noteContent) {
-                                if (!TextUtils.isEmpty(noteContent)) {
-                                    edt_noteContent.setText(noteContent);
-                                    edt_noteContent.setSelection(noteContent.length());
-
-                                    saveContent2DB(noteContent);
-
-                                }
-                            }
-
-                            @Override
-                            public void onException(Exception exception) {
-
-                            }
-                        });
-                    }
-                }
-            }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(note -> {
-                String noteContent = note.getContent();
-                if (!TextUtils.isEmpty(noteContent)) {
-                    if (note != null) {
-                        edt_noteContent.setText(noteContent);
-                        edt_noteContent.setSelection(noteContent.length());
-                    }
-                }
-            });
-
-
-        } else {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        }
         int showToolBar = SPUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
         setToolBarVisible(showToolBar);
+        helper = new EvernoteHelper(SimpleNoteEditActivity.this, noteDao);
+
     }
 
-    /**
-     * 保存从网络取到的NoteContent
-     *
-     * @param noteContent
-     */
-    private void saveContent2DB(String noteContent) {
-        Observable.just(noteContent).doOnNext(new Action1<String>() {
-            @Override
-            public void call(String s) {
-                if (!TextUtils.isEmpty(s)) {
-                    if (note == null) {
-                        note = new SimpleNote();
-                        note.setGuid(guid);
-                    }
-                    note.setContent(s);
-                    noteDao.update(note);
-                }
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe();
+    private void loadData() {
 
+        guid = getIntent().getStringExtra("noteId");
+        Log.e(TAG, "loadData: " + this.guid);
+        if (TextUtils.isEmpty(guid)) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        } else {
+
+            Observable.create(new Observable.OnSubscribe<String>() {
+                @Override
+                public void call(Subscriber<? super String> subscriber) {
+
+                    loadData(guid);
+                    if (!TextUtils.isEmpty(s_noteContent)) {
+                        Observable.create(subscriber1 -> helper.downloadNote(guid)).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe();
+                    } else {
+                        subscriber.onNext(s_noteContent);
+                    }
+
+                }
+
+
+            }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(str -> {
+                if (!TextUtils.isEmpty(str)) {
+                    edt_noteContent.setText(str);
+                    edt_noteContent.setSelection(str.length());
+                }
+            });
+        }
+
+
+    }
+
+    private void loadData(String guid) {
+        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).list();
+        if (!ListUtils.isEmpty(list)) {
+            note = list.get(0);
+            Observable.just(0)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(Schedulers.newThread())
+                    .doOnNext(__ -> saveToDB()).subscribe();
+            s_noteContent = note.getContent();
+        }
+
+        if (!TextUtils.isEmpty(s_noteContent)) {
+            edt_noteContent.setText(s_noteContent);
+            edt_noteContent.setSelection(s_noteContent.length());
+        }
     }
 
     private void initView() {
@@ -268,79 +246,46 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
     private void saveToDB() {
         s_noteContent = edt_noteContent.getText().toString().trim();
-        md5 = MD5Utils.MD5Encode(s_noteContent);
         if (note != null) {
             //更新
             if (!note.getContent().trim().equals(s_noteContent)) {
                 note.setTitle(note.getTitle());
-                note.setCreated(note.getCreated());
-                note.setUpdated(System.currentTimeMillis());
                 note.setContent(s_noteContent);
-                LogUtils.e(TAG, "更新");
-                LogUtils.e(TAG, note);
-                insertAndUpdate();
+                LogUtils.e(TAG, "更新Note: " + note);
+
+                Observable.just(0)
+                        .observeOn(Schedulers.newThread())
+                        .subscribeOn(Schedulers.io())
+                        .doOnNext(__ -> {
+                            try {
+                                helper.updateLocalNote(note.getGuid(), note.get_id());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).subscribe();
             }
         } else {
             //新建
             if (!TextUtils.isEmpty(s_noteContent)) {
                 note = new SimpleNote();
-                note.setCreated(System.currentTimeMillis());
-                note.setUpdated(System.currentTimeMillis());
                 note.setTitle(note.getTitle());
                 note.setContent(s_noteContent);
-                LogUtils.e(TAG, "新建");
-                LogUtils.e(TAG, note);
-                insertAndUpdate();
+                Observable.just(0)
+                        .observeOn(Schedulers.newThread())
+                        .subscribeOn(Schedulers.newThread())
+                        .doOnNext(__ -> {
+                            try {
+                                Note eNote = helper.createNote(note);
+                                LogUtils.e(TAG, "新建Note: " + eNote);
+                                noteDao.insert(SimpleNote.toSimpleNote(eNote));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).subscribe();
             }
 
         }
     }
-
-    private void insertAndUpdate() {
-        ToastUtils.showToast(SimpleNoteEditActivity.this, "正在保存");
-        Observable
-                .just(note)
-                .filter(new Func1<SimpleNote, Boolean>() {
-                    @Override
-                    public Boolean call(SimpleNote note) {
-                        return note != null;
-                    }
-                })
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        noteId = note.getGuid();
-                        if (noteId == null) {
-                            long insert = noteDao.insert(note);
-                        } else {
-                            noteDao.update(note);
-                        }
-
-
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<SimpleNote>() {
-                    @Override
-                    public void onCompleted() {
-                        LogUtils.d(TAG, "completed");
-                        textChanged = false;
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onNext(SimpleNote note) {
-                        onCompleted();
-                    }
-                });
-
-
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -434,7 +379,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 if (!TextUtils.isEmpty(trim)) {
                     Intent intent = new Intent(this, NotePreViewActivity.class);
                     intent.putExtra("sourceType", NotePreViewActivity.Source_id);
-                    intent.putExtra("noteId", noteId);
+                    intent.putExtra("noteId", guid);
                     startActivity(intent);
                 } else {
 

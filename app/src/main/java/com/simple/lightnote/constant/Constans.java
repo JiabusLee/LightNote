@@ -11,6 +11,6 @@ public interface Constans {
         String normal = "normal";
     }
 
-    public static final String DEFAULT_NOTEBOOK_GUID="default_notebook_Guid";
+    public static final String NOTEBOOK_GUID ="default_notebook_Guid";
 
 }

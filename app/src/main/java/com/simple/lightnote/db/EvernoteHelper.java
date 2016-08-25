@@ -51,28 +51,6 @@ public class EvernoteHelper {
         this.noteDao = dao;
     }
 
-    public boolean isNotebookExsist(String guid, String name) throws Exception {
-
-
-        boolean result = false;
-        try {
-            Notebook notebook = noteStoreClient
-                    .getNotebook(guid);
-            if (notebook.getName().equals(name)) {
-                result = true;
-                LogUtils.e(TAG, guid + "笔记本存在");
-                SPUtil.saveString(context, Constans.DEFAULT_NOTEBOOK_GUID, notebook.getGuid());
-
-            }
-        } catch (EDAMNotFoundException e) {
-            e.printStackTrace();
-            if (e.getIdentifier().equals("Notebook.guid")) {
-                result = false;
-                LogUtils.e(TAG, guid + "笔记本不存在");
-            }
-        }
-        return result;
-    }
 
     /**
      * create a notebook by bookname
@@ -90,8 +68,7 @@ public class EvernoteHelper {
             Notebook resultNotebook = noteStoreClient.createNotebook(notebook);
             result = true;
             LogUtils.e(TAG, "Notebook" + bookname + "不存在，创建成功");
-            SPUtil.saveString(context, Constans.DEFAULT_NOTEBOOK_GUID, notebook.getGuid());
-
+            SPUtil.saveString(context, Constans.NOTEBOOK_GUID, resultNotebook.getGuid());
 
         } catch (EDAMUserException e) {
             if (e.getErrorCode() == EDAMErrorCode.DATA_CONFLICT) {
@@ -105,20 +82,13 @@ public class EvernoteHelper {
         return result;
     }
 
-    private Note createNote(SimpleNote simpleNote) throws Exception {
+    public Note createNote(SimpleNote simpleNote) throws Exception {
         try {
             Note note = simpleNote.toNote();
-            note.setNotebookGuid(SPUtil.getString(context, Constans.DEFAULT_NOTEBOOK_GUID, null));
+            note.setNotebookGuid(SPUtil.getString(context, Constans.NOTEBOOK_GUID, null));
             Note responseNote = noteStoreClient.createNote(note);
             LogUtils.e(TAG, "Note创建成功");
-          /*  ContentValues values = new ContentValues();
-            values.put(MemoDB.ENID, responseNote.getGuid());
-            values.put(MemoDB.SYNCSTATUS, Memo.NEED_NOTHING);
-            values.put(MemoDB.UPDATEDTIME, responseNote.getUpdated());
-            values.put(MemoDB.HASH, responseNote.getContentHash());
-            mContentResolver.update(
-                    ContentUris.withAppendedId(MemoProvider.MEMO_URI,
-                            memo.getId()), values, null, null);*/
+
             return responseNote;
         } catch (EDAMUserException e) {
             throw new Exception("Note格式不合理");
@@ -129,7 +99,7 @@ public class EvernoteHelper {
         }
     }
 
-    private boolean deleteNote(Note note) {
+    public boolean deleteNote(Note note) {
         if (note.getGuid() == null) {
             LogUtils.e(TAG, "GUID是空，无需删除");
             return true;
@@ -151,7 +121,7 @@ public class EvernoteHelper {
         }
     }
 
-    private Note updateNote(SimpleNote simpleNote) throws Exception {
+    public Note updateNote(SimpleNote simpleNote) throws Exception {
 
         try {
             Note responseNote = noteStoreClient.updateNote(simpleNote.toUpdateNote());
@@ -170,37 +140,11 @@ public class EvernoteHelper {
         }
     }
 
-    private void makeSureNotebookExsits(String NotebookName) throws Exception {
-        try {
-            if (SPUtil.getInstance(context).contains(Constans.DEFAULT_NOTEBOOK_GUID)) {
-                if (!isNotebookExsist(SPUtil.getString(context, Constans.DEFAULT_NOTEBOOK_GUID, ""), NOTEBOOK_NAME)) {
-                    createNotebook(NOTEBOOK_NAME);
-                }
-            } else {
-                List<Notebook> books = noteStoreClient.listNotebooks();
-                int count = books.size();
-                for (int i = 0; i < count; i++) {
-                    Notebook book = books.get(i);
-                    if (book.getName().equals(NotebookName)) {
-                        SPUtil.saveString(context, Constans.DEFAULT_NOTEBOOK_GUID, NotebookName);
-                        return;
-                    }
-                }
-                createNotebook(NOTEBOOK_NAME);
-            }
 
-        } catch (Exception e) {
-            LogUtils.e(TAG, "检查笔记本是否存和创建笔记本的时候出现异常");
-            throw e;
-        }
-    }
-
-    private void downloadNote(String guid) {
+    public void downloadNote(String guid) {
         LogUtils.e(TAG, "准备添加:" + guid);
         try {
-            Note note = noteStoreClient
-                    .getNote(guid, true,
-                            false, false, false);
+            Note note = noteStoreClient.getNote(guid, true, false, false, false);
             LogUtils.e(TAG, "获取到的文本：" + note.getContent());
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
             noteDao.insert(simpleNote);
@@ -212,12 +156,10 @@ public class EvernoteHelper {
         }
     }
 
-    private void updateLocalNote(String guid, long _id) {
+    public void updateLocalNote(String guid, long _id) {
         LogUtils.e(TAG, "准备更新:" + guid);
         try {
-            Note note = noteStoreClient
-                    .getNote(guid, true,
-                            false, false, false);
+            Note note = noteStoreClient.getNote(guid, true, false, false, false);
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
             noteDao.update(simpleNote);
         } catch (TTransportException e) {
@@ -240,18 +182,13 @@ public class EvernoteHelper {
         }
         SyncingDown = true;
         NoteFilter noteFilter = new NoteFilter();
-
-        String guid = SPUtil.getString(context, Constans.DEFAULT_NOTEBOOK_GUID, "");
+        String guid = SPUtil.getString(context, Constans.NOTEBOOK_GUID, "");
         noteFilter.setNotebookGuid(guid);
         NotesMetadataResultSpec notesMetadataResultSpec = new NotesMetadataResultSpec();
         notesMetadataResultSpec.setIncludeUpdated(true);
         try {
-            NoteCollectionCounts noteCollectionCounts =
-                    noteStoreClient
-                            .findNoteCounts(
-                                    noteFilter, false);
-            Map<String, Integer> maps = noteCollectionCounts
-                    .getNotebookCounts();
+            NoteCollectionCounts noteCollectionCounts = noteStoreClient.findNoteCounts(noteFilter, false);
+            Map<String, Integer> maps = noteCollectionCounts.getNotebookCounts();
             if (maps == null || maps.size() == 0)
                 return;
             int maxcount = maps.get(guid);
@@ -261,13 +198,12 @@ public class EvernoteHelper {
                 long updated = metadata.getUpdated();
                 List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(metadata.getGuid())).list();
 
-
                 if (!ListUtils.isEmpty(list)) {
                     SimpleNote simpleNote = list.get(0);
 
-                    if (simpleNote.getUpdated() < metadata.getUpdated()) {
+                    if (simpleNote.getUpdated() < updated) {
                         updateNote(simpleNote);
-                    } else if (simpleNote.getUpdated() > metadata.getUpdated()) {
+                    } else if (simpleNote.getUpdated() > updated) {
                         updateLocalNote(metadata.getGuid(), simpleNote.get_id());
                     }
                 } else {
@@ -306,19 +242,16 @@ public class EvernoteHelper {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                } else {
-                    createNote(simpleNote);
                 }
-
             }
+            if (simpleNote.getGuid() == null) createNote(simpleNote);
         }
 
         SyncingUp = false;
 
     }
 
-    public synchronized void sync(final boolean syncUp, final boolean syncDown,
-                                  Handler handler) {
+    public synchronized void sync(final boolean syncUp, final boolean syncDown, Handler handler) {
         if (handler != null) {
             handler.sendEmptyMessage(SYNC_START);
         }
@@ -329,6 +262,52 @@ public class EvernoteHelper {
                                      final boolean syncDown, Handler handler) {
         new SyncTask(syncUp, syncDown, handler).execute();
     }
+
+    private void makeSureNotebookExists(String NotebookName) throws Exception {
+        try {
+            if (SPUtil.getInstance(context).contains(Constans.NOTEBOOK_GUID)) {
+                if (!isNotebookExist(SPUtil.getString(context, Constans.NOTEBOOK_GUID, ""), NOTEBOOK_NAME)) {
+                    createNotebook(NOTEBOOK_NAME);
+                }
+            } else {
+                List<Notebook> books = noteStoreClient.listNotebooks();
+                int count = books.size();
+                for (int i = 0; i < count; i++) {
+                    Notebook book = books.get(i);
+                    if (book.getName().equals(NotebookName)) {
+                        SPUtil.saveString(context, Constans.NOTEBOOK_GUID, book.getGuid());
+                        return;
+                    }
+                }
+                createNotebook(NOTEBOOK_NAME);
+            }
+
+        } catch (Exception e) {
+            LogUtils.e(TAG, "检查笔记本是否存和创建笔记本的时候出现异常");
+            throw e;
+        }
+    }
+
+    public boolean isNotebookExist(String guid, String name) throws Exception {
+        boolean result = false;
+        try {
+            Notebook notebook = noteStoreClient.getNotebook(guid);
+            if (notebook.getName().equals(name)) {
+                result = true;
+                LogUtils.e(TAG, guid + "笔记本存在");
+                SPUtil.saveString(context, Constans.NOTEBOOK_GUID, notebook.getGuid());
+
+            }
+        } catch (EDAMNotFoundException e) {
+            e.printStackTrace();
+            if (e.getIdentifier().equals("Notebook.guid")) {
+                result = false;
+                LogUtils.e(TAG, guid + "笔记本不存在");
+            }
+        }
+        return result;
+    }
+
 
     class SyncTask extends AsyncTask<Void, Integer, Void> {
 
@@ -358,7 +337,7 @@ public class EvernoteHelper {
             }
             publishProgress(new Integer[]{SYNC_START});
             try {
-                makeSureNotebookExsits(NOTEBOOK_NAME);
+                makeSureNotebookExists(NOTEBOOK_NAME);
                 if (mSyncUp)
                     syncUp();
                 if (mSyncDown)

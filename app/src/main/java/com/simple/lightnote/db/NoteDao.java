@@ -211,23 +211,25 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     }
 
 
+
+
+
     @Override
     public long insert(SimpleNote entity) {
         if (entity != null) {
-
             long count = queryBuilder().where(Properties.guid.eq(entity.getGuid())).count();
             if (count == 0) {
                 super.insert(entity);
             }
         }
-        return 0;
+        return -1;
     }
 
-    public void insertAll(List<SimpleNote> lists) {
+    public void insertList(List<SimpleNote> lists) {
         Observable.from(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(note -> {
-            Log.e(TAG, "insertAll: " + note);
+            Log.e(TAG, "insertList: " + note);
             return insert(note);
-        }).subscribe(l -> Log.e(TAG, "insertAll: save success" + l));
+        }).subscribe(l -> Log.e(TAG, "insertList: save success" + l));
     }
 
 
