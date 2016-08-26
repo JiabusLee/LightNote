@@ -2,6 +2,7 @@ package com.simple.lightnote.db;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.simple.lightnote.model.SimpleNote;
@@ -67,13 +68,11 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     }
 
 
-
     @Override
     protected Long readKey(Cursor cursor, int offset) {
         LogUtils.e(TAG, "readKey: " + cursor);
         return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
     }
-
 
 
     @Override
@@ -111,7 +110,8 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         String notebookGuid = entity.getNotebookGuid();
         if (notebookGuid != null) stmt.bindString(10, notebookGuid);
 
-
+        int status = entity.getStatus();
+        stmt.bindLong(11, status);
 
     }
 
@@ -132,6 +132,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
         entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
 
+        entity.setStatus(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
 
     }
 
@@ -151,8 +152,10 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
         entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
 
+        entity.setStatus(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
         return entity;
     }
+
     @Override
     protected void bindValues(SQLiteStatement stmt, SimpleNote entity) {
 
@@ -188,6 +191,8 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         String notebookGuid = entity.getNotebookGuid();
         if (notebookGuid != null) stmt.bindString(10, notebookGuid);
 
+        int status = entity.getStatus();
+        stmt.bindLong(11, status);
     }
 
 
@@ -211,16 +216,19 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     }
 
 
-
-
-
     @Override
     public long insert(SimpleNote entity) {
         if (entity != null) {
-            long count = queryBuilder().where(Properties.guid.eq(entity.getGuid())).count();
-            if (count == 0) {
-                super.insert(entity);
+            String guid = entity.getGuid();
+            if (!TextUtils.isEmpty(guid)) {
+                long count = queryBuilder().where(Properties.guid.eq(entity.getGuid())).count();
+                if (count == 0) {
+                    return super.insert(entity);
+                }
+            } else {
+                return super.insert(entity);
             }
+
         }
         return -1;
     }

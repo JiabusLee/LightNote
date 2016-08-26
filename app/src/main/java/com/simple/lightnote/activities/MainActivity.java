@@ -96,6 +96,7 @@ public class MainActivity extends BaseActivity {
     private LightNoteApplication app;
     private DaoSession daoSession;
     private EvernoteHelper helper;
+    private View view;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -108,7 +109,8 @@ public class MainActivity extends BaseActivity {
         start = System.currentTimeMillis();
 //		requestWindowFeature(Window.);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        view = View.inflate(this, R.layout.activity_main, null);
+        setContentView(view);
         ButterKnife.bind(this);
         initView();
         initDrawerView();
@@ -278,19 +280,17 @@ public class MainActivity extends BaseActivity {
         };
         fab.attachToRecyclerView(mRecycleView, listener);
         fab.setOnClickListener(this);
-//        fab.setOnLongClickListener();
     }
 
     private void initData() {
         if (EvernoteSession.getInstance().isLoggedIn()) helper = new EvernoteHelper(this, noteDao);
         noteList = new ArrayList<SimpleNote>();
-
         //设置 RecycleView的显示方式
         noteAdapter = new RecycleViewNoteListAdapter(noteList);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
-
+        noteAdapter.setNotDao(noteDao);
 //		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
 //		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
         mRecycleView.setAdapter(noteAdapter);
@@ -306,8 +306,8 @@ public class MainActivity extends BaseActivity {
                 if (helper == null) helper = new EvernoteHelper(MainActivity.this, noteDao);
                 helper.sync(true, true, new SyncHandler());
             } else {
-                LogUtils.e(TAG, "getNoteList: " + "还没有登录");
-                ToastUtils.showSequenceToast(this, "还没有登录");
+                LogUtils.e(TAG, "getNoteList: " + "还没有绑定Evernote");
+                ToastUtils.showSequenceToast(this, "还没有绑定Evernote");
             }
 
         } catch (Exception e) {
@@ -320,8 +320,7 @@ public class MainActivity extends BaseActivity {
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
             public void onDelete(final SimpleNote note) {
-                Snackbar snackbar = Snackbar.make(contentView,
-                        "删除内容", Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(view,"删除内容", Snackbar.LENGTH_LONG);
                 snackbar.setCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar snackbar, int event) {
@@ -340,6 +339,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onClick(View v) {
                         //取消删除操作
+                        note.setStatus(SimpleNote.st_noting);
                         noteDao.update(note);
 //                        noteAdapter.notifyItemInserted(note.getId());
                         ToastUtils.showToast(MainActivity.this, "取消删除");
@@ -367,7 +367,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void setAdapter() {
-        List<SimpleNote> list = noteDao.queryBuilder().build().list();
+        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.status.notEq(SimpleNote.st_delete)).build().list();
         if (!ListUtils.isEmpty(list)) {
             noteAdapter.setList(list);
             noteAdapter.notifyDataSetChanged();

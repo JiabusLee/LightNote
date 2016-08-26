@@ -2,8 +2,6 @@ package com.simple.lightnote.adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.Html;
@@ -19,8 +17,6 @@ import android.widget.TextView;
 
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.SimpleNoteEditActivity;
-import com.simple.lightnote.db.DaoMaster;
-import com.simple.lightnote.db.DaoSession;
 import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.interfaces.ActionListener;
 import com.simple.lightnote.interfaces.MyItemClickListener;
@@ -34,9 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
-import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -46,7 +41,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     static int day = 3600 * 24 * 1000;
     Context mContext;
     ActionListener actionListener;
-    private Cursor cursor;
+    NoteDao noteDao;
     private List<SimpleNote> list;
     private RecyclerViewHolder recyclerViewHolder;
 
@@ -54,8 +49,8 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         this.list = note;
     }
 
-    public RecycleViewNoteListAdapter(Cursor cursor) {
-        this.cursor = cursor;
+    public void setNotDao(NoteDao dao) {
+        this.noteDao = dao;
     }
 
     public void setList(List<SimpleNote> note) {
@@ -99,15 +94,12 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
             ((RecyclerViewHolder) holder).tv_content.setText(Html.fromHtml(sb.toString()));
 
 
-            ((RecyclerViewHolder) holder).ll_container.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    ToastUtils.showSequenceToast(mContext, "onDelete position:" + position);
-                    SimpleNote note1 = list.remove(position);
-                    removeEntity(note1);
-                    notifyItemRemove(position);
-                    return false;
-                }
+            ((RecyclerViewHolder) holder).ll_container.setOnLongClickListener(__ -> {
+                ToastUtils.showSequenceToast(mContext, "onDelete position:" + position);
+                SimpleNote note1 = list.remove(position);
+                removeEntity(note1);
+                notifyItemRemove(position);
+                return false;
             });
         }
     }
@@ -123,23 +115,17 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         if (l1 < 1000 * 60 * 3) {
             showTime = "刚刚";
         } else if (l1 < day) {
-
             boolean b = l / day - lastModifyTime / day < day;
-
             if (b && i == 0) {
                 showTime = DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             } else {
                 showTime = "昨天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
             }
         } else if (i == 1) {
-//            String hL = DateUtils.getDateByTimestamp(lastModifyTime, "HH");
-//            String hC = DateUtils.getDateByTimestamp(l, "HH");
-//            int i1 = Integer.valueOf(hC) - Integer.valueOf(hL);
             showTime = "昨天 " + DateUtils.getDateByTimestamp(lastModifyTime, "HH:mm");
         } else {
             showTime = DateUtils.getDateByTimestamp(lastModifyTime, "yyyy/MM/dd");
         }
-
 
         return showTime;
 
@@ -153,50 +139,23 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     private void removeEntity(final SimpleNote note1) {
 
 
-        Observable.just(note1).map(new Func1<SimpleNote, Void>() {
-            @Override
-            public Void call(SimpleNote note) {
-
-                DaoMaster daoMaster;
-                DaoSession daoSession;
-                NoteDao noteDao;
-
-                DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(mContext, "lightnote", null);
-                SQLiteDatabase db = helper.getWritableDatabase();
-
-                daoMaster = new DaoMaster(db);
-                daoSession = daoMaster.newSession();
-                noteDao = daoSession.getNoteDao();
-
-                noteDao.update(note);
-//                noteDao.deleteByKey(note.getId());
-                return null;
-            }
-
-        }).subscribeOn(Schedulers.io())
+        Observable.just(note1)
+                .observeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Action1<SimpleNote>() {
+                    @Override
+                    public void call(SimpleNote simpleNote) {
+                        simpleNote.setStatus(SimpleNote.st_delete);
+                        noteDao.update(simpleNote);
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Void>() {
-                    @Override
-                    public void onCompleted() {
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onNext(Void aVoid) {
-                        actionListener.onDelete(note1);
-                    }
-                });
+                .subscribe(__ -> actionListener.onDelete(note1));
 
 
     }
 
     public void notifyItemRemove(int position) {
-
         notifyItemRemoved(position);
         notifyItemRangeChanged(position, list.size());
     }
@@ -237,10 +196,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                 //跳转使用NoteID来传递笔记
                 if (postion != RecyclerView.NO_POSITION) {
                     SimpleNote note = list.get(postion);
-//                    String s = JSON.toJSONString(note);
-                    String guid = note.getGuid();
+                    Long id = note.get_id();
                     Intent intent = new Intent(mContext, SimpleNoteEditActivity.class);
-                    intent.putExtra("noteId", guid);
+                    intent.putExtra("noteId", id);
                     mContext.startActivity(intent);
                 }
 
@@ -292,8 +250,6 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         public void onClick(View v) {
             if (clickListener != null) clickListener.onClick(v, getAdapterPosition());
         }
-
-
         public void setClickListener(MyItemClickListener l) {
             this.clickListener = l;
         }

@@ -16,7 +16,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.evernote.client.android.EvernoteSession;
-import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.type.Note;
 import com.simple.lightnote.LightNoteApplication;
@@ -33,14 +32,15 @@ import com.simple.lightnote.utils.LogUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import rx.Observable;
-import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -70,6 +70,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     //    private String noteId;
     private String guid;
     private String s_noteContent;
+    private long noteId;
 
 
     @Override
@@ -81,7 +82,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         initData();
         initListener();
         loadData();
-//        loadData();
 
     }
 
@@ -108,45 +108,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Observable.create(new Observable.OnSubscribe<Object>() {
-            @Override
-            public void call(Subscriber<? super Object> subscriber) {
-                saveToDB();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe(new Subscriber<Object>() {
-            @Override
-            public void onCompleted() {
-                textChanged = false;
-            }
-
-            @Override
-            public void onError(Throwable e) {
-
-            }
-
-            @Override
-            public void onNext(Object o) {
-
-            }
-        });
-        Observable.create(new Observable.OnSubscribe<Object>() {
-            @Override
-            public void call(Subscriber<? super Object> subscriber) {
-                com.evernote.edam.type.Note note = new com.evernote.edam.type.Note();
-                note.setContent(edt_noteContent.getText().toString().trim());
-                noteStoreClient.createNoteAsync(note, new EvernoteCallback<com.evernote.edam.type.Note>() {
-                    @Override
-                    public void onSuccess(com.evernote.edam.type.Note result) {
-
-                    }
-
-                    @Override
-                    public void onException(Exception exception) {
-
-                    }
-                });
-            }
-        });
+        saveToDB();
     }
 
     private void initListener() {
@@ -178,57 +140,70 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         int showToolBar = SPUtil.getInstance(this).getInt(SPConstans.EDIT_TOOL_BAR, -1);
         setToolBarVisible(showToolBar);
         helper = new EvernoteHelper(SimpleNoteEditActivity.this, noteDao);
-
+        noteId = getIntent().getLongExtra("noteId", -1);
+        Log.e(TAG, "loadData: " + noteId);
+        if (noteId > 0) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
     }
 
     private void loadData() {
 
-        guid = getIntent().getStringExtra("noteId");
-        Log.e(TAG, "loadData: " + this.guid);
-        if (TextUtils.isEmpty(guid)) {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        } else {
-
-            Observable.create(new Observable.OnSubscribe<String>() {
-                @Override
-                public void call(Subscriber<? super String> subscriber) {
-
-                    loadData(guid);
-                    if (!TextUtils.isEmpty(s_noteContent)) {
-                        Observable.create(subscriber1 -> helper.downloadNote(guid)).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe();
-                    } else {
-                        subscriber.onNext(s_noteContent);
-                    }
-
-                }
-
-
-            }).observeOn(AndroidSchedulers.mainThread()).subscribeOn(AndroidSchedulers.mainThread()).subscribe(str -> {
-                if (!TextUtils.isEmpty(str)) {
-                    edt_noteContent.setText(str);
-                    edt_noteContent.setSelection(str.length());
-                }
-            });
-        }
-
-
-    }
-
-    private void loadData(String guid) {
-        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).list();
+        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Id.eq(noteId)).list();
         if (!ListUtils.isEmpty(list)) {
             note = list.get(0);
-            Observable.just(0)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(Schedulers.newThread())
-                    .doOnNext(__ -> saveToDB()).subscribe();
-            s_noteContent = note.getContent();
+            Observable.just(note)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .flatMap(new Func1<SimpleNote, Observable<?>>() {
+                        @Override
+                        public Observable<?> call(SimpleNote simpleNote) {
+                            if (simpleNote.getContent() != null)
+                                return Observable.just(simpleNote);
+                            else {
+                                if (simpleNote.getGuid() != null) {
+
+                                    String guid = simpleNote.getGuid();
+                                    helper.downloadNote(guid);
+                                    Observable.just(0).repeatWhen(new Func1<Observable<? extends Void>, Observable<?>>() {
+                                        @Override
+                                        public Observable<?> call(Observable<? extends Void> observable) {
+                                            return observable.delay(1, TimeUnit.SECONDS);
+                                        }
+                                    }).doOnNext(__ -> loadData()).subscribe();
+                                }
+                            }
+                            return null;
+                        }
+                    })
+                    .filter(new Func1<Object, Boolean>() {
+                        @Override
+                        public Boolean call(Object o) {
+                            if (o != null) {
+                                SimpleNote simpleNote = (SimpleNote) o;
+                                Observable
+                                        .just(simpleNote)
+                                        .subscribeOn(AndroidSchedulers.mainThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .doOnNext(new Action1<SimpleNote>() {
+                                            @Override
+                                            public void call(SimpleNote simpleNote) {
+                                                s_noteContent = simpleNote.getContent();
+                                                if (!TextUtils.isEmpty(s_noteContent)) {
+                                                    edt_noteContent.setText(s_noteContent);
+                                                    edt_noteContent.setSelection(s_noteContent.length());
+                                                }
+
+                                            }
+                                        }).subscribe();
+                                return true;
+                            }
+                            return false;
+                        }
+                    }).subscribe();
+
         }
 
-        if (!TextUtils.isEmpty(s_noteContent)) {
-            edt_noteContent.setText(s_noteContent);
-            edt_noteContent.setSelection(s_noteContent.length());
-        }
     }
 
     private void initView() {
@@ -246,6 +221,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
     private void saveToDB() {
         s_noteContent = edt_noteContent.getText().toString().trim();
+
         if (note != null) {
             //更新
             if (!note.getContent().trim().equals(s_noteContent)) {
@@ -258,7 +234,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         .subscribeOn(Schedulers.io())
                         .doOnNext(__ -> {
                             try {
-                                helper.updateLocalNote(note.getGuid(), note.get_id());
+                                if (note.getGuid() != null)
+                                    helper.updateLocalNote(note.getGuid(), note.get_id());
+                                else helper.createNote(note);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -275,8 +253,8 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         .subscribeOn(Schedulers.newThread())
                         .doOnNext(__ -> {
                             try {
+                                LogUtils.e(TAG, "新建Note: " + note);
                                 Note eNote = helper.createNote(note);
-                                LogUtils.e(TAG, "新建Note: " + eNote);
                                 noteDao.insert(SimpleNote.toSimpleNote(eNote));
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -379,7 +357,7 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                 if (!TextUtils.isEmpty(trim)) {
                     Intent intent = new Intent(this, NotePreViewActivity.class);
                     intent.putExtra("sourceType", NotePreViewActivity.Source_id);
-                    intent.putExtra("noteId", guid);
+                    intent.putExtra("noteId", note.get_id());
                     startActivity(intent);
                 } else {
 

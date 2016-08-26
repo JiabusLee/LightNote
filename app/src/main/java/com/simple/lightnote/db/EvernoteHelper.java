@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 
 import com.evernote.client.android.EvernoteSession;
+import com.evernote.client.android.EvernoteUtil;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
 import com.evernote.edam.error.EDAMNotFoundException;
@@ -22,6 +23,7 @@ import com.evernote.thrift.transport.TTransportException;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
+import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 
@@ -84,13 +86,19 @@ public class EvernoteHelper {
 
     public Note createNote(SimpleNote simpleNote) throws Exception {
         try {
+            if (simpleNote.getTitle() == null) {
+                simpleNote.setTitle(DateUtils.getDateByTimestamp(System.currentTimeMillis(), "MM月dd日 HH:mm:ss"));
+            }
             Note note = simpleNote.toNote();
             note.setNotebookGuid(SPUtil.getString(context, Constans.NOTEBOOK_GUID, null));
+            LogUtils.e(TAG, "createNote: " + note);
+            note.setContent(EvernoteUtil.NOTE_PREFIX + note.getContent() + EvernoteUtil.NOTE_SUFFIX);
             Note responseNote = noteStoreClient.createNote(note);
             LogUtils.e(TAG, "Note创建成功");
 
             return responseNote;
         } catch (EDAMUserException e) {
+            e.printStackTrace();
             throw new Exception("Note格式不合理");
         } catch (EDAMNotFoundException e) {
             throw new Exception("笔记本不存在");
@@ -161,6 +169,7 @@ public class EvernoteHelper {
         try {
             Note note = noteStoreClient.getNote(guid, true, false, false, false);
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
+            simpleNote.set_id(_id);
             noteDao.update(simpleNote);
         } catch (TTransportException e) {
             e.printStackTrace();
@@ -236,15 +245,19 @@ public class EvernoteHelper {
             if (simpleNote.getDeleted() > 0) {
                 deleteNote(simpleNote.toDeleteNote());
             } else {
+
+//                guid 服务器上已经存在记录
+//                status 本地的状态
                 if (simpleNote.isNeedSyncUp()) {
-                    try {
+                    if (simpleNote.getGuid() != null) {
                         updateNote(simpleNote);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } else {
+                        createNote(simpleNote);
                     }
                 }
+
+
             }
-            if (simpleNote.getGuid() == null) createNote(simpleNote);
         }
 
         SyncingUp = false;

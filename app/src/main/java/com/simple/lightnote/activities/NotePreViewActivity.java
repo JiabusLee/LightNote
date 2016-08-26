@@ -88,7 +88,7 @@ public class NotePreViewActivity extends BaseActivity {
                 loadMarkDown(fileContents);
                 break;
             case Source_id:
-                String noteId = getIntent().getStringExtra("noteId");
+                long noteId = getIntent().getLongExtra("noteId", -1);
                 getNote(noteId);
                 loadMarkDown(fileContents);
                 break;
@@ -104,13 +104,12 @@ public class NotePreViewActivity extends BaseActivity {
      *
      * @param guid
      */
-    private void getNote(String guid) {
+    private void getNote(long guid) {
 
         DaoSession daoSession = ((LightNoteApplication) getApplication()).getDaoSession();
         NoteDao noteDao = daoSession.getNoteDao();
-        if (!TextUtils.isEmpty(guid)) {
-
-            List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(guid)).list();
+        if (guid > 0) {
+            List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Id.eq(guid)).list();
             if (!ListUtils.isEmpty(list)) {
                 SimpleNote simpleNote = list.get(0);
                 fileContents = simpleNote.getContent();
