@@ -6,6 +6,7 @@ import android.os.Handler;
 
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.EvernoteUtil;
+import com.evernote.client.android.asyncclient.EvernoteHtmlHelper;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
 import com.evernote.edam.error.EDAMNotFoundException;
@@ -129,6 +130,12 @@ public class EvernoteHelper {
         }
     }
 
+    /**
+     * 上传本地的笔记
+     * @param simpleNote
+     * @return
+     * @throws Exception
+     */
     public Note updateNote(SimpleNote simpleNote) throws Exception {
 
         try {
@@ -164,12 +171,26 @@ public class EvernoteHelper {
         }
     }
 
+    /**
+     * 更新本地的笔记
+     * @param guid
+     * @param _id
+     */
     public void updateLocalNote(String guid, long _id) {
         LogUtils.e(TAG, "准备更新:" + guid);
         try {
             Note note = noteStoreClient.getNote(guid, true, false, false, false);
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
-            simpleNote.set_id(_id);
+
+            List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Id.eq(_id)).list();
+            if(!ListUtils.isEmpty(list)){
+                SimpleNote simpleNote1 = list.get(0);
+                int status = simpleNote1.getStatus();
+                simpleNote.set_id(_id);
+                simpleNote.setStatus(status);
+
+            }
+
             noteDao.update(simpleNote);
         } catch (TTransportException e) {
             e.printStackTrace();
@@ -205,7 +226,7 @@ public class EvernoteHelper {
             List<NoteMetadata> notes = notesMetadata.getNotes();
             for (NoteMetadata metadata : notes) {
                 long updated = metadata.getUpdated();
-                List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.guid.eq(metadata.getGuid())).list();
+                List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Guid.eq(metadata.getGuid())).list();
 
                 if (!ListUtils.isEmpty(list)) {
                     SimpleNote simpleNote = list.get(0);
@@ -239,25 +260,25 @@ public class EvernoteHelper {
         }
         LogUtils.e(TAG, "开始同步");
         SyncingUp = true;
-        LazyList<SimpleNote> simpleNotes = noteDao.queryBuilder().listLazy();
+        LazyList<SimpleNote> simpleNotes = noteDao.queryBuilder().where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete)).listLazy();
 
         for (SimpleNote simpleNote : simpleNotes) {
-            if (simpleNote.getDeleted() > 0) {
-                deleteNote(simpleNote.toDeleteNote());
-            } else {
 
-//                guid 服务器上已经存在记录
-//                status 本地的状态
-                if (simpleNote.isNeedSyncUp()) {
-                    if (simpleNote.getGuid() != null) {
+            //1. 是否是已经同步过(guid)
+            //2. 是否是删除的状态(isDeleted)
+            //3. 是不是修改过的状态(needSyncUp)
+            if(simpleNote.getGuid()!=null){
+                if(simpleNote.getStatus()==SimpleNote.st_sync){
+                        //更新以本地的数据为准(guid)
                         updateNote(simpleNote);
-                    } else {
-                        createNote(simpleNote);
-                    }
                 }
 
-
+            }else{
+                if(simpleNote.getStatus()==SimpleNote.st_sync){
+                    createNote(simpleNote);
+                }
             }
+
         }
 
         SyncingUp = false;

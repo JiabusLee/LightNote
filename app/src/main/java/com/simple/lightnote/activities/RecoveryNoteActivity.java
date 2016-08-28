@@ -75,7 +75,6 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
     }
 
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -193,7 +192,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
                         daoSession = daoMaster.newSession();
                         noteDao = daoSession.getNoteDao();
                         Log.e(TAG, "call: " + noteDao.queryBuilder().list().toString());
-                        List<SimpleNote> list = noteDao.queryBuilder().orderDesc(NoteDao.Properties.updateTime).list();
+                        List<SimpleNote> list = noteDao.queryBuilder().orderDesc(NoteDao.Properties.UpdateTime).list();
                         System.out.println(list);
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                         return list;

@@ -60,11 +60,12 @@ import com.simple.lightnote.view.SwipeMenuRecyclerView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 //import com.evernote.edam.type.Note;
@@ -97,6 +98,7 @@ public class MainActivity extends BaseActivity {
     private DaoSession daoSession;
     private EvernoteHelper helper;
     private View view;
+    private FloatingActionButton fab;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -112,13 +114,17 @@ public class MainActivity extends BaseActivity {
         view = View.inflate(this, R.layout.activity_main, null);
         setContentView(view);
         ButterKnife.bind(this);
+        init();
+        setAdapter();
+        syncNote();
+    }
+
+    private void init() {
         initView();
         initDrawerView();
         initDB();
         initData();
         initListener();
-        setAdapter();
-        getNoteList();
     }
 
     private void initDB() {
@@ -248,10 +254,9 @@ public class MainActivity extends BaseActivity {
         mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(mToolbar);
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
-                this, drawerLayout, mToolbar, R.string.open_string,
-                R.string.close_string);
+                this, drawerLayout, mToolbar, R.string.open_string, R.string.close_string);
         actionBarDrawerToggle.syncState();
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
 //        mSwipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary);
         mSwipeRefreshLayout.setEnabled(true);
@@ -263,23 +268,11 @@ public class MainActivity extends BaseActivity {
 //        mRecycleView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
 
 
 //          fab.attachToListView(mRecycleView, );
-        ScrollDirectionListener listener = new ScrollDirectionListener() {
-            @Override
-            public void onScrollDown() {
-                LogUtils.d("ListViewFragment", "onScrollDown()");
-            }
 
-            @Override
-            public void onScrollUp() {
-                LogUtils.d("ListViewFragment", "onScrollUp()");
-            }
-        };
-        fab.attachToRecyclerView(mRecycleView, listener);
-        fab.setOnClickListener(this);
     }
 
     private void initData() {
@@ -300,14 +293,14 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    private void getNoteList() {
+    private void syncNote() {
         try {
             if (EvernoteSession.getInstance().isLoggedIn()) {
                 if (helper == null) helper = new EvernoteHelper(MainActivity.this, noteDao);
                 helper.sync(true, true, new SyncHandler());
             } else {
-                LogUtils.e(TAG, "getNoteList: " + "还没有绑定Evernote");
                 ToastUtils.showSequenceToast(this, "还没有绑定Evernote");
+                LogUtils.e(TAG, "syncNote: " + "还没有绑定Evernote");
             }
 
         } catch (Exception e) {
@@ -320,7 +313,7 @@ public class MainActivity extends BaseActivity {
         noteAdapter.setActionListener(new DefaultActionListener() {
             @Override
             public void onDelete(final SimpleNote note) {
-                Snackbar snackbar = Snackbar.make(view,"删除内容", Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(view, "删除内容", Snackbar.LENGTH_LONG);
                 snackbar.setCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar snackbar, int event) {
@@ -352,26 +345,82 @@ public class MainActivity extends BaseActivity {
         mSwipeRefreshLayout
                 .setOnRefreshListener(() -> {
                     Observable
-                            .timer(3, TimeUnit.SECONDS)
-                            .subscribeOn(AndroidSchedulers.mainThread())
+                            .just(0)
                             .observeOn(AndroidSchedulers.mainThread())
+                            .map(integer -> {
+                                mSwipeRefreshLayout.setRefreshing(true);
+                                return null;
+                            })
+                            .subscribeOn(AndroidSchedulers.mainThread())
                             .doOnNext(__ -> setAdapter())
                             .observeOn(Schedulers.newThread())
-                            .doOnNext(__ -> getNoteList())
+                            .doOnNext(__ -> syncNote())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(__ -> {
                                 mSwipeRefreshLayout.setRefreshing(false);
                                 LogUtils.e(TAG, "onCompleted: ");
                             });
                 });
+        ScrollDirectionListener listener = new ScrollDirectionListener() {
+            @Override
+            public void onScrollDown() {
+                LogUtils.d("ListViewFragment", "onScrollDown()");
+            }
+
+            @Override
+            public void onScrollUp() {
+                LogUtils.d("ListViewFragment", "onScrollUp()");
+            }
+        };
+        fab.attachToRecyclerView(mRecycleView, listener);
+        fab.setOnClickListener(this);
     }
 
     private void setAdapter() {
-        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.status.notEq(SimpleNote.st_delete)).build().list();
-        if (!ListUtils.isEmpty(list)) {
-            noteAdapter.setList(list);
-            noteAdapter.notifyDataSetChanged();
-        }
+        Observable
+                .just(0)
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(Integer integer) {
+                        mSwipeRefreshLayout.setRefreshing(true);
+                        return null;
+                    }
+                })
+                .observeOn(Schedulers.io())
+                .map(new Func1<Integer, List<SimpleNote>>() {
+                    @Override
+                    public List<SimpleNote> call(Integer integer) {
+                        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete)).build().list();
+                        return list;
+                    }
+                })
+
+                .filter(new Func1<List<SimpleNote>, Boolean>() {
+                    @Override
+                    public Boolean call(List<SimpleNote> simpleNotes) {
+                        return !ListUtils.isEmpty(simpleNotes);
+                    }
+                })
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<List<SimpleNote>>() {
+                    @Override
+                    public void onCompleted() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onNext(List<SimpleNote> simpleNotes) {
+                        noteAdapter.setList(simpleNotes);
+                        noteAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     @Override
@@ -481,7 +530,7 @@ public class MainActivity extends BaseActivity {
                     break;
                 case EvernoteHelper.SYNC_END:
 //                    findViewById(R.id.sync_progress).setVisibility(View.GONE);
-                    List<SimpleNote> list = noteDao.queryBuilder().list();
+                    List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete)).list();
                     noteAdapter.setList(list);
                     noteAdapter.notifyDataSetChanged();
 
