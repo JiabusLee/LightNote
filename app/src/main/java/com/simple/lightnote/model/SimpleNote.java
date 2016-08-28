@@ -20,28 +20,34 @@ public class SimpleNote {
 
 
     private Long _id;
-    private String nid;
+
     private String guid;
     private String title;
     private String content;
-    private String contentHash;
-    private int contentLength;
+    private String notebookGuid;
+    private String nid;
+
     private long created;
     private long updated;
     private long deleted;
-    private int active = ac_live;
 
-    private String notebookGuid;
+    private int active = ac_live;
+    private int status = st_noting;
+
+    private int contentLength;
+    private String contentHash;
 
     private List<String> tagGuids;
-
     private List<String> tagNames;
 
 
-    private int status = st_noting;
 
 
     public SimpleNote() {
+    }
+
+    public void set_id(Long _id) {
+        this._id = _id;
     }
 
     @NonNull
@@ -52,6 +58,7 @@ public class SimpleNote {
     }
 
     public static SimpleNote simple(Note note, SimpleNote simpleNote) {
+        simpleNote.set_id(simpleNote.get_id());
         simpleNote.setContent(note.getContent());
         simpleNote.setActive(note.isSetActive() ? ac_live : ac_die);
         simpleNote.setGuid(note.getGuid());
@@ -73,6 +80,7 @@ public class SimpleNote {
     public String toString() {
         return "SimpleNote{" +
                 "_id=" + _id +
+                ", nid='" + nid + '\'' +
                 ", guid='" + guid + '\'' +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
@@ -85,15 +93,12 @@ public class SimpleNote {
                 ", notebookGuid='" + notebookGuid + '\'' +
                 ", tagGuids=" + tagGuids +
                 ", tagNames=" + tagNames +
+                ", status=" + status +
                 '}';
     }
 
     public Long get_id() {
         return _id;
-    }
-
-    public void set_id(long _id) {
-        this._id = _id;
     }
 
     public String getGuid() {
@@ -136,12 +141,12 @@ public class SimpleNote {
         this.contentLength = contentLength;
     }
 
-    public long getDeleted() {
-        return deleted;
+    public long getCreated() {
+        return created;
     }
 
-    public void setDeleted(long deleted) {
-        this.deleted = deleted;
+    public void setCreated(long created) {
+        this.created = created;
     }
 
     public long getUpdated() {
@@ -152,12 +157,12 @@ public class SimpleNote {
         this.updated = updated;
     }
 
-    public long getCreated() {
-        return created;
+    public long getDeleted() {
+        return deleted;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
+    public void setDeleted(long deleted) {
+        this.deleted = deleted;
     }
 
     public int getActive() {
@@ -202,6 +207,8 @@ public class SimpleNote {
     public Note toUpdateNote() {
         Note note = toNote();
         note.setGuid(this.getGuid());
+        note.setContent(this.getContent());
+        note.setTitle(this.getTitle());
         return note;
     }
 

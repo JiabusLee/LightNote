@@ -36,6 +36,7 @@ import rx.schedulers.Schedulers;
 
 /**
  * 列表ListView的Adapter
+ * 列表ListView的Adapter
  */
 public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MyItemClickListener {
     static int day = 3600 * 24 * 1000;
@@ -134,12 +135,12 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
     /**
      * 从数据库中指定的删除数据
      *
-     * @param note1
+     * @param note
      */
-    private void removeEntity(final SimpleNote note1) {
+    private void removeEntity(final SimpleNote note) {
 
 
-        Observable.just(note1)
+        Observable.just(note)
                 .observeOn(Schedulers.newThread())
                 .subscribeOn(Schedulers.io())
                 .doOnNext(new Action1<SimpleNote>() {
@@ -150,7 +151,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(__ -> actionListener.onDelete(note1));
+                .subscribe(__ -> actionListener.onDelete(note));
 
 
     }

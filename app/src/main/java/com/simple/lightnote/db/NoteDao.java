@@ -40,22 +40,22 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
      * Creates the underlying database table.
      */
     public static void createTable(Database db, boolean ifNotExists) {
-        String constraint = ifNotExists ? "IF NOT EXISTS " : "";
         db.execSQL("CREATE TABLE note (\n" +
                 "\t_id INTEGER PRIMARY KEY autoincrement,\n" +
-                "\tnid VARCHAR(100) ,\n" +
-                "\ttitle VARCHAR(100),\n" +
                 "\t_guid VARCHAR(100),\n" +
-                "\ttagNames VARCHAR(100),\n" +
-                "\ttagGuids VARCHAR(100),\n" +
-                "\tcontent VARCHAR(1000),\n" +
+                "\t_title VARCHAR(100),\n" +
+                "\t_content VARCHAR(1000),\n" +
+                "\t_notebookGuid VARCHAR(50),\n" +
+                "\t_nid VARCHAR(100) ,\n" +
                 "\tcreated Long,\n" +
                 "\tupdated Long ,\n" +
                 "\tdeleted Long,\n" +
-                "\tstatus INTEGER default 0,\n" +
-                "\tactive INTEGER DEFAULT 0,\n" +
-                "\tnotebookGuid VARCHAR(50),\n" +
-                "\tcontentHash VARCHAR(50) );"
+                "\t_status INTEGER default 0,\n" +
+                "\t_active INTEGER DEFAULT 0,\n" +
+                "\tcontentLength Long,\n" +
+                "\t_contentHash VARCHAR(50)," +
+                "\t_tagNames VARCHAR(100),\n" +
+                "\t_tagGuids VARCHAR(100));\n"
         );
     }
 
@@ -86,32 +86,42 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         String guid = entity.getGuid();
         if (guid != null) stmt.bindString(2, guid);
 
-        String content = entity.getContent();
-        if (content != null) stmt.bindString(3, content);
-
         String title = entity.getTitle();
-        if (title != null) stmt.bindString(4, title);
-
-        String contentHash = entity.getContentHash();
-        if (contentHash != null) stmt.bindString(5, contentHash);
-
-        Long created = entity.getCreated();
-        if (created != null) stmt.bindLong(6, created);
-
-        Long updated = entity.getUpdated();
-        if (updated != null) stmt.bindLong(7, updated);
-
-        Long deleted = entity.getDeleted();
-        if (deleted != null) stmt.bindLong(8, deleted);
-
-        String nid = entity.getNid();
-        if (nid != null) stmt.bindString(9, nid);
+        if (title != null) stmt.bindString(3, title);
+        String content = entity.getContent();
+        if (content != null) stmt.bindString(4, content);
 
         String notebookGuid = entity.getNotebookGuid();
-        if (notebookGuid != null) stmt.bindString(10, notebookGuid);
+        if (notebookGuid != null) stmt.bindString(5, notebookGuid);
 
-        int status = entity.getStatus();
-        stmt.bindLong(11, status);
+        String nid = entity.getNid();
+        if (nid != null) stmt.bindString(6, nid);
+
+
+        Long created = entity.getCreated();
+        if (created != null) stmt.bindLong(7, created);
+
+        Long updated = entity.getUpdated();
+        if (updated != null) stmt.bindLong(8, updated);
+
+        Long deleted = entity.getDeleted();
+        if (deleted != null) stmt.bindLong(9, deleted);
+
+        stmt.bindLong(10, entity.getStatus());
+        stmt.bindLong(11, entity.getActive());
+
+
+        stmt.bindLong(12, entity.getContentLength());
+        String contentHash = entity.getContentHash();
+        if (contentHash != null) stmt.bindString(13, contentHash);
+
+//
+//        List<String> tagGuids = entity.getTagGuids();
+//        if (tagGuids != null) stmt.bindString(14, tagGuids.toString());
+//
+//        List<String> tagNames = entity.getTagNames();
+//        if (tagNames != null) stmt.bindString(15, tagNames.toString());
+
 
     }
 
@@ -120,19 +130,24 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     protected void readEntity(Cursor cursor, SimpleNote entity, int offset) {
 
         entity.set_id(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+
         entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setContent(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setTitle(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setContentHash(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setTitle(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setContent(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setNotebookGuid(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setNid(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
 
-        entity.setCreated(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
-        entity.setUpdated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setDeleted(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setCreated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
+        entity.setUpdated(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setDeleted(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
 
-        entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
+        entity.setActive(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
 
-        entity.setStatus(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setContentLength(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setContentHash(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
+
+//        entity.setTagGuids(cursor.isNull(offset+13)?null:cursor.getString(offset+13));
 
     }
 
@@ -140,19 +155,22 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     public SimpleNote readEntity(Cursor cursor, int offset) {
         SimpleNote entity = new SimpleNote();
         entity.set_id(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+
         entity.setGuid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
-        entity.setContent(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
-        entity.setTitle(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setContentHash(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setTitle(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
+        entity.setContent(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setNotebookGuid(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setNid(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
 
-        entity.setCreated(cursor.isNull(offset + 5) ? null : cursor.getLong(offset + 5));
-        entity.setUpdated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
-        entity.setDeleted(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setCreated(cursor.isNull(offset + 6) ? null : cursor.getLong(offset + 6));
+        entity.setUpdated(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
+        entity.setDeleted(cursor.isNull(offset + 8) ? null : cursor.getLong(offset + 8));
 
-        entity.setNid(cursor.isNull(offset + 8) ? null : cursor.getString(offset + 8));
-        entity.setNotebookGuid(cursor.isNull(offset + 9) ? null : cursor.getString(offset + 9));
+        entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
+        entity.setActive(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
 
-        entity.setStatus(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
+        entity.setContentLength(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setContentHash(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
         return entity;
     }
 
@@ -167,32 +185,39 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         String guid = entity.getGuid();
         if (guid != null) stmt.bindString(2, guid);
 
-        String content = entity.getContent();
-        if (content != null) stmt.bindString(3, content);
 
         String title = entity.getTitle();
-        if (title != null) stmt.bindString(4, title);
-
-        String contentHash = entity.getContentHash();
-        if (contentHash != null) stmt.bindString(5, contentHash);
-
-        Long created = entity.getCreated();
-        if (created != null) stmt.bindLong(6, created);
-
-        Long updated = entity.getUpdated();
-        if (updated != null) stmt.bindLong(7, updated);
-
-        Long deleted = entity.getDeleted();
-        if (deleted != null) stmt.bindLong(8, deleted);
+        if (title != null) stmt.bindString(3, title);
+        String content = entity.getContent();
+        if (content != null) stmt.bindString(4, content);
+        String notebookGuid = entity.getNotebookGuid();
+        if (notebookGuid != null) stmt.bindString(5, notebookGuid);
 
         String nid = entity.getNid();
-        if (nid != null) stmt.bindString(9, nid);
+        if (nid != null) stmt.bindString(6, nid);
 
-        String notebookGuid = entity.getNotebookGuid();
-        if (notebookGuid != null) stmt.bindString(10, notebookGuid);
+
+        Long created = entity.getCreated();
+        if (created != null) stmt.bindLong(7, created);
+
+        Long updated = entity.getUpdated();
+        if (updated != null) stmt.bindLong(8, updated);
+
+        Long deleted = entity.getDeleted();
+        if (deleted != null) stmt.bindLong(9, deleted);
+
+        int active = entity.getActive();
+        stmt.bindLong(10, active);
 
         int status = entity.getStatus();
         stmt.bindLong(11, status);
+
+        int contentLength = entity.getContentLength();
+        stmt.bindLong(12, contentLength);
+        String contentHash = entity.getContentHash();
+        if (contentHash != null) stmt.bindString(13, contentHash);
+
+
     }
 
 
@@ -221,7 +246,7 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         if (entity != null) {
             String guid = entity.getGuid();
             if (!TextUtils.isEmpty(guid)) {
-                long count = queryBuilder().where(Properties.guid.eq(entity.getGuid())).count();
+                long count = queryBuilder().where(Properties.Guid.eq(entity.getGuid())).count();
                 if (count == 0) {
                     return super.insert(entity);
                 }
@@ -244,23 +269,26 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
     public static class Properties {
         public final static Property Id = new Property(0, Long.class, "_id", true, "_id");
 
-        public final static Property title = new Property(1, String.class, "title", false, "title");
-        public final static Property content = new Property(2, String.class, "content", false, "content");
-        public final static Property contentHash = new Property(3, String.class, "contentHash", false, "contentHash");
-        public final static Property active = new Property(4, Integer.class, "active", false, "active");
+        public final static Property Guid = new Property(1, String.class, "guid", false, "_guid");
+        public final static Property Title = new Property(2, String.class, "title", false, "_title");
+        public final static Property Content = new Property(3, String.class, "content", false, "_content");
+        public final static Property NotebookGuid = new Property(4, String.class, "notebookGuid", false, "_notebookGuid");
+        public final static Property Nid = new Property(5, String.class, "nid", false, "_nid");
 
-        public final static Property createTime = new Property(5, Long.class, "created", false, "created");
-        public final static Property updateTime = new Property(6, Long.class, "updated", false, "updated");
-        public final static Property deleteTime = new Property(7, Long.class, "deleted", false, "deleted");
+        public final static Property CreateTime = new Property(6, Long.class, "created", false, "created");
+        public final static Property UpdateTime = new Property(7, Long.class, "updated", false, "updated");
+        public final static Property DeleteTime = new Property(8, Long.class, "deleted", false, "deleted");
 
 
-        public final static Property guid = new Property(8, String.class, "guid", false, "_guid");
-        public final static Property tagGuids = new Property(9, String.class, "tagGuids", false, "tagGuids");
-        public final static Property tagNames = new Property(10, String.class, "tagNames", false, "tagNames");
+        public final static Property Active = new Property(9, Integer.class, "active", false, "_active");
+        public final static Property Status = new Property(10, Integer.class, "status", false, "_status");
 
-        public final static Property notebookGuid = new Property(11, String.class, "notebookGuid", false, "notebookGuid");
-        public final static Property status = new Property(12, Integer.class, "status", false, "status");
-        public final static Property nid = new Property(13, String.class, "nid", false, "nid");
+        public final static Property ContentLength = new Property(11, Integer.class, "contentLength", false, "contentLength");
+        public final static Property ContentHash = new Property(12, String.class, "contentHash", false, "_contentHash");
+
+        public final static Property TagGuids = new Property(13, String.class, "tagGuids", false, "_tagGuids");
+        public final static Property TagNames = new Property(14, String.class, "tagNames", false, "_tagNames");
+
     }
 
 

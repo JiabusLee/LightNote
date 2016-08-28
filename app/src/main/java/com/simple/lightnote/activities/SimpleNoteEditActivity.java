@@ -234,8 +234,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         .subscribeOn(Schedulers.io())
                         .doOnNext(__ -> {
                             try {
-                                if (note.getGuid() != null)
-                                    helper.updateLocalNote(note.getGuid(), note.get_id());
+                                if (note.getGuid() != null) {
+                                  helper.updateNote(this.note);
+                                }
                                 else helper.createNote(note);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -255,7 +256,8 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                             try {
                                 LogUtils.e(TAG, "新建Note: " + note);
                                 Note eNote = helper.createNote(note);
-                                noteDao.insert(SimpleNote.toSimpleNote(eNote));
+                                note = SimpleNote.toSimpleNote(eNote);
+                                noteDao.insert(note);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
