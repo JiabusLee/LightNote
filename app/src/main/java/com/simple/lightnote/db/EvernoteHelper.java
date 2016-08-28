@@ -132,7 +132,6 @@ public class EvernoteHelper {
 
     /**
      * 上传本地的笔记
-     *
      * @param simpleNote
      * @return
      * @throws Exception
@@ -145,7 +144,6 @@ public class EvernoteHelper {
             LogUtils.e(TAG, "Note更新成功");
             return responseNote;
         } catch (EDAMUserException e) {
-            e.printStackTrace();
             LogUtils.e(TAG, "数据格式有误");
             throw new Exception(e.getCause());
         } catch (EDAMNotFoundException e) {
@@ -176,7 +174,6 @@ public class EvernoteHelper {
 
     /**
      * 更新本地的笔记
-     *
      * @param guid
      * @param _id
      */
@@ -187,7 +184,7 @@ public class EvernoteHelper {
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
 
             List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Id.eq(_id)).list();
-            if (!ListUtils.isEmpty(list)) {
+            if(!ListUtils.isEmpty(list)){
                 SimpleNote simpleNote1 = list.get(0);
                 int status = simpleNote1.getStatus();
                 simpleNote.set_id(_id);
@@ -271,14 +268,14 @@ public class EvernoteHelper {
             //1. 是否是已经同步过(guid)
             //2. 是否是删除的状态(isDeleted)
             //3. 是不是修改过的状态(needSyncUp)
-            if (simpleNote.getGuid() != null) {
-                if (simpleNote.getStatus() == SimpleNote.st_sync) {
+            if(simpleNote.getGuid()!=null){
+                if(simpleNote.getStatus()==SimpleNote.st_sync){
                     //更新以本地的数据为准(guid)
                     updateNote(simpleNote);
                 }
 
-            } else {
-                if (simpleNote.getStatus() == SimpleNote.st_sync) {
+            }else{
+                if(simpleNote.getStatus()==SimpleNote.st_sync){
                     createNote(simpleNote);
                 }
             }
