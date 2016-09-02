@@ -582,4 +582,5 @@ public class FileUtils {
         return (file.exists() && file.isFile() ? file.length() : -1);
     }
 
+
 }

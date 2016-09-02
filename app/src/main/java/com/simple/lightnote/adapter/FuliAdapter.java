@@ -14,6 +14,7 @@ import com.simple.lightnote.model.FuLi;
 import java.util.List;
 
 import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -69,15 +70,15 @@ public class FuliAdapter extends BaseAdapter {
     }
 
     public static class ViewHolder {
-        @Bind(R.id.title)
+        @BindView(R.id.title)
         TextView title;
-        @Bind(R.id.from)
+        @BindView(R.id.from)
         TextView from;
-        @Bind(R.id.desc)
+        @BindView(R.id.desc)
         TextView desc;
-        @Bind(R.id.time)
+        @BindView(R.id.time)
         TextView time;
-        @Bind(R.id.img)
+        @BindView(R.id.img)
         ImageView img;
 
         public ViewHolder(View convertView) {

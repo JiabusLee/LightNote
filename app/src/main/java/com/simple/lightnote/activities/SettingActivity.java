@@ -22,13 +22,13 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SettingActivity extends BaseActivity implements EvernoteLoginFragment.ResultCallback, View.OnClickListener {
-    @Bind(R.id.itemView_0)
+    @BindView(R.id.itemView_0)
     ItemView item_view_test;
-    @Bind(R.id.itemView_1)
+    @BindView(R.id.itemView_1)
     ItemView item_view_bindEvernote;
-    @Bind({R.id.itemView_2})
+    @BindView({R.id.itemView_2})
     ItemView item_view_backup;
-    @Bind({R.id.itemView_3})
+    @BindView({R.id.itemView_3})
     ItemView item_view_help;
     private CommonDialog commonDialog;
 

@@ -51,11 +51,11 @@ import rx.schedulers.Schedulers;
 public class SimpleNoteEditActivity extends BaseSwipeActivity {
     private static final String TAG = "SimpleNoteEditActivity";
 
-    @Bind(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar mToolbar;
-    @Bind(R.id.simpleNote_edt_noteContent)
+    @BindView(R.id.simpleNote_edt_noteContent)
     EditText edt_noteContent;
-    @Bind(R.id.simpleNote_ll_actionbar)
+    @BindView(R.id.simpleNote_ll_actionbar)
     LinearLayout ll_acitonBar;
 
 

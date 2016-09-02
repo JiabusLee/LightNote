@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'android-apt'
 android {
 
 
@@ -38,7 +39,7 @@ android {
         compile fileTree(dir: 'src/main/libs', include: '*.jar')
         compile 'com.squareup.retrofit2:converter-gson:2.0.0'
         compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
-
+        apt 'com.jakewharton:butterknife-compiler:8.2.1'
         compile rootProject.ext.dependencies.cardview
         compile rootProject.ext.dependencies.design
 

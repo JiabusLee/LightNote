@@ -34,7 +34,7 @@ import retrofit2.Response;
  */
 public class NetProjectActivity extends BaseActivity {
     private static final String TAG = "NetProjectActivity";
-    @Bind(R.id.main_simple_listview)
+    @BindView(R.id.main_simple_listview)
     ListView listview;
 
 

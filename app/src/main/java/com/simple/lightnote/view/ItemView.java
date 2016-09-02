@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.simple.lightnote.R;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -21,13 +21,13 @@ import butterknife.ButterKnife;
 public class ItemView extends FrameLayout {
 
     Context mContext;
-    @Bind(R.id.view_item_tv_title)
+    @BindView(R.id.view_item_tv_title)
     TextView tv_title;
-    @Bind(R.id.view_item_tv_subtitle)
+    @BindView(R.id.view_item_tv_subtitle)
     TextView tv_subTitle;
-    @Bind(R.id.view_item_cb)
+    @BindView(R.id.view_item_cb)
     CheckBox cb;
-    @Bind(R.id.view_item_ll)
+    @BindView(R.id.view_item_ll)
     LinearLayout ll;
 
     public ItemView(Context context) {
