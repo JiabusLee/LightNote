@@ -58,7 +58,6 @@ public class SimpleNote {
     }
 
     public static SimpleNote simple(Note note, SimpleNote simpleNote) {
-        simpleNote.set_id(simpleNote.get_id());
         simpleNote.setContent(note.getContent());
         simpleNote.setActive(note.isSetActive() ? ac_live : ac_die);
         simpleNote.setGuid(note.getGuid());

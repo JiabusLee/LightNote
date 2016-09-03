@@ -214,19 +214,20 @@ public class MainActivity extends BaseActivity {
                     String temp = "";
                     switch (position) {
                         case 0:
-                            temp = SPConstans.ORDER_SORTBY_LASTMODIFYTIME;
+                            temp = NoteDao.Properties.UpdateTime.columnName+" desc";
 
                             break;
                         case 1:
-                            temp = SPConstans.ORDER_SORTBY_CREATETIME;
+                            temp = NoteDao.Properties.CreateTime.columnName+" asc";
 
                             break;
                         case 2:
-                            temp = SPConstans.ORDER_SORTBY_NOTECONTENT;
+                            temp = NoteDao.Properties.Title.columnName+" asc";
                             break;
                     }
 
                     SPUtil.getEditor(MainActivity.this).putString(SPConstans.ORDER_SORTBY, temp).apply();
+                    loadData();
                 }
                 commonDialog.dismiss();
 
@@ -394,9 +395,11 @@ public class MainActivity extends BaseActivity {
                 .map(new Func1<Integer, List<SimpleNote>>() {
                     @Override
                     public List<SimpleNote> call(Integer integer) {
+                        String order = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+
                         return noteDao.queryBuilder()
                                 .where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete))
-                                .orderDesc(NoteDao.Properties.UpdateTime)
+                                .orderRaw(order )
                                 .build().list();
                     }
                 })

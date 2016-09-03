@@ -137,7 +137,7 @@ public class EvernoteHelper {
 
         try {
             Note responseNote = noteStoreClient.updateNote(simpleNote.toUpdateNote());
-            noteDao.update(SimpleNote.toSimpleNote(responseNote));
+            noteDao.update(SimpleNote.simple(responseNote,simpleNote));
             LogUtils.e(TAG, "Note更新成功");
             return responseNote;
         } catch (EDAMUserException e) {

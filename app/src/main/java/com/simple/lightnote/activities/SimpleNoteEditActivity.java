@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -112,6 +113,10 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
     protected void onPause() {
         super.onPause();
         saveToDB();
+        View currentFocus = getCurrentFocus();
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+
     }
 
     private void initListener() {
