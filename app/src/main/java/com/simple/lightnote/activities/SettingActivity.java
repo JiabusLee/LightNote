@@ -17,7 +17,7 @@ import com.simple.lightnote.utils.ToastUtils;
 import com.simple.lightnote.view.CommonDialog;
 import com.simple.lightnote.view.ItemView;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -26,9 +26,9 @@ public class SettingActivity extends BaseActivity implements EvernoteLoginFragme
     ItemView item_view_test;
     @BindView(R.id.itemView_1)
     ItemView item_view_bindEvernote;
-    @BindView({R.id.itemView_2})
+    @BindView(R.id.itemView_2)
     ItemView item_view_backup;
-    @BindView({R.id.itemView_3})
+    @BindView(R.id.itemView_3)
     ItemView item_view_help;
     private CommonDialog commonDialog;
 

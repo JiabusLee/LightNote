@@ -87,9 +87,6 @@ public class EvernoteHelper {
 
     public Note createNote(SimpleNote simpleNote) throws Exception {
         try {
-            if (simpleNote.getTitle() == null) {
-                simpleNote.setTitle(DateUtils.getDateByTimestamp(System.currentTimeMillis(), "MM月dd日 HH:mm:ss"));
-            }
             Note note = simpleNote.toNote();
             note.setNotebookGuid(SPUtil.getString(context, Constans.NOTEBOOK_GUID, null));
             LogUtils.e(TAG, "createNote: " + note);

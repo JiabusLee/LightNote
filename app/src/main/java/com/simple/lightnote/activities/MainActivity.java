@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
@@ -115,7 +116,7 @@ public class MainActivity extends BaseActivity {
         setContentView(view);
         ButterKnife.bind(this);
         init();
-        setAdapter();
+        loadData();
         syncNote();
     }
 
@@ -288,7 +289,7 @@ public class MainActivity extends BaseActivity {
 //		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
         mRecycleView.setAdapter(noteAdapter);
 
-//		mListView.setAdapter(noteListAdapter);
+//		mListView.loadData(noteListAdapter);
 
     }
 
@@ -297,7 +298,9 @@ public class MainActivity extends BaseActivity {
         try {
             if (EvernoteSession.getInstance().isLoggedIn()) {
                 if (helper == null) helper = new EvernoteHelper(MainActivity.this, noteDao);
-                helper.sync(true, true, new SyncHandler());
+
+                SyncHandler syncHandler = new SyncHandler(this.getMainLooper());
+                helper.sync(true, true, syncHandler);
             } else {
                 ToastUtils.showSequenceToast(this, "还没有绑定Evernote");
                 LogUtils.e(TAG, "syncNote: " + "还没有绑定Evernote");
@@ -352,7 +355,7 @@ public class MainActivity extends BaseActivity {
                                 return null;
                             })
                             .subscribeOn(AndroidSchedulers.mainThread())
-                            .doOnNext(__ -> setAdapter())
+                            .doOnNext(__ -> loadData())
                             .observeOn(Schedulers.newThread())
                             .doOnNext(__ -> syncNote())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -376,7 +379,7 @@ public class MainActivity extends BaseActivity {
         fab.setOnClickListener(this);
     }
 
-    private void setAdapter() {
+    private void loadData() {
         Observable
                 .just(0)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -391,8 +394,10 @@ public class MainActivity extends BaseActivity {
                 .map(new Func1<Integer, List<SimpleNote>>() {
                     @Override
                     public List<SimpleNote> call(Integer integer) {
-                        List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete)).build().list();
-                        return list;
+                        return noteDao.queryBuilder()
+                                .where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete))
+                                .orderDesc(NoteDao.Properties.UpdateTime)
+                                .build().list();
                     }
                 })
 
@@ -521,6 +526,10 @@ public class MainActivity extends BaseActivity {
 
     @SuppressLint("HandlerLeak")
     class SyncHandler extends Handler {
+        public SyncHandler(Looper looper) {
+            super(looper);
+        }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -530,9 +539,7 @@ public class MainActivity extends BaseActivity {
                     break;
                 case EvernoteHelper.SYNC_END:
 //                    findViewById(R.id.sync_progress).setVisibility(View.GONE);
-                    List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete)).list();
-                    noteAdapter.setList(list);
-                    noteAdapter.notifyDataSetChanged();
+                    loadData();
 
                     break;
                 default:

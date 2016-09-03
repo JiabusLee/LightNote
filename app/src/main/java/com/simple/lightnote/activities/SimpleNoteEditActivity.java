@@ -15,6 +15,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.type.Note;
@@ -29,14 +30,16 @@ import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
+import com.simple.lightnote.utils.NetworkUtils;
 import com.simple.lightnote.utils.ToastUtils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import rx.Observable;
+import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -221,7 +224,8 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
     private void saveToDB() {
         s_noteContent = edt_noteContent.getText().toString().trim();
-
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(this);
+        builder.progress(false, -1);
         if (note != null) {
             //更新
             if (!note.getContent().trim().equals(s_noteContent)) {
@@ -235,13 +239,37 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         .doOnNext(__ -> {
                             try {
                                 if (note.getGuid() != null) {
-                                  helper.updateNote(this.note);
-                                }
-                                else helper.createNote(note);
+                                    helper.updateNote(this.note);
+                                } else helper.createNote(note);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }).subscribe();
+                        }).subscribe(new Subscriber<Integer>() {
+
+                    private MaterialDialog show;
+
+                    @Override
+                    public void onCompleted() {
+                        if (show != null)
+                            show.dismiss();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+
+                    }
+
+                    @Override
+                    public void onStart() {
+                        super.onStart();
+                        show = builder.show();
+                    }
+                });
             }
         } else {
             //新建
@@ -255,9 +283,16 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                         .doOnNext(__ -> {
                             try {
                                 LogUtils.e(TAG, "新建Note: " + note);
-                                Note eNote = helper.createNote(note);
-                                note = SimpleNote.toSimpleNote(eNote);
-                                noteDao.insert(note);
+                                boolean connected = NetworkUtils.isConnected(SimpleNoteEditActivity.this);
+                                if (connected) {
+                                    Note eNote = helper.createNote(note);
+                                    note = SimpleNote.toSimpleNote(eNote);
+                                } else {
+                                    note.setCreated(System.currentTimeMillis());
+                                    note.setUpdated(System.currentTimeMillis());
+                                }
+                                long insert = noteDao.insert(note);
+                                note.set_id(insert);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

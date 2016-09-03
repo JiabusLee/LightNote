@@ -50,12 +50,12 @@ ext {
             "xutils"         : 'org.xutils:xutils:3.3.20',
             "butterknife"    : 'com.jakewharton:butterknife:8.2.1',
             "greendao"       : 'org.greenrobot:greendao:3.0.1',
-            "evernote_sdk"    : 'com.evernote:android-sdk:2.0.0-RC4',
+            "evernote_sdk"   : 'com.evernote:android-sdk:2.0.0-RC4',
             "converter_son"  : 'com.squareup.retrofit2:converter-gson:2.0.0',
             "glide"          : 'com.github.bumptech.glide:glide:3.6.1',
-            "junit"         : 'junit:junit:4.12',
+            "junit"          : 'junit:junit:4.12',
 
-
+            "materialdialog" : 'com.afollestad.material-dialogs:commons:0.9.0.1'
 
     ]
 }

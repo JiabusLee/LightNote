@@ -54,6 +54,8 @@ android {
         compile rootProject.ext.dependencies.greendao
         compile rootProject.ext.dependencies.glide
         compile rootProject.ext.dependencies.junit
+        compile rootProject.ext.dependencies.materialdialog
+
 
 /*
 

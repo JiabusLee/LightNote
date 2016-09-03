@@ -206,11 +206,10 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         Long deleted = entity.getDeleted();
         if (deleted != null) stmt.bindLong(9, deleted);
 
-        int active = entity.getActive();
-        stmt.bindLong(10, active);
-
         int status = entity.getStatus();
-        stmt.bindLong(11, status);
+        stmt.bindLong(10, status);
+        int active = entity.getActive();
+        stmt.bindLong(11, active);
 
         int contentLength = entity.getContentLength();
         stmt.bindLong(12, contentLength);
@@ -280,8 +279,8 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         public final static Property DeleteTime = new Property(8, Long.class, "deleted", false, "deleted");
 
 
-        public final static Property Active = new Property(9, Integer.class, "active", false, "_active");
-        public final static Property Status = new Property(10, Integer.class, "status", false, "_status");
+        public final static Property Status = new Property(9, Integer.class, "status", false, "_status");
+        public final static Property Active = new Property(10, Integer.class, "active", false, "_active");
 
         public final static Property ContentLength = new Property(11, Integer.class, "contentLength", false, "contentLength");
         public final static Property ContentHash = new Property(12, String.class, "contentHash", false, "_contentHash");

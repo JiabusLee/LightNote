@@ -13,7 +13,6 @@ import com.simple.lightnote.model.FuLi;
 
 import java.util.List;
 
-import butterknife.Bind;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
