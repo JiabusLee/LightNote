@@ -33,11 +33,12 @@ android {
     }
 
     lintOptions {
-        abortOnError true
+        abortOnError false
 
-        htmlOutput file("$project.buildDir/reports/lint/lint.html")
-        xmlOutput file("$project.buildDir/reports/lint/lint.xml")
+//        htmlOutput file("$project.buildDir/reports/lint/lint.html")
+//        xmlOutput file("$project.buildDir/reports/lint/lint.xml")
     }
+    buildToolsVersion '25.0.0'
 }
 
 apply from: '../build-config/gradle-push.gradle'

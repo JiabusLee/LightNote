@@ -2,65 +2,78 @@ package com.simple.lightnote.rx;
 
 import android.util.Log;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+
 
 /**
  * Created by homelink on 2016/7/27.
  */
 public class CreateOpTest {
     private static final String TAG = "CreateOpTest";
-    @org.junit.Test public void test(){
-        Observable.from(new String[]{"xxx", "bbb", "CCC"}).subscribe(new Action1<String>() {
+
+    @org.junit.Test
+    public void test() {
+        Observable.fromArray(new String[]{"xxx", "bbb", "CCC"}).subscribe(new Consumer<String>() {
             @Override
-            public void call(String s) {
+            public void accept(String s) throws Exception {
                 Log.e(TAG, "call: " + s);
             }
         });
-        Observable.just("xxx").flatMap(new Func1<String, Observable<String>>() {
+
+
+        Observable.just("xxx").flatMap(new Function<String, ObservableSource<String>>() {
             @Override
-            public Observable<String> call(String s) {
-                return Observable.from(new String[]{"xxbx", "bbb", "CCC", "xxxb", "xxx"});
+            public ObservableSource<String> apply(String s) throws Exception {
+                return Observable.fromArray(new String[]{"xxbx", "bbb", "CCC", "xxxb", "xxx"});
             }
-        }).filter(new Func1<String, Boolean>() {
+        }).filter(new Predicate<String>() {
             @Override
-            public Boolean call(String s) {
+            public boolean test(String s) throws Exception {
                 return s != null && s.contains("b");
             }
-        }).subscribe(new Action1<String>() {
+        }).subscribe(new Consumer<String>() {
             @Override
-            public void call(String string) {
-                Log.e(TAG, "call: 符合条件的数据:" + string);
+            public void accept(String s) throws Exception {
+                Log.e(TAG, "call: 符合条件的数据:" + s);
             }
         });
 
     }
-    @org.junit.Test public void test2(){
+
+    @org.junit.Test
+    public void test2() {
         //被观察者
         Observable<String> myObservable = Observable.create(
-                new Observable.OnSubscribe<String>() {
+                new ObservableOnSubscribe<String>() {
                     @Override
-                    public void call(Subscriber<? super String> sub) {
-//                        sub.onStart();
-                        sub.onNext("start observable");
-//                        sub.onCompleted();
+                    public void subscribe(ObservableEmitter<String> e) throws Exception {
+                        e.onNext("start observable");
                     }
                 }
         );
+
+
         //订阅者/观察者
         Subscriber<String> mySubscriber = new Subscriber<String>() {
             @Override
             public void onNext(String s) {
 //                System.out.println(s);
 //                LogUtils.e(TAG, "onNext:" + s);
-                System.out.println("onNext"+s);
+                System.out.println("onNext" + s);
             }
 
 
             @Override
-            public void onCompleted() {
+            public void onComplete() {
 //                Log.e(TAG, "onCompleted: ");
                 System.out.println("onCompleted");
             }
@@ -70,52 +83,62 @@ public class CreateOpTest {
             }
 
             @Override
-            public void onStart() {
+            public void onSubscribe(Subscription s) {
 
-//                Log.e(TAG, "onStart: ");
-                System.out.println("onStart:");
             }
-
         };
-        myObservable.subscribe(mySubscriber);
+
+        myObservable.subscribe();
 
         Observable<String> myObservable2 = Observable.just("Hello, world!");
-        myObservable2.subscribe(new Action1<String>() {
+
+
+        myObservable2.subscribe(new Consumer<String>() {
             @Override
-            public void call(String s) {
+            public void accept(String s) throws Exception {
                 Log.e(TAG, "call: " + s);
             }
+
+
         });
 
-        Observable.just("MMMMS").subscribe(new Action1<String>() {
+        Observable.just("MMMMS").subscribe(new Consumer<String>() {
             @Override
-            public void call(String s) {
+            public void accept(String s) throws Exception {
                 Log.e(TAG, "call: " + s);
             }
+
+
         });
 
-        Observable.just("Hello Java").map(new Func1<String, Integer>() {
+        Observable.just("Hello Java").map(new Function<String, Integer>() {
             @Override
-            public Integer call(String s) {
+            public Integer apply(String s) throws Exception {
                 return (s + ":HHH").hashCode();
             }
-        }).map(new Func1<Integer, String>() {
+
+
+        }).map(new Function<Integer, String>() {
             @Override
-            public String call(Integer integer) {
+            public String apply(Integer integer) throws Exception {
                 Log.e(TAG, "call: " + integer);
                 return (integer + Integer.MAX_VALUE) + "";
             }
-        }).map(new Func1<String, Integer>() {
+
+
+        }).map(new Function<String, Integer>() {
             @Override
-            public Integer call(String s) {
+            public Integer apply(String s) throws Exception {
                 Log.e(TAG, "call: " + s);
                 return Integer.valueOf(s) % 10000;
             }
-        }).subscribe(new Action1<Integer>() {
+
+        }).subscribe(new Consumer<Integer>() {
             @Override
-            public void call(Integer integer) {
+            public void accept(Integer integer) throws Exception {
                 Log.e(TAG, "call: " + integer);
             }
+
         });
     }
 }

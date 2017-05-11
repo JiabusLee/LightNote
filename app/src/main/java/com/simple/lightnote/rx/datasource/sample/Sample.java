@@ -2,7 +2,8 @@ package com.simple.lightnote.rx.datasource.sample;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
+import io.reactivex.Observable;
+
 
 /**
  * 从多个数据源加载数据
@@ -18,9 +19,8 @@ public class Sample {
                 sources.memory(),
                 sources.disk(),
                 sources.network()
-            )
-            .first(data -> data != null && data.isUpToDate());
-
+            );
+//            .first(data -> data != null && data.isUpToDate());
         // "Request" latest data once a second
         Observable.interval(1, TimeUnit.SECONDS)
             .flatMap(__ -> source)

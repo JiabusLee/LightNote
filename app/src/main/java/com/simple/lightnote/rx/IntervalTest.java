@@ -4,9 +4,11 @@ import com.simple.lightnote.utils.LogUtils;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Func2;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+
 
 /**
  * Created by homelink on 2016/8/2.
@@ -22,14 +24,15 @@ public class IntervalTest {
 
     private void testInterval() {
         Integer intArrays[] = {1, 2, 4, 5, 6, 3, 33, 24, 53, 6, 5464, 75, 7, 5, 6290, 928};
-        Observable.zip(Observable.interval(1, 3, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
+        Observable.zip(Observable.interval(1, 3, TimeUnit.SECONDS), Observable.fromArray(intArrays), new BiFunction<Long, Integer, Integer>() {
             @Override
-            public Integer call(Long aLong, Integer integer) {
+            public Integer apply(Long aLong, Integer integer) throws Exception {
                 return integer;
+
             }
-        }).subscribe(new Subscriber<Integer>() {
+        }).subscribe(new Observer<Integer>() {
             @Override
-            public void onCompleted() {
+            public void onComplete() {
                 LogUtils.e(TAG, "onCompleted ");
             }
 
@@ -45,9 +48,8 @@ public class IntervalTest {
             }
 
             @Override
-            public void onStart() {
-                super.onStart();
-                LogUtils.e(TAG, "onStart: ");
+            public void onSubscribe(Disposable d) {
+                
             }
         });
     }

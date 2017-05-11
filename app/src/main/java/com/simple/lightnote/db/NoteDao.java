@@ -17,8 +17,9 @@ import org.greenrobot.greendao.internal.DaoConfig;
 
 import java.util.List;
 
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -257,10 +258,27 @@ public class NoteDao extends AbstractDao<SimpleNote, Long> {
         return -1;
     }
 
+    /* RxJava 1.xx模式
     public void insertList(List<SimpleNote> lists) {
         Observable.from(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(note -> {
             Log.e(TAG, "insertList: " + note);
             return insert(note);
+        }).subscribe(l -> Log.e(TAG, "insertList: save success" + l));
+    }*/
+
+
+    /**
+     * Rx 2.x.x
+     * @param lists
+     */
+    public void insertList(List<SimpleNote> lists) {
+
+
+        Observable.fromArray(lists).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).map(new Function<List<SimpleNote>, Long>() {
+            @Override
+            public Long apply(List<SimpleNote> simpleNotes) throws Exception {
+                return insert(simpleNotes.get(0));
+            }
         }).subscribe(l -> Log.e(TAG, "insertList: save success" + l));
     }
 

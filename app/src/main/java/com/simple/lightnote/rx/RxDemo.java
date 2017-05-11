@@ -1,24 +1,21 @@
 package com.simple.lightnote.rx;
 
-import com.simple.lightnote.constant.SPConstans;
-import com.simple.lightnote.db.NoteDao;
 import com.simple.lightnote.model.SimpleNote;
-import com.simple.lightnote.test.NoteContentGenerator;
-import com.simple.lightnote.util.SPUtil;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 
-import org.greenrobot.greendao.Property;
-
 import java.util.List;
-import java.util.Random;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by HERO on 2016/8/19.
@@ -30,11 +27,13 @@ public class RxDemo {
      * 获取数据库中的notlist
      */
     private void getDBlist() {
+
         Observable.
-                create(new Observable.OnSubscribe<List<SimpleNote>>() {
+                create(new ObservableOnSubscribe<List<SimpleNote>>() {
+
                     @Override
-                    public void call(Subscriber<? super List<SimpleNote>> subscriber) {
-                        subscriber.onStart();
+                    public void subscribe(ObservableEmitter<List<SimpleNote>> e) throws Exception {
+
                         LogUtils.e(TAG, "call2: " + Thread.currentThread());
 
                       /*  long count = noteDao.count();
@@ -67,44 +66,48 @@ public class RxDemo {
                         */
                         LogUtils.e(TAG, "call3: " + Thread.currentThread());
                     }
+
+
                 })
-                .filter(new Func1<List<SimpleNote>, Boolean>() {
+
+                .filter(new Predicate<List<SimpleNote>>() {
                     @Override
-                    public Boolean call(List<SimpleNote> notes) {
+                    public boolean test(List<SimpleNote> simpleNotes) throws Exception {
                         LogUtils.e(TAG, "call4: " + Thread.currentThread());
-                        return !ListUtils.isEmpty(notes);
+                        return !ListUtils.isEmpty(simpleNotes);
                     }
+
                 })
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(Schedulers.newThread())
-                .doOnNext(new Action1<List<SimpleNote>>() {
+                .doOnNext(new Consumer<List<SimpleNote>>() {
                     @Override
-                    public void call(List<SimpleNote> notes) {
+                    public void accept(List<SimpleNote> simpleNotes) throws Exception {
                         LogUtils.e(TAG, "call5: " + Thread.currentThread());
-                        System.out.println(notes);
+                        System.out.println(simpleNotes);
                     }
-                })
-                .subscribe(new Subscriber<List<SimpleNote>>() {
-                    @Override
-                    public void onCompleted() {
+                }).subscribe(new Observer<List<SimpleNote>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
-                        LogUtils.e(TAG, "onCompleted:  ");
-                    }
+            }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+            @Override
+            public void onNext(List<SimpleNote> value) {
+                LogUtils.e(TAG, "call6: " + Thread.currentThread());
+                onComplete();
+            }
 
-                    @Override
-                    public void onNext(List<SimpleNote> o) {
-//                        noteAdapter.setList(o);
-//                        noteAdapter.notifyDataSetChanged();
-                        LogUtils.e(TAG, "call6: " + Thread.currentThread());
-                        onCompleted();
-                    }
-                });
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
 
+            @Override
+            public void onComplete() {
+                LogUtils.e(TAG, "onCompleted:  ");
+            }
+        });
     }
 }
 

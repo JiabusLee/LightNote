@@ -5,14 +5,15 @@ import android.os.StrictMode;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.observables.GroupedObservable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.observables.GroupedObservable;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/7/21.
@@ -21,10 +22,15 @@ public class OperatorTest {
 
     String strs[] = {"AAAA", "aaasss", "feggggg", "ggggg", "BBBB", "DDDD", "EEE", "CCLL", "sdsdsdd", "eiooosoos", "z.slsijfj"};
     Integer arrays[] = {1, 2, 4, 5, 6, 3, 33, 24, 53, 6, 5464, 75, 7, 5, 6290, 928};
-    Subscription subscription = new Subscriber<Object>() {
+    Observer subscriber = new Observer() {
         @Override
-        public void onCompleted() {
+        public void onSubscribe(Disposable d) {
 
+        }
+
+        @Override
+        public void onNext(Object value) {
+            System.out.println(value);
         }
 
         @Override
@@ -33,36 +39,8 @@ public class OperatorTest {
         }
 
         @Override
-        public void onNext(Object o) {
-            System.out.println("print = " + o);
-        }
+        public void onComplete() {
 
-        @Override
-        public void onStart() {
-            super.onStart();
-            System.out.println("start");
-        }
-    };
-    Subscriber subscriber = new Subscriber<Object>() {
-        @Override
-        public void onCompleted() {
-            System.out.println("complete");
-        }
-
-        @Override
-        public void onError(Throwable e) {
-
-        }
-
-        @Override
-        public void onNext(Object o) {
-            System.out.println("print = " + o);
-        }
-
-        @Override
-        public void onStart() {
-            super.onStart();
-            System.out.println("start");
         }
     };
 
@@ -72,9 +50,14 @@ public class OperatorTest {
                 .just(1, "aaaa", "bbbb", 3, true, "sssbb", 'c', "AAA", "GGLLL")
 //                .sample(1, TimeUnit.NANOSECONDS)
                 .debounce(2, TimeUnit.NANOSECONDS)
-                .subscribe(new Subscriber<Serializable>() {
+                .subscribe(new Observer<Serializable>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("complete");
                     }
 
@@ -97,7 +80,7 @@ public class OperatorTest {
 
         Observable
                 .just("aaaa", "bbbb", "sssbb", "AAA", "GGLLL")
-               /* .concatMap(new Func1<String, Observable<?>>() {
+               /* .concatMap(new Function<String, Observable<?>>() {
                     @Override
                     public Observable<?> call(String s) {
                         s+="concatMap+";
@@ -105,15 +88,20 @@ public class OperatorTest {
                         return Observable.from(new String[]{s});
                     }
                 })*/
-                .switchMap(new Func1<String, Observable<?>>() {
+                .switchMap(new Function<String, Observable<?>>() {
                     @Override
-                    public Observable<?> call(String s) {
+                    public Observable<?> apply(String s) throws Exception {
                         return null;
                     }
                 })
-                .subscribe(new Subscriber<Object>() {
+                .subscribe(new Observer<Object>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
 
                     }
 
@@ -133,9 +121,14 @@ public class OperatorTest {
     public void scanTest() {
         Observable.just(1, 2, 3, 4, 5)
                 .scan((sum, item) -> sum * item)
-                .subscribe(new Subscriber<Integer>() {
+                .subscribe(new Observer<Integer>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("Sequence	completed.");
                     }
 
@@ -154,47 +147,54 @@ public class OperatorTest {
     @org.junit.Test
     public void groupbyTest() {
         Observable.just(1, 2, 3, 4, 5)
-                .groupBy(new Func1<Integer, Boolean>() {
+                .groupBy(new Function<Integer, Boolean>() {
                     @Override
-                    public Boolean call(Integer integer) {
+                    public Boolean apply(Integer integer) throws Exception {
                         return integer / 2 == 0;
                     }
-                }).subscribe(new Action1<GroupedObservable<Boolean, Integer>>() {
+
+                }).subscribe(new Consumer<GroupedObservable<Boolean, Integer>>() {
             @Override
-            public void call(GroupedObservable<Boolean, Integer> objectIntegerGroupedObservable) {
+            public void accept(GroupedObservable<Boolean, Integer> objectIntegerGroupedObservable) throws Exception {
                 System.out.println(objectIntegerGroupedObservable);
                 Boolean key = objectIntegerGroupedObservable.getKey();
                 System.out.println(key);
                 if (key) {
-                    objectIntegerGroupedObservable.asObservable().map(new Func1<Integer, String>() {
+
+
+
+                    objectIntegerGroupedObservable.cache().map(new Function<Integer, String>() {
+
                         @Override
-                        public String call(Integer integer) {
+                        public String apply(Integer integer) throws Exception {
                             return integer + "大于";
                         }
-                    }).subscribe(new Action1<String>() {
+                    }).subscribe(new Consumer<String>() {
+
+
                         @Override
-                        public void call(String s) {
+                        public void accept(String s) {
                             System.out.println(s);
                         }
                     });
                 } else {
-                    objectIntegerGroupedObservable.asObservable().map(new Func1<Integer, String>() {
+                    objectIntegerGroupedObservable.cache().map(new Function<Integer, String>() {
                         @Override
-                        public String call(Integer integer) {
+                        public String apply(Integer integer) throws Exception {
                             return integer + "小于";
                         }
+
                     });
                 }
 /*
 
-                    objectIntegerGroupedObservable.asObservable().forEach(new Action1<Integer>() {
+                    objectIntegerGroupedObservable.asObservable().forEach(new Consumer<Integer>() {
                         @Override
                         public void call(Integer integer) {
                             System.out.println(integer);
                         }
                     });
 */
-
             }
         });
     }
@@ -223,36 +223,39 @@ public class OperatorTest {
          print = [3, 4]
          print = [5]
          */
-        Observable.from(strs).buffer(1, 1, TimeUnit.NANOSECONDS).subscribe(subscriber);
+        Observable.fromArray(strs).buffer(1, 1, TimeUnit.NANOSECONDS).subscribe(subscriber);
 
 
     }
 
     @org.junit.Test
     public void castTest() {
-        Observable.from(arrays)
-                .map(new Func1<Integer, String>() {
+        Observable.fromArray(arrays)
+                .map(new Function<Integer, String>() {
                     @Override
-                    public String call(Integer integer) {
+                    public String apply(Integer integer) throws Exception {
                         System.out.println(integer);
                         return integer + "20000";
                     }
+
                 })
                 .cast(Integer.class)
-                .map(new Func1<Integer, String>() {
+                .map(new Function<Integer, String>() {
                     @Override
-                    public String call(Integer s) {
+                    public String apply(Integer s) throws Exception {
                         System.out.println(s);
                         return s + "ov";
                     }
+
+
                 }).subscribe(subscriber);
 
     }
 
     @org.junit.Test
     public void mergeTest() {
-        Observable<String> from = Observable.from(strs);
-        Observable<Integer> intArrays = Observable.from(arrays);
+        Observable<String> from = Observable.fromArray(strs);
+        Observable<Integer> intArrays = Observable.fromArray(arrays);
         Observable<? extends Serializable> merge = Observable.merge(from, intArrays);
         merge.subscribe(subscriber);
         /**
@@ -277,13 +280,14 @@ public class OperatorTest {
 
     @org.junit.Test
     public void zipTest() {
-        Observable<String> from = Observable.from(strs);
-        Observable<Integer> intArrays = Observable.from(arrays);
-        Observable.zip(from, intArrays, new Func2<String, Integer, String>() {
+        Observable<String> from = Observable.fromArray(strs);
+        Observable<Integer> intArrays = Observable.fromArray(arrays);
+        Observable.zip(from, intArrays, new BiFunction<String, Integer, String>() {
             @Override
-            public String call(String s, Integer integer) {
+            public String apply(String s, Integer integer) throws Exception {
                 return s + "=" + integer;
             }
+
         }).subscribe(subscriber);
         /**
          * start
@@ -309,52 +313,53 @@ public class OperatorTest {
      */
     @org.junit.Test
     public void joinTest() {
-        Observable<String> from = Observable.from(strs);
-        Observable<Long> interval = Observable.from(arrays).interval(100, TimeUnit.MILLISECONDS);
+        Observable<String> from = Observable.fromArray(strs);
+        Observable<Long> interval = Observable.fromArray(arrays).interval(100, TimeUnit.MILLISECONDS);
 
-        from.join(interval, new Func1<String, Observable<String>>() {
+        from.join(interval, new Function<String, Observable<String>>() {
             @Override
-            public Observable<String> call(String s) {
+            public Observable<String> apply(String s) throws Exception {
                 return Observable.just(s);
 
             }
-        }, new Func1<Long, Observable<String>>() {
+        }, new Function<Long, Observable<String>>() {
             @Override
-            public Observable<String> call(Long aLong) {
+            public Observable<String> apply(Long aLong) throws Exception {
                 return Observable.timer(aLong, TimeUnit.MILLISECONDS).map(l -> String.valueOf(l));
             }
-        }, new Func2<String, Long, Object>() {
-            @Override
-            public Object call(String s, Long aLong) {
-                return s + "" + aLong;
 
+        }, new BiFunction<String, Long, Object>() {
+            @Override
+            public Object apply(String s, Long aLong) throws Exception {
+                return s + "" + aLong;
             }
+
         }).subscribe(subscriber);
     }
 
     /**
      * combinLast
-     *
+     * <p>
      * // TODO: 2016/7/22 未成功
      */
     @org.junit.Test
     public void combineTest() {
-        Observable<String> from = Observable.from(strs);
-        Observable<Long> interval = Observable.from(arrays).interval(1500, TimeUnit.MILLISECONDS);
-        Observable.combineLatest(from, interval, new Func2<String, Long, Object>() {
+        Observable<String> from = Observable.fromArray(strs);
+        Observable<Long> interval = Observable.fromArray(arrays).interval(1500, TimeUnit.MILLISECONDS);
+        Observable.combineLatest(from, interval, new BiFunction<String, Long, Object>() {
             @Override
-            public Object call(String s, Long aLong) {
+            public Object apply(String s, Long aLong) {
                 return null;
             }
         }).observeOn(Schedulers.io())
                 .subscribe(subscriber);
     }
-    public void andTest(){
-        Observable<String> from = Observable.from(strs);
-        Observable<Integer> intArrays = Observable.from(arrays);
+
+    public void andTest() {
+        Observable<String> from = Observable.fromArray(strs);
+        Observable<Integer> intArrays = Observable.fromArray(arrays);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().penaltyDialog().build());
         StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build());
-
 
 
     }

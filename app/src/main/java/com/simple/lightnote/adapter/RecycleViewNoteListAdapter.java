@@ -29,10 +29,11 @@ import com.simple.lightnote.utils.ToastUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * 列表ListView的Adapter
@@ -143,9 +144,9 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         Observable.just(note)
                 .observeOn(Schedulers.newThread())
                 .subscribeOn(Schedulers.io())
-                .doOnNext(new Action1<SimpleNote>() {
+                .doOnNext(new Consumer<SimpleNote>() {
                     @Override
-                    public void call(SimpleNote simpleNote) {
+                    public void accept(SimpleNote simpleNote) throws Exception {
                         simpleNote.setStatus(SimpleNote.st_delete);
                         noteDao.update(simpleNote);
                     }

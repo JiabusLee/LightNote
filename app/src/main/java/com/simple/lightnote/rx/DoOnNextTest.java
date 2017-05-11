@@ -4,39 +4,54 @@ import com.simple.lightnote.rx.datasource.sample.Data;
 
 import org.junit.Test;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+
 
 /**
- *   onStart
-     doOnNext:201
-     onNext301
-     completed
+ * onStart
+ * doOnNext:201
+ * onNext301
+ * completed
  */
 
-/**doOnNext 执行顺序
+/**
+ * doOnNext 执行顺序
  * Created by homelink on 2016/8/3.
  */
 public class DoOnNextTest {
     @Test
     public void test() {
-        Observable.create(new Observable.OnSubscribe<Data>() {
+        Observable.create(new ObservableOnSubscribe<Data>() {
             @Override
-            public void call(Subscriber<? super Data> subscriber) {
+            public void subscribe(ObservableEmitter<Data> e) throws Exception {
+
                 Data Data = new Data(201);
-                subscriber.onNext(Data);
+                e.onNext(Data);
             }
-        }).doOnNext(new Action1<Data>() {
+
+        }).doOnNext(new Consumer<Data>() {
             @Override
-            public void call(Data Data) {
-                System.out.println("doOnNext:"+Data.age);
+            public void accept(Data data) throws Exception {
+                System.out.println("doOnNext:" + Data.age);
                 Data.age = 301;
             }
-        }).subscribe(new Subscriber<Data>() {
+
+
+        }).subscribe(new Observer<Data>() {
             @Override
-            public void onCompleted() {
-                System.out.println("completed");
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Data data) {
+                System.out.println("onNext" + data.age);
+                onComplete();
             }
 
             @Override
@@ -45,16 +60,8 @@ public class DoOnNextTest {
             }
 
             @Override
-            public void onNext(Data data) {
-                System.out.println("onNext"+data.age);
-                onCompleted();
-            }
-
-            @Override
-            public void onStart() {
-                super.onStart();
-                System.out.println("onStart");
-
+            public void onComplete() {
+                System.out.println("onComplete");
             }
         });
     }

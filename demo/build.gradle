@@ -26,11 +26,12 @@ android {
     }
 
     lintOptions {
-        abortOnError true
-
-        htmlOutput file("$project.buildDir/reports/lint/lint.html")
-        xmlOutput file("$project.buildDir/reports/lint/lint.xml")
+        abortOnError false
+//
+//        htmlOutput file("$project.buildDir/reports/lint/lint.html")
+//        xmlOutput file("$project.buildDir/reports/lint/lint.xml")
     }
+    buildToolsVersion '25.0.0'
 }
 
 dependencies {

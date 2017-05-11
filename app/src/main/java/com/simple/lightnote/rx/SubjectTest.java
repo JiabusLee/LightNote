@@ -1,11 +1,12 @@
 package com.simple.lightnote.rx;
 
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.subjects.BehaviorSubject;
-import rx.subjects.PublishSubject;
-import rx.subjects.ReplaySubject;
+
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.ReplaySubject;
 
 /**
  * Subject
@@ -16,14 +17,16 @@ public class SubjectTest {
     @org.junit.Test
     public void testBehaviorSubject() {
         //本质上，BehaviorSubject是一个能够发射最近的那个它所观察的数据对象并且所有后续已订阅的数据每一个都订阅它的这样一个subjec
-        BehaviorSubject<Integer> behaviorSubject = BehaviorSubject.create(3);
+        BehaviorSubject<Integer> behaviorSubject = BehaviorSubject.createDefault(3);
 //        behaviorSubject.onNext(5);
         behaviorSubject
-                .subscribe(new Action1<Integer>() {
+                .subscribe(new Consumer<Integer>() {
                     @Override
-                    public void call(Integer integer) {
+                    public void accept(Integer integer) throws Exception {
                         System.out.println("integer:" + integer);
                     }
+
+
                 });
 
     }
@@ -31,10 +34,18 @@ public class SubjectTest {
     @org.junit.Test
     public void testPublishSubject() {
         PublishSubject<String> stringPublishSubject = PublishSubject.create();
-        Subscription subscriptionPrint = stringPublishSubject.subscribe(new Subscriber<String>() {
+
+
+
+        stringPublishSubject.subscribe(new Observer<String>() {
             @Override
-            public void onCompleted() {
-                System.out.println("Observable	completed");
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(String value) {
+                System.out.println(value);
             }
 
             @Override
@@ -43,10 +54,11 @@ public class SubjectTest {
             }
 
             @Override
-            public void onNext(String s) {
-                System.out.println(s);
+            public void onComplete() {
+                System.out.println("Observable	completed");
             }
         });
+
         stringPublishSubject.onNext("Hello	World");
     }
 

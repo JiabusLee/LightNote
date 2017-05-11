@@ -2,10 +2,13 @@ package com.simple.lightnote.rx;
 
 import org.junit.Test;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.functions.Func0;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Function;
+
 
 /**
  * Created by homelink on 2016/8/29.
@@ -25,7 +28,12 @@ public class BufferTest {
                 .range(20, 200)
                 .take(5)
                 .window(250, 1, TimeUnit.MILLISECONDS)
-                .flatMap(o -> o.toList())
+                .flatMap(new Function<Observable<Integer>, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(Observable<Integer> integerObservable) throws Exception {
+                        return integerObservable;
+                    }
+                })
                 .subscribe(System.out::println);
     }
 
@@ -40,13 +48,13 @@ public class BufferTest {
         /**
          * 注意上面打印的两个时间是一样的。
          */
-
-        Observable<Object> defer = Observable.defer(new Func0<Observable<Object>>() {
+        Observable<Object> defer = Observable.defer(new Callable<ObservableSource<?>>() {
             @Override
-            public Observable<Object> call() {
+            public ObservableSource<?> call() throws Exception {
                 return Observable.just(System.currentTimeMillis());
             }
         });
+
         defer.subscribe(System.out::println);
         System.out.println("defer: ");
         defer.subscribe(System.out::println);

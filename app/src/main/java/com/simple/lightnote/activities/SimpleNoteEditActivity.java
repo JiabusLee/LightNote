@@ -39,13 +39,16 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * 编辑页面
@@ -99,14 +102,8 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
         Observable<SimpleNote> network = Observable.empty();//得取数据后保存到memorys和databases
 
         Observable<SimpleNote> source = Observable
-                .concat(memorys, databases, network)
-                .first();
-        Subscription subscribe = source.subscribe(new Action1<SimpleNote>() {
-            @Override
-            public void call(SimpleNote note) {
-
-            }
-        });
+                .concat(memorys, databases, network);
+//        Subscription subscribe = source.subscribe();
     }
 
     @Override
@@ -163,9 +160,9 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             Observable.just(note)
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
-                    .flatMap(new Func1<SimpleNote, Observable<?>>() {
+                    .flatMap(new Function<SimpleNote, ObservableSource<?>>() {
                         @Override
-                        public Observable<?> call(SimpleNote simpleNote) {
+                        public ObservableSource<?> apply(SimpleNote simpleNote) throws Exception {
                             if (simpleNote.getContent() != null)
                                 return Observable.just(simpleNote);
                             else {
@@ -173,29 +170,33 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
                                     String guid = simpleNote.getGuid();
                                     helper.downloadNote(guid);
-                                    Observable.just(0).repeatWhen(new Func1<Observable<? extends Void>, Observable<?>>() {
-                                        @Override
-                                        public Observable<?> call(Observable<? extends Void> observable) {
-                                            return observable.delay(1, TimeUnit.SECONDS);
-                                        }
-                                    }).doOnNext(__ -> loadData()).subscribe();
+
+
+                                    Observable.just(0)
+                                            .repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+                                                @Override
+                                                public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
+                                                    return objectObservable.delay(1, TimeUnit.SECONDS);
+                                                }
+                                            }).doOnNext(__ -> loadData()).subscribe();
                                 }
                             }
                             return null;
                         }
                     })
-                    .filter(new Func1<Object, Boolean>() {
+                    .filter(new Predicate<Object>() {
                         @Override
-                        public Boolean call(Object o) {
+                        public boolean test(Object o) throws Exception {
                             if (o != null) {
                                 SimpleNote simpleNote = (SimpleNote) o;
                                 Observable
                                         .just(simpleNote)
                                         .subscribeOn(AndroidSchedulers.mainThread())
                                         .observeOn(AndroidSchedulers.mainThread())
-                                        .doOnNext(new Action1<SimpleNote>() {
+                                        .doOnNext(new Consumer<SimpleNote>() {
+
                                             @Override
-                                            public void call(SimpleNote simpleNote) {
+                                            public void accept(SimpleNote simpleNote) throws Exception {
                                                 s_noteContent = simpleNote.getContent();
                                                 if (!TextUtils.isEmpty(s_noteContent)) {
                                                     edt_noteContent.setText(s_noteContent);
@@ -203,12 +204,14 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                                                 }
 
                                             }
+
                                         }).subscribe();
                                 return true;
                             }
                             return false;
                         }
-                    }).subscribe();
+                    })
+                    .subscribe();
 
         }
 
@@ -249,12 +252,18 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }).subscribe(new Subscriber<Integer>() {
+                        }).subscribe(new Observer<Integer>() {
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
 
                     private MaterialDialog show;
 
                     @Override
-                    public void onCompleted() {
+                    public void onComplete() {
                         if (show != null)
                             show.dismiss();
                     }
@@ -266,12 +275,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
 
                     @Override
                     public void onNext(Integer integer) {
-
-                    }
-
-                    @Override
-                    public void onStart() {
-                        super.onStart();
                         show = builder.show();
                     }
                 });

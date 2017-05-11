@@ -36,12 +36,14 @@ import com.simple.lightnote.view.SwipeMenuRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observable;
-import rx.Observer;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 
 
 public class RecoveryNoteActivity extends BaseSwipeActivity {
@@ -183,9 +185,10 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
 
     private void getListData() {
         Observable.just(SQLConstants.noteState_deleted)
-                .map(new Func1<Integer, List<SimpleNote>>() {
+
+                .map(new Function<Integer, List<SimpleNote>>() {
                     @Override
-                    public List<SimpleNote> call(Integer noteState) {
+                    public List<SimpleNote> apply(Integer integer) throws Exception {
                         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(RecoveryNoteActivity.this, "lightnote", null);
                         SQLiteDatabase db = helper.getWritableDatabase();
                         daoMaster = new DaoMaster(db);
@@ -199,28 +202,37 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
                     }
                 })
 
+
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(Schedulers.io())
-                .filter(new Func1<List<SimpleNote>, Boolean>() {
+                .filter(new Predicate<List<SimpleNote>>() {
                     @Override
-                    public Boolean call(List<SimpleNote> notes) {
+                    public boolean test(List<SimpleNote> simpleNotes) throws Exception {
                         LogUtils.e(TAG, "call4: " + Thread.currentThread());
-                        return !ListUtils.isEmpty(notes);
+                        return !ListUtils.isEmpty(simpleNotes);
                     }
                 })
+
+
                 .observeOn(Schedulers.io())
-                .doOnNext(new Action1<List<SimpleNote>>() {
+                .doOnNext(new Consumer<List<SimpleNote>>() {
                     @Override
-                    public void call(List<SimpleNote> notes) {
+                    public void accept(List<SimpleNote> simpleNotes) throws Exception {
                         LogUtils.e(TAG, "call5: " + Thread.currentThread());
-                        System.out.println(notes);
+                        System.out.println(simpleNotes);
                     }
                 })
+
 
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<SimpleNote>>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("over");
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
@@ -235,7 +247,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
                         noteAdapter.setList(o);
                         noteAdapter.notifyDataSetChanged();
                         LogUtils.e(TAG, "call6: " + Thread.currentThread());
-                        onCompleted();
+                        onComplete();
                     }
                 });
 

@@ -2,12 +2,14 @@ package com.simple.lightnote.rx;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Observer;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/7/25.
@@ -17,57 +19,56 @@ public class SchedulerTest {
 
     @org.junit.Test
     public void test() {
-        Observable.timer(5,TimeUnit.SECONDS).map(new Func1<Long, String>() {
+        Observable.timer(5, TimeUnit.SECONDS).map(new Function<Long, String>() {
             @Override
-            public String call(Long aLong) {
-                return aLong+"call";
+            public String apply(Long aLong) throws Exception {
+                return aLong + "call";
             }
-        }).subscribe(new Action1<String>() {
+
+
+        }).subscribe(new Consumer<String>() {
             @Override
-            public void call(String s) {
+            public void accept(String s) throws Exception {
                 System.out.println(s);
             }
         });
-        Observable.interval(5, 5, TimeUnit.SECONDS).from(intArrays).subscribe(i -> System.out.println("print=" + i));
-        Observable.zip(Observable.interval(1000, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
+        Observable.interval(5, 5, TimeUnit.SECONDS).fromArray(intArrays).subscribe(i -> System.out.println("print=" + i));
+        Observable.zip(Observable.interval(1000, TimeUnit.SECONDS), Observable.fromArray(intArrays), new BiFunction<Long, Integer, Integer>() {
             @Override
-            public Integer call(Long aLong, Integer integer) {
+            public Integer apply(Long aLong, Integer integer) throws Exception {
                 return integer;
             }
         }).subscribe(System.out::println);
 
 
-        Observable.zip(Observable.interval(1000, TimeUnit.SECONDS), Observable.from(intArrays), new Func2<Long, Integer, Integer>() {
+        Observable.zip(Observable.interval(1000, TimeUnit.SECONDS), Observable.fromArray(intArrays), new BiFunction<Long, Integer, Integer>() {
             @Override
-            public Integer call(Long aLong, Integer integer) {
+            public Integer apply(Long aLong, Integer integer) throws Exception {
                 return integer;
             }
         }).subscribe(System.out::println);
 
 
-
-
-
-
-
-
-        Observable.from(intArrays).flatMap(new Func1<Integer, Observable<?>>() {
+        Observable.fromArray(intArrays).flatMap(new Function<Integer, Observable<?>>() {
             @Override
-            public Observable<?> call(Integer integer) {
+            public Observable<?> apply(Integer integer) throws Exception {
                 System.out.println(integer);
                 return Observable.just(integer);
             }
-        }).zipWith(Observable.interval(3, TimeUnit.SECONDS), new Func2<Object, Long, String>() {
+        }).zipWith(Observable.interval(3, TimeUnit.SECONDS), new BiFunction<Object, Long, String>() {
             @Override
-            public String call(Object o, Long aLong) {
+            public String apply(Object o, Long aLong) throws Exception {
                 System.out.println(o);
-                return (String)o;
+                return (String) o;
             }
-        }).subscribe(new Action1<String>() {
+
+
+        }).subscribe(new Consumer<String>() {
             @Override
-            public void call(String s) {
+            public void accept(String s) throws Exception {
                 System.out.println(s);
             }
+
         });
 
     }
@@ -78,7 +79,7 @@ public class SchedulerTest {
         Observable.zip(
                 Observable.interval(1, TimeUnit.SECONDS),
                 Observable.range(0, 10), (aLong, integer) -> integer)
-                .subscribe(i-> System.out.println(i));
+                .subscribe(i -> System.out.println(i));
 
         //后者:
         Observable.timer(2, TimeUnit.SECONDS)
@@ -88,31 +89,39 @@ public class SchedulerTest {
 
         Observable.zip(
                 Observable.interval(1, TimeUnit.SECONDS),
-                Observable.range(0, 10), new Func2<Long, Integer, Integer>() {
+                Observable.range(0, 10), new BiFunction<Long, Integer, Integer>() {
                     @Override
-                    public Integer call(Long aLong, Integer integer) {
+                    public Integer apply(Long aLong, Integer integer) throws Exception {
                         return integer;
                     }
+
                 })
                 .subscribe(System.out::println);
-        Observable.from(intArrays).timer(3,TimeUnit.SECONDS).subscribe(new Action1<Long>() {
+        Observable.fromArray(intArrays).timer(3, TimeUnit.SECONDS).subscribe(new Consumer<Long>() {
             @Override
-            public void call(Long aLong) {
-                System.out.println(aLong);
+            public void accept(Long aLong) throws Exception {
+
             }
         });
     }
 
-    @org.junit.Test public void test3(){
-        Observable.interval(3,TimeUnit.SECONDS).timeInterval().subscribe(System.out::println);
+    @org.junit.Test
+    public void test3() {
+        Observable.interval(3, TimeUnit.SECONDS).timeInterval().subscribe(System.out::println);
     }
 
-    @org.junit.Test public void test4(){
+    @org.junit.Test
+    public void test4() {
         Observable//
                 .interval(10, TimeUnit.SECONDS)//
                 .subscribe(new Observer<Long>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("complete");
                     }
 
@@ -123,12 +132,14 @@ public class SchedulerTest {
 
                     @Override
                     public void onNext(Long number) {
-                        System.out.println(String.format("B2 [%s]     NEXT",number));
+                        System.out.println(String.format("B2 [%s]     NEXT", number));
                     }
                 });
     }
-    @org.junit.Test public void timerTest(){
-        System.out.println("wait ---->>>>"+System.currentTimeMillis());
+
+    @org.junit.Test
+    public void timerTest() {
+        System.out.println("wait ---->>>>" + System.currentTimeMillis());
         Observable.timer(10, TimeUnit.SECONDS)
                 .observeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
@@ -136,7 +147,7 @@ public class SchedulerTest {
                 //.just(1).delay(2, TimeUnit.SECONDS)//
                 .subscribe(new Observer<Long>() {
                     @Override
-                    public void onCompleted() {
+                    public void onComplete() {
                         System.out.println(String.format("A1 [%s] XXX COMPLETE"));
                     }
 
@@ -146,10 +157,15 @@ public class SchedulerTest {
                     }
 
                     @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
                     public void onNext(Long number) {
                         System.out.println((String.format("A1 [%s]     NEXT", number)));
                     }
                 });
-        System.out.println("end ---->>>>"+System.currentTimeMillis());
+        System.out.println("end ---->>>>" + System.currentTimeMillis());
     }
 }

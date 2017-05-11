@@ -2,24 +2,28 @@ package com.simple.lightnote.rx;
 
 import org.junit.Test;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/8/4.
  */
 public class RxUtil {
 
-    public static Observable.Transformer<String, Integer> mainAsync() {
-        return new Observable.Transformer<String, Integer>() {
+    public static ObservableTransformer<String, Integer> mainAsync() {
+        return new ObservableTransformer<String, Integer>() {
             @Override
-            public Observable<Integer> call(Observable<String> o) {
-
-                return o.subscribeOn(Schedulers.io())
+            public ObservableSource<Integer> apply(Observable<String> upstream) {
+                return upstream.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .map(x -> Integer.valueOf(x));
             }
+
+
         };
     }
 

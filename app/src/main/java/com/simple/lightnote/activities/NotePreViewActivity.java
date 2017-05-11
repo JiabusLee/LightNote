@@ -37,11 +37,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/3/14.
@@ -125,22 +129,23 @@ public class NotePreViewActivity extends BaseActivity {
      */
     private void loadFileData(String filePath) {
         Observable.just(filePath)
-                .map(new Func1<String, String>() {
+                .map(new Function<String, String>() {
                     @Override
-                    public String call(String s) {
+                    public String apply(String s) throws Exception {
                         return getFileContents(s);
+
+
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<String>() {
-                    @Override
-                    public void onCompleted() {
-                        LogUtils.e(TAG, "load file onCompleted: ");
-                    }
 
+
+
+                .subscribeOn(Schedulers.io())
+
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
                     @Override
-                    public void onError(Throwable e) {
+                    public void onSubscribe(Disposable d) {
 
                     }
 
@@ -151,11 +156,16 @@ public class NotePreViewActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onStart() {
-                        super.onStart();
-                        //开启对话框
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        LogUtils.e(TAG, "load file onCompleted: ");
                     }
                 });
+
 
     }
 
@@ -271,23 +281,30 @@ public class NotePreViewActivity extends BaseActivity {
             try {
 //                String encode = URLEncoder.encode(str, "UTF-8");
                 String s = str.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
-                Observable
-                        .create(new Observable.OnSubscribe<String>() {
-                            @Override
-                            public void call(Subscriber<? super String> subscriber) {
-                                subscriber.onStart();
-                                LogUtils.e(TAG, "loadMarkDown: create");
-                                String s1 = HtmlParser.formatText(s, Constans.newLineFlag);
-                                LogUtils.e(TAG, "call: format end:==>" + s1);
-                                subscriber.onNext(s1);
-                            }
-                        })
+
+                Observable.create(new ObservableOnSubscribe<String>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<String> e) throws Exception {
+                        LogUtils.e(TAG, "loadMarkDown: create");
+                        String s1 = HtmlParser.formatText(s, Constans.newLineFlag);
+                        LogUtils.e(TAG, "call: format end:==>" + s1);
+                        e.onNext(s1);
+                    }
+                })
+
+
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Subscriber<String>() {
+                        .subscribe(new Observer<String>() {
                             @Override
-                            public void onCompleted() {
-                                LogUtils.e(TAG, "onCompleted: loadCompleted");
+                            public void onSubscribe(Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onNext(String sHtml) {
+                                mWebView.loadUrl("javascript:RE.setHtml(\"" + sHtml + "\")");
+                                LogUtils.e(TAG, "loadMarkDown: " + sHtml);
                             }
 
                             @Override
@@ -296,11 +313,11 @@ public class NotePreViewActivity extends BaseActivity {
                             }
 
                             @Override
-                            public void onNext(String sHtml) {
-                                mWebView.loadUrl("javascript:RE.setHtml(\"" + sHtml + "\")");
-                                LogUtils.e(TAG, "loadMarkDown: " + sHtml);
+                            public void onComplete() {
+                                LogUtils.e(TAG, "onCompleted: loadCompleted");
                             }
                         });
+
                 /*
                 String formatText = HtmlParser.formatText(str, Constans.newLineFlag);
                 LogUtils.e(TAG, "loadMarkDown: " + formatText);

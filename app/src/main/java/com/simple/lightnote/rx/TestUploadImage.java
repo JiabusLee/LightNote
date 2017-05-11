@@ -2,7 +2,8 @@ package com.simple.lightnote.rx;
 
 import java.util.ArrayList;
 
-import rx.Observable;
+import io.reactivex.Observable;
+
 
 /**
  * Created by homelink on 2016/7/18.
@@ -12,7 +13,7 @@ public class TestUploadImage {
 //    @org.junit.TestUploadImage
     public void test() {
 
-        Observable.from(str).subscribe(url-> System.out.println(url));
+        Observable.just(str).subscribe(url-> System.out.println(url));
 
     }
     @org.junit.Test

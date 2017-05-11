@@ -1,12 +1,15 @@
 package com.simple.lightnote.rx;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.observables.GroupedObservable;
-import rx.schedulers.Schedulers;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.observables.GroupedObservable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by homelink on 2016/7/22.
@@ -19,15 +22,21 @@ public class Operator2Test {
                 .empty()
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Func1<Object, Observable<?>>() {
+                .flatMap(new Function<Object, ObservableSource<?>>() {
                     @Override
-                    public Observable<?> call(Object o) {
+                    public ObservableSource<?> apply(Object o) throws Exception {
                         return null;
                     }
                 })
-                .subscribe(new Subscriber<Object>() {
+
+                .subscribe(new Observer<Object>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
 
                     }
 
@@ -45,22 +54,21 @@ public class Operator2Test {
 
         Observable
                 .just(10, 233)
-                .flatMap(new Func1<Integer, Observable<?>>() {
+                .flatMap(new Function<Integer, ObservableSource<?>>() {
                     @Override
-                    public Observable<?> call(Integer integer) {
+                    public ObservableSource<?> apply(Integer integer) throws Exception {
                         return Observable.range(integer, 2);
                     }
-                })
-                .concatMap(new Func1<Object, Observable<?>>() {
+                }).concatMap(new Function<Object, ObservableSource<?>>() {
+            @Override
+            public ObservableSource<?> apply(Object o) throws Exception {
+                return null;
+            }
+        })
 
+                .subscribe(new Consumer<Object>() {
                     @Override
-                    public Observable<?> call(Object o) {
-                        return null;
-                    }
-                })
-                .subscribe(new Action1<Object>() {
-                    @Override
-                    public void call(Object o) {
+                    public void accept(Object o) throws Exception {
 
                     }
                 });
@@ -68,24 +76,27 @@ public class Operator2Test {
 
         Observable
                 .just(new int[]{1, 2, 5, 6, 4, 10, 22, 34, 55, 44})
-                .groupBy(new Func1<int[], Integer>() {
+                .groupBy(new Function<int[], Integer>() {
                     @Override
-                    public Integer call(int[] ints) {
+                    public Integer apply(int[] ints) throws Exception {
                         for (int i : ints) {
                             if (i >= 10) return i;
                         }
                         return 0;
                     }
                 })
-                .subscribe(new Action1<GroupedObservable<Integer, int[]>>() {
+
+                .subscribe(new Consumer<GroupedObservable<Integer, int[]>>() {
                     @Override
-                    public void call(GroupedObservable<Integer, int[]> integerGroupedObservable) {
+                    public void accept(GroupedObservable<Integer, int[]> integerGroupedObservable) throws Exception {
                         System.out.println(integerGroupedObservable.getKey());
                     }
+
+
                 });
 
 /*
-        Observable.just(1, 2, 3, 4, "1", "2", "3").groupBy(new Func1<Object, String>() {
+        Observable.just(1, 2, 3, 4, "1", "2", "3").groupBy(new Function<Object, String>() {
             @Override
             public String call(Object o) {
                 if (o instanceof Number) {

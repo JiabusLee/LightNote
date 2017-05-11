@@ -2,9 +2,11 @@ package com.simple.lightnote.rx;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Observer;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/8/2.
@@ -24,7 +26,12 @@ public class TimerTest {
                 //.just(1).delay(2, TimeUnit.SECONDS)//
                 .subscribe(new Observer<Long>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("A1 [%s] XXX COMPLETE");
                     }
 

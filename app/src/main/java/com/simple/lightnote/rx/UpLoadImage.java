@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
+
 /**
  * RxJava Demo类。
  * Lambda表达式的应用
@@ -21,39 +25,47 @@ public class UpLoadImage {
 
     public static void uploadImage(ArrayList<ImageInfo> imageInfos, final String sMethod) {
 
-        Observable.from(imageInfos)
+        Observable
+                .create(new ObservableOnSubscribe<ImageInfo>() {
+                    @Override
+                    public void subscribe(ObservableEmitter<ImageInfo> e) throws Exception {
+                        for (ImageInfo imageInfo : imageInfos) {
+                            e.onNext(imageInfo);
+                        }
+                        e.onComplete();
+                    }
+                })
 
-                .map(new Func1<ImageInfo, ImageInfo>() {
+                .map(new Function<ImageInfo, ImageInfo>() {
+
                          @Override
-                         public ImageInfo call(ImageInfo imageInfo) {
+                         public ImageInfo apply(ImageInfo imageInfo) throws Exception {
                              System.out.println(imageInfo);
-//                        LogUtils.e(TAG,imageInfo);
-
-//                        byte[] bitmapByte = BitmapUtil.getBitmapByte(imageFilePath);
-
                              uploadImg(imageInfo);
-
-
                              return imageInfo;
                          }
+
+
                      }
                 )
                 .observeOn(Schedulers.io())
-                .map(new Func1<ImageInfo, String>() {
+                .map(new Function<ImageInfo, String>() {
                     @Override
-                    public String call(ImageInfo imageInfo) {
-//                        LogUtils.e(TAG,imageInfo);
+                    public String apply(ImageInfo imageInfo) throws Exception {
 
                         return submitImgInfo(imageInfo);
-
-
                     }
                 })
                 .take(5)
                 .doOnNext(string -> System.out.println(string))
-                .subscribe(new Subscriber<String>() {
+                .subscribe(new Observer<String>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
                         System.out.println("onCompleted: 上传完成");
                     }
 
@@ -106,19 +118,53 @@ public class UpLoadImage {
 
     /**
      * 使用Lambda来写RxJava
+     *
      * @param imageInfos
      * @param sMethod
      */
-    public static  void updateImageL(ArrayList<ImageInfo> imageInfos, final String sMethod) {
-        Subscription subscribe = Observable.from(imageInfos)
-                .map(imageInfo -> uploadImg(imageInfo))
+    public static void updateImageL(ArrayList<ImageInfo> imageInfos, final String sMethod) {
+
+        Observable
+                .create((ObservableOnSubscribe<ImageInfo>) e -> {
+                    for (ImageInfo imageInfo : imageInfos) {
+                        e.onNext(imageInfo);
+                    }
+                    e.onComplete();
+                })
+
+                .map(imageInfo -> {
+                            System.out.println(imageInfo);
+                            uploadImg(imageInfo);
+                            return imageInfo;
+                        }
+                )
                 .observeOn(Schedulers.io())
                 .map(imageInfo -> submitImgInfo(imageInfo))
-                .take(2)
-                .doOnNext(str -> System.out.println(str))
-                .subscribe(result -> System.out.println(result));
-        //取消订阅
-//        subscribe.unsubscribe();
+                .take(5)
+                .doOnNext(string -> System.out.println(string))
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        System.out.println("onCompleted: 上传完成");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+//                        Log.e(TAG, "onNext: " + s);
+                        System.out.println("onNext:" + s);
+                    }
+                });
+
     }
 
 }

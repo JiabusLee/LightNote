@@ -63,11 +63,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+
 
 //import com.evernote.edam.type.Note;
 
@@ -384,17 +387,17 @@ public class MainActivity extends BaseActivity {
         Observable
                 .just(0)
                 .observeOn(AndroidSchedulers.mainThread())
-                .map(new Func1<Integer, Integer>() {
+                .map(new Function<Integer, Integer>() {
                     @Override
-                    public Integer call(Integer integer) {
+                    public Integer apply(Integer integer) throws Exception {
                         mSwipeRefreshLayout.setRefreshing(true);
                         return null;
                     }
                 })
                 .observeOn(Schedulers.io())
-                .map(new Func1<Integer, List<SimpleNote>>() {
+                .map(new Function<Integer, List<SimpleNote>>() {
                     @Override
-                    public List<SimpleNote> call(Integer integer) {
+                    public List<SimpleNote> apply(Integer integer) throws Exception {
                         String order = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
 
                         return noteDao.queryBuilder()
@@ -403,32 +406,43 @@ public class MainActivity extends BaseActivity {
                                 .build().list();
                     }
                 })
-
-                .filter(new Func1<List<SimpleNote>, Boolean>() {
+                .filter(new Predicate<List<SimpleNote>>() {
                     @Override
-                    public Boolean call(List<SimpleNote> simpleNotes) {
+                    public boolean test(List<SimpleNote> simpleNotes) throws Exception {
                         return !ListUtils.isEmpty(simpleNotes);
                     }
                 })
+
+
+
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<List<SimpleNote>>() {
-                    @Override
-                    public void onCompleted() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
+               .subscribe(new Observer<List<SimpleNote>>() {
+                   @Override
+                   public void onSubscribe(Disposable d) {
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+                   }
 
-                    @Override
-                    public void onNext(List<SimpleNote> simpleNotes) {
-                        noteAdapter.setList(simpleNotes);
-                        noteAdapter.notifyDataSetChanged();
-                    }
-                });
+                   @Override
+                   public void onNext(List<SimpleNote> simpleNotes) {
+                       noteAdapter.setList(simpleNotes);
+                       noteAdapter.notifyDataSetChanged();
+                   }
+
+                   @Override
+                   public void onError(Throwable e) {
+                       e.printStackTrace();
+                   }
+
+                   @Override
+                   public void onComplete() {
+                       mSwipeRefreshLayout.setRefreshing(false);
+                   }
+               });
+
+
+
+
     }
 
     @Override

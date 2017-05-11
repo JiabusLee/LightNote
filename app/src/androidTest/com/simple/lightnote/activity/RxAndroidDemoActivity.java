@@ -11,12 +11,12 @@ import com.simple.lightnote.R;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.android.schedulers.HandlerScheduler;
-import rx.exceptions.OnErrorThrowable;
-import rx.functions.Func0;
+
+
+
+
+
+
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 

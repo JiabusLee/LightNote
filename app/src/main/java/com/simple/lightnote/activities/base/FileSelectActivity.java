@@ -17,11 +17,13 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import rx.Observable;
-import rx.Observer;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created by homelink on 2016/3/8.
@@ -46,13 +48,16 @@ public class FileSelectActivity extends BaseActivity {
 
     }
 
+    /**
+     * 2.xxxt版本的RxJava
+     */
     private void initData() {
 
         String appRoot = "/lightnote/markdown";
         Observable.just(appRoot)
-                .map(new Func1<String, List<File>>() {
+                .map(new Function<String, List<File>>() {
                     @Override
-                    public List<File> call(String s) {
+                    public List<File> apply(String s) throws Exception {
                         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                             File rootDir = Environment.getExternalStorageDirectory();
                             File lightNoteRoot = new File(rootDir + s);
@@ -74,8 +79,15 @@ public class FileSelectActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<File>>() {
                     @Override
-                    public void onCompleted() {
-                        Log.e(TAG, "onCompleted:success");
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(List<File> value) {
+                        Log.e(TAG, "onNext: " + value.toString());
+                        fileSelectAdapter.setmList(value);
+                        fileSelectAdapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -85,13 +97,10 @@ public class FileSelectActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onNext(List<File> fileList) {
-                        Log.e(TAG, "onNext: " + fileList.toString());
-                        fileSelectAdapter.setmList(fileList);
-                        fileSelectAdapter.notifyDataSetChanged();
+                    public void onComplete() {
+                        Log.e(TAG, "onCompleted:success");
                     }
                 });
-
 
     }
 
