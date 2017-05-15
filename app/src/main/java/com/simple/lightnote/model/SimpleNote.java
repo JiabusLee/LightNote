@@ -199,7 +199,12 @@ public class SimpleNote {
     public Note toNote() {
         Note note = new Note();
         note.setContent(this.getContent());
-        note.setTitle(this.getTitle());
+        return note;
+    }
+    public Note toCreateNote() {
+        Note note = new Note();
+        note.setContent(this.getContent());
+        note.setTitle("simpleNote");
         return note;
     }
 
@@ -210,6 +215,7 @@ public class SimpleNote {
         note.setTitle(this.getTitle());
         return note;
     }
+
 
     public int getStatus() {
         return status;

@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.SearchView;
 
+import com.simple.lightnote.LightNoteApplication;
 import com.simple.lightnote.R;
 import com.simple.lightnote.activities.base.BaseSwipeActivity;
 import com.simple.lightnote.activities.base.FileSelectActivity;
@@ -48,20 +49,17 @@ import io.reactivex.schedulers.Schedulers;
 
 public class RecoveryNoteActivity extends BaseSwipeActivity {
     private static final String TAG = "RecoveryNoteActivity";
+    View contentView;
     private ArrayList<SimpleNote> noteList;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DrawerLayout drawerLayout;
     private Toolbar mToolbar;
     private SwipeMenuRecyclerView mRecycleView;
-
-
     private DaoMaster daoMaster;
     private DaoSession daoSession;
     private NoteDao noteDao;
-
-
     private RecycleViewNoteListAdapter noteAdapter;
-    View contentView;
+    private LightNoteApplication app;
 
 
     @SuppressLint("NewApi")
@@ -72,6 +70,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         setContentView(contentView);
         getWindow().getDecorView().setBackground(getDrawable(R.drawable.main_list_bg));
         initView();
+        initDB();
         initListener();
         initData();
     }
@@ -139,6 +138,7 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
 
         //设置 RecycleView的显示方式
         noteAdapter = new RecycleViewNoteListAdapter(noteList);
+        noteAdapter.setNoteDao(noteDao);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
@@ -263,6 +263,13 @@ public class RecoveryNoteActivity extends BaseSwipeActivity {
         getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
 
+    }
+
+    private void initDB() {
+
+        app = (LightNoteApplication) getApplication();
+        daoSession = app.getDaoSession();
+        noteDao = daoSession.getNoteDao();
     }
 
 

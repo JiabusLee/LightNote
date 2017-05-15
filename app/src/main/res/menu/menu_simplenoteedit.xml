@@ -11,9 +11,9 @@
         android:title="HIDE"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/menu_simplenoteedit_info"
+        android:id="@+id/menu_simplenoteedit_save"
         android:orderInCategory="100"
-        android:title=""
+        android:title="保存"
         app:showAsAction="never"/>
 
     <item

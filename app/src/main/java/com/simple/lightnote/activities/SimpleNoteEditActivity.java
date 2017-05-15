@@ -254,13 +254,12 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
                             }
                         }).subscribe(new Observer<Integer>() {
 
+                    private MaterialDialog show;
+
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
-
-
-                    private MaterialDialog show;
 
                     @Override
                     public void onComplete() {
@@ -283,7 +282,6 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             //新建
             if (!TextUtils.isEmpty(s_noteContent)) {
                 note = new SimpleNote();
-                note.setTitle(note.getTitle());
                 note.setContent(s_noteContent);
                 Observable.just(0)
                         .observeOn(Schedulers.newThread())
@@ -338,7 +336,8 @@ public class SimpleNoteEditActivity extends BaseSwipeActivity {
             case R.id.menu_simplenoteedit_list:
                 ToastUtils.showToast(SimpleNoteEditActivity.this, "清单");
                 return true;
-            case R.id.menu_simplenoteedit_info:
+            case R.id.menu_simplenoteedit_save:
+                ToastUtils.showToast(SimpleNoteEditActivity.this, "保存");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

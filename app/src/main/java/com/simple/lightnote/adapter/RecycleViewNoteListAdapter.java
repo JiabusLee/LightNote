@@ -51,7 +51,7 @@ public class RecycleViewNoteListAdapter extends RecyclerView.Adapter<RecyclerVie
         this.list = note;
     }
 
-    public void setNotDao(NoteDao dao) {
+    public void setNoteDao(NoteDao dao) {
         this.noteDao = dao;
     }
 

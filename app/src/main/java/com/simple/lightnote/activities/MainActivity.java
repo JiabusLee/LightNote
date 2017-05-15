@@ -67,8 +67,6 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -87,8 +85,7 @@ public class MainActivity extends BaseActivity {
     private SwipeMenuRecyclerView mRecycleView;
     private SQLiteDatabase db;
     private EditText editText;
-    //    private DaoMaster daoMaster;
-//    private DaoSession daoSession;
+
     private NoteDao noteDao;
     private Cursor cursor;
     private RecycleViewNoteListAdapter noteAdapter;
@@ -104,10 +101,6 @@ public class MainActivity extends BaseActivity {
     private View view;
     private FloatingActionButton fab;
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
 
     @SuppressLint("NewApi")
     @Override
@@ -217,15 +210,15 @@ public class MainActivity extends BaseActivity {
                     String temp = "";
                     switch (position) {
                         case 0:
-                            temp = NoteDao.Properties.UpdateTime.columnName+" desc";
+                            temp = NoteDao.Properties.UpdateTime.columnName + " desc";
 
                             break;
                         case 1:
-                            temp = NoteDao.Properties.CreateTime.columnName+" asc";
+                            temp = NoteDao.Properties.CreateTime.columnName + " asc";
 
                             break;
                         case 2:
-                            temp = NoteDao.Properties.Title.columnName+" asc";
+                            temp = NoteDao.Properties.Title.columnName + " asc";
                             break;
                     }
 
@@ -288,7 +281,7 @@ public class MainActivity extends BaseActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
-        noteAdapter.setNotDao(noteDao);
+        noteAdapter.setNoteDao(noteDao);
 //		mRecycleView.setLayoutManager(new GridLayoutManager(this,2));
 //		mRecycleView.setLayoutManager(new StaggeredGridLayoutManager(2,OrientationHelper.VERTICAL));
         mRecycleView.setAdapter(noteAdapter);
@@ -350,24 +343,22 @@ public class MainActivity extends BaseActivity {
             }
         });
         mSwipeRefreshLayout
-                .setOnRefreshListener(() -> {
-                    Observable
-                            .just(0)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .map(integer -> {
-                                mSwipeRefreshLayout.setRefreshing(true);
-                                return null;
-                            })
-                            .subscribeOn(AndroidSchedulers.mainThread())
-                            .doOnNext(__ -> loadData())
-                            .observeOn(Schedulers.newThread())
-                            .doOnNext(__ -> syncNote())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(__ -> {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                                LogUtils.e(TAG, "onCompleted: ");
-                            });
-                });
+                .setOnRefreshListener(() -> Observable
+                        .just(0)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .map(integer -> {
+                            mSwipeRefreshLayout.setRefreshing(true);
+                            return integer;
+                        })
+                        .subscribeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(__ -> loadData())
+                        .observeOn(Schedulers.newThread())
+                        .doOnNext(__ -> syncNote())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(__ -> {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                            LogUtils.e(TAG, "onCompleted: ");
+                        }));
         ScrollDirectionListener listener = new ScrollDirectionListener() {
             @Override
             public void onScrollDown() {
@@ -387,60 +378,41 @@ public class MainActivity extends BaseActivity {
         Observable
                 .just(0)
                 .observeOn(AndroidSchedulers.mainThread())
-                .map(new Function<Integer, Integer>() {
-                    @Override
-                    public Integer apply(Integer integer) throws Exception {
-                        mSwipeRefreshLayout.setRefreshing(true);
-                        return null;
-                    }
-                })
+                .doOnSubscribe(disposable -> mSwipeRefreshLayout.setRefreshing(true))
                 .observeOn(Schedulers.io())
-                .map(new Function<Integer, List<SimpleNote>>() {
-                    @Override
-                    public List<SimpleNote> apply(Integer integer) throws Exception {
-                        String order = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
+                .map(integer -> {
+                    String order = SPUtil.getString(MainActivity.this, SPConstans.ORDER_SORTBY, SPConstans.ORDER_SORTBY_DEFAULT);
 
-                        return noteDao.queryBuilder()
-                                .where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete))
-                                .orderRaw(order )
-                                .build().list();
-                    }
+                    return noteDao.queryBuilder()
+                            .where(NoteDao.Properties.Status.notEq(SimpleNote.st_delete))
+                            .orderRaw(order)
+                            .build().list();
                 })
-                .filter(new Predicate<List<SimpleNote>>() {
-                    @Override
-                    public boolean test(List<SimpleNote> simpleNotes) throws Exception {
-                        return !ListUtils.isEmpty(simpleNotes);
-                    }
-                })
-
-
-
+                .filter(simpleNotes -> !ListUtils.isEmpty(simpleNotes))
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
-               .subscribe(new Observer<List<SimpleNote>>() {
-                   @Override
-                   public void onSubscribe(Disposable d) {
+                .subscribe(new Observer<List<SimpleNote>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
-                   }
+                    }
 
-                   @Override
-                   public void onNext(List<SimpleNote> simpleNotes) {
-                       noteAdapter.setList(simpleNotes);
-                       noteAdapter.notifyDataSetChanged();
-                   }
+                    @Override
+                    public void onNext(List<SimpleNote> simpleNotes) {
+                        noteAdapter.setList(simpleNotes);
+                        noteAdapter.notifyDataSetChanged();
+                    }
 
-                   @Override
-                   public void onError(Throwable e) {
-                       e.printStackTrace();
-                   }
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
 
-                   @Override
-                   public void onComplete() {
-                       mSwipeRefreshLayout.setRefreshing(false);
-                   }
-               });
-
-
+                    @Override
+                    public void onComplete() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                });
 
 
     }
@@ -477,7 +449,6 @@ public class MainActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.fab:
-
                 intent = new Intent(this, SimpleNoteEditActivity.class);
                 startActivity(intent);
                 break;

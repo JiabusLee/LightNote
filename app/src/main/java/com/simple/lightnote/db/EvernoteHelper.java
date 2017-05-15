@@ -6,7 +6,6 @@ import android.os.Handler;
 
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.EvernoteUtil;
-import com.evernote.client.android.asyncclient.EvernoteHtmlHelper;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
 import com.evernote.edam.error.EDAMNotFoundException;
@@ -20,11 +19,9 @@ import com.evernote.edam.notestore.NotesMetadataResultSpec;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
-import com.evernote.thrift.transport.TTransportException;
 import com.simple.lightnote.constant.Constans;
 import com.simple.lightnote.model.SimpleNote;
 import com.simple.lightnote.util.SPUtil;
-import com.simple.lightnote.utils.DateUtils;
 import com.simple.lightnote.utils.ListUtils;
 import com.simple.lightnote.utils.LogUtils;
 
@@ -87,10 +84,11 @@ public class EvernoteHelper {
 
     public Note createNote(SimpleNote simpleNote) throws Exception {
         try {
-            Note note = simpleNote.toNote();
+            Note note = simpleNote.toCreateNote();
             note.setNotebookGuid(SPUtil.getString(context, Constans.NOTEBOOK_GUID, null));
             LogUtils.e(TAG, "createNote: " + note);
             note.setContent(EvernoteUtil.NOTE_PREFIX + note.getContent() + EvernoteUtil.NOTE_SUFFIX);
+            noteStoreClient.createNote(note);
             Note responseNote = noteStoreClient.createNote(note);
             LogUtils.e(TAG, "Note创建成功");
 
@@ -129,6 +127,7 @@ public class EvernoteHelper {
 
     /**
      * 上传本地的笔记
+     *
      * @param simpleNote
      * @return
      * @throws Exception
@@ -137,7 +136,7 @@ public class EvernoteHelper {
 
         try {
             Note responseNote = noteStoreClient.updateNote(simpleNote.toUpdateNote());
-            noteDao.update(SimpleNote.simple(responseNote,simpleNote));
+            noteDao.update(SimpleNote.simple(responseNote, simpleNote));
             LogUtils.e(TAG, "Note更新成功");
             return responseNote;
         } catch (EDAMUserException e) {
@@ -161,16 +160,13 @@ public class EvernoteHelper {
             LogUtils.e(TAG, "获取到的文本：" + note.getContent());
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
             noteDao.insert(simpleNote);
-        } catch (TTransportException e) {
-        } catch (EDAMUserException e) {
-        } catch (EDAMSystemException e) {
-        } catch (EDAMNotFoundException e) {
-        } catch (TException e) {
+        } catch (EDAMUserException | EDAMNotFoundException | EDAMSystemException | TException e) {
         }
     }
 
     /**
      * 更新本地的笔记
+     *
      * @param guid
      * @param _id
      */
@@ -181,7 +177,7 @@ public class EvernoteHelper {
             SimpleNote simpleNote = SimpleNote.toSimpleNote(note);
 
             List<SimpleNote> list = noteDao.queryBuilder().where(NoteDao.Properties.Id.eq(_id)).list();
-            if(!ListUtils.isEmpty(list)){
+            if (!ListUtils.isEmpty(list)) {
                 SimpleNote simpleNote1 = list.get(0);
                 int status = simpleNote1.getStatus();
                 simpleNote.set_id(_id);
@@ -190,20 +186,15 @@ public class EvernoteHelper {
             }
 
             noteDao.update(simpleNote);
-        } catch (TTransportException e) {
-            e.printStackTrace();
-        } catch (EDAMUserException e) {
-            e.printStackTrace();
-        } catch (EDAMSystemException e) {
-            e.printStackTrace();
-        } catch (EDAMNotFoundException e) {
-            e.printStackTrace();
-        } catch (TException e) {
+        } catch (EDAMUserException | EDAMSystemException | TException | EDAMNotFoundException e) {
             e.printStackTrace();
         }
 
     }
 
+    /**
+     * 下载
+     */
     private void syncDown() {
         if (SyncingDown) {
             return;
@@ -239,11 +230,7 @@ public class EvernoteHelper {
                 }
             }
 
-        } catch (TTransportException e) {
-        } catch (EDAMUserException e) {
-        } catch (EDAMSystemException e) {
-        } catch (EDAMNotFoundException e) {
-        } catch (TException e) {
+        } catch (EDAMSystemException | TException e) {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -251,6 +238,11 @@ public class EvernoteHelper {
         }
     }
 
+    /**
+     * 上传
+     *
+     * @throws Exception
+     */
     private void syncUp() throws Exception {
         if (SyncingUp) {
             LogUtils.e(TAG, "正在同步");
@@ -265,14 +257,14 @@ public class EvernoteHelper {
             //1. 是否是已经同步过(guid)
             //2. 是否是删除的状态(isDeleted)
             //3. 是不是修改过的状态(needSyncUp)
-            if(simpleNote.getGuid()!=null){
-                if(simpleNote.getStatus()==SimpleNote.st_sync){
+            if (simpleNote.getGuid() != null) {
+                if (simpleNote.getStatus() == SimpleNote.st_sync) {
                     //更新以本地的数据为准(guid)
                     updateNote(simpleNote);
                 }
 
-            }else{
-                if(simpleNote.getStatus()==SimpleNote.st_sync){
+            } else {
+                if (simpleNote.getStatus() == SimpleNote.st_sync) {
                     createNote(simpleNote);
                 }
             }
@@ -359,27 +351,27 @@ public class EvernoteHelper {
 
         @Override
         protected Void doInBackground(Void... params) {
-            if (mSyncUp == false && mSyncDown == false) {
+            if (!mSyncUp && !mSyncDown) {
                 return null;
             }
-            if (EvernoteSession.getInstance().isLoggedIn() == false) {
+            if (!EvernoteSession.getInstance().isLoggedIn()) {
                 LogUtils.e(TAG, "未登录");
-                publishProgress(new Integer[]{SYNC_ERROR});
+                publishProgress(SYNC_ERROR);
                 return null;
             }
-            publishProgress(new Integer[]{SYNC_START});
+            publishProgress(SYNC_START);
             try {
                 makeSureNotebookExists(NOTEBOOK_NAME);
                 if (mSyncUp)
                     syncUp();
                 if (mSyncDown)
                     syncDown();
-                publishProgress(new Integer[]{SYNC_SUCCESS});
+                publishProgress(SYNC_SUCCESS);
             } catch (Exception e) {
-                publishProgress(new Integer[]{SYNC_ERROR});
+                publishProgress(SYNC_ERROR);
                 return null;
             } finally {
-                publishProgress(new Integer[]{SYNC_END});
+                publishProgress(SYNC_END);
             }
             return null;
         }
